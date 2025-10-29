@@ -1,0 +1,29 @@
+.root {
+    -fx-background-image: url("../cat_pattern.png");
+    -fx-background-size: cover;
+}
+.chat-window {
+
+    -fx-background-size: cover;
+}
+
+.label {
+    -fx-text-fill: #351b1b;
+}
+
+.text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: black;
+    -fx-prompt-text-fill: #512424;
+    -fx-border-color: #444;
+}
+
+.button {
+    -fx-background-color: #3A3A3A;
+    -fx-text-fill: #351b1b;
+    -fx-border-radius: 5;
+}
+
+.scroll-pane {
+    -fx-background: lightblue;
+}
