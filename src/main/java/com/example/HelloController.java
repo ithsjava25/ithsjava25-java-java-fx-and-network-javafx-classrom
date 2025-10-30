@@ -12,23 +12,31 @@ import javafx.scene.layout.VBox;
 public class HelloController {
 
     private final HelloModel model = new HelloModel();
-    public TextField messageInput;
-    public Button sendButton;
+
+    @FXML
+    private TextField messageInput;
+
+    @FXML
+    private Button sendButton;
 
     @FXML
     private VBox chatBox;
 
     @FXML
-    private Label messageLabel;
-
-    @FXML
     private void initialize() {
-        if (chatBox != null) {
-            Label msg1 = new Label("Hej! Hur mår du?");
-            Label msg2 = new Label("Jag mår bra, tack! 🐱");
 
-            chatBox.getChildren().addAll(msg1, msg2);
+        messageInput.setOnAction((event) -> sendMessage());
+        sendButton.setOnAction(event -> sendMessage());
+
+    }
+//StringProperty - HelloModel
+    private void sendMessage() {
+        String message = messageInput.getText();
+        if (message != null) {
+            Label messageLabel = new Label(message);
+            chatBox.getChildren().add(messageLabel);
+            messageInput.clear();
+            //messageInput.replaceSelection("Skriv ett nytt meddelande");
         }
-
     }
 }

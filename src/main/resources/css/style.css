@@ -8,22 +8,23 @@
 }
 
 .label {
-    -fx-text-fill: #351b1b;
+    -fx-text-fill: #b61616;
 }
 
 .text-field {
     -fx-background-color: transparent;
-    -fx-text-fill: black;
-    -fx-prompt-text-fill: #512424;
+    -fx-text-fill: #f1eeee;
+    -fx-prompt-text-fill: #0e0a0a;
     -fx-border-color: #444;
 }
 
 .button {
     -fx-background-color: #3A3A3A;
-    -fx-text-fill: #351b1b;
+    -fx-text-fill: #9a5454;
     -fx-border-radius: 5;
 }
 
 .scroll-pane {
     -fx-background: lightblue;
 }
+
