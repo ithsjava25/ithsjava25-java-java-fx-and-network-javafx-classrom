@@ -2,29 +2,38 @@
     -fx-background-image: url("../cat_pattern.png");
     -fx-background-size: cover;
 }
-.chat-window {
-
-    -fx-background-size: cover;
-}
 
 .label {
-    -fx-text-fill: #b61616;
+    -fx-text-fill: #0e0a0a;
 }
 
 .text-field {
     -fx-background-color: transparent;
     -fx-text-fill: #f1eeee;
-    -fx-prompt-text-fill: #0e0a0a;
+    -fx-prompt-text-fill: #efe9e9;
     -fx-border-color: #444;
+    -fx-border-radius: 5;
+    -fx-padding: 6px;
 }
 
 .button {
     -fx-background-color: #3A3A3A;
     -fx-text-fill: #9a5454;
     -fx-border-radius: 5;
+    -fx-padding: 6px 12px;
 }
 
 .scroll-pane {
-    -fx-background: lightblue;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.message-bubble {
+    -fx-background-color: rgba(50, 50, 50, 0.6);
+    -fx-text-fill: white;
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 10;
+    -fx-wrap-text: true;
+    -fx-max-width: 400px;
 }
 

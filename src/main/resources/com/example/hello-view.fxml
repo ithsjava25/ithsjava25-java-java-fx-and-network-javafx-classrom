@@ -4,29 +4,36 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane prefHeight="594.0" prefWidth="540.0" stylesheets="@../../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+<BorderPane prefHeight="594.0" prefWidth="540.0"
+            stylesheets="@../../css/style.css"
+            xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.HelloController">
 
-        <top>
-            <VBox prefHeight="50.0">
-                <Label text="CatCode Messenger">
-            <font>
-               <Font name="Bookman Old Style Bold Italic" size="36.0" />
-            </font></Label>
-            </VBox>
-        </top>
+    <top>
+        <VBox prefHeight="50.0" alignment="CENTER">
+            <Label text="CatCode Messenger">
+                <font>
+                    <Font name="Bookman Old Style Bold Italic" size="36.0" />
+                </font>
+            </Label>
+        </VBox>
+    </top>
 
     <center>
-        <ScrollPane opacity="0.6">
-            <VBox fx:id="chatBox" />
+        <ScrollPane fitToWidth="true" opacity="0.6">
+            <VBox fx:id="chatBox" spacing="8" />
         </ScrollPane>
     </center>
 
     <bottom>
-        <HBox>
-            <TextField fx:id="messageInput" prefHeight="50" promptText="Skriv ett meddelande..." HBox.hgrow="ALWAYS" />
+        <HBox spacing="10">
+            <TextField fx:id="messageInput"
+                       promptText="Skriv ett meddelande..."
+                       prefHeight="50"
+                       HBox.hgrow="ALWAYS" />
             <Button fx:id="sendButton" text="Skicka" />
         </HBox>
     </bottom>
-
 
 </BorderPane>
