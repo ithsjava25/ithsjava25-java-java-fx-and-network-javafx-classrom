@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.HelloController"
+            stylesheets="@chat-style.css">
+
+    <center>
+        <ScrollPane fx:id="chatScroll" fitToWidth="true" VBox.vgrow="ALWAYS">
+            <VBox fx:id="chatBox" spacing="5" style="-fx-padding: 10;" />
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox spacing="5" style="-fx-padding: 10;">
+            <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
+            <Button text="Skicka" onAction="#handleSend" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

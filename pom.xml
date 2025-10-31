@@ -15,8 +15,21 @@
         <assertj.core.version>3.27.6</assertj.core.version>
         <mockito.version>5.20.0</mockito.version>
         <javafx.version>25</javafx.version>
+        <!-- Ange sökväg till din JDK med JavaFX -->
+        <javafx.sdk>/usr/lib/jvm/liberica-24-full</javafx.sdk>
     </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -35,17 +48,8 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-fxml</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -55,14 +59,12 @@
                 <configuration>
                     <mainClass>com.example.HelloFX</mainClass>
                     <options>
-                    <option>--enable-native-access=javafx.graphics</option>
+                        <!-- Korrekt CDATA för specialtecken -->
+                        <option><![CDATA[--module-path ${javafx.sdk}/lib --add-modules javafx.controls,javafx.fxml]]></option>
                     </options>
-                    <launcher>javafx</launcher>
-                    <stripDebug>true</stripDebug>
-                    <noHeaderFiles>true</noHeaderFiles>
-                    <noManPages>true</noManPages>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
 </project>
