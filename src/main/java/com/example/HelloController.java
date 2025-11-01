@@ -5,7 +5,7 @@ import javafx.scene.control.Label;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 
 import java.io.IOException;
 
@@ -15,7 +15,7 @@ import java.io.IOException;
 public class HelloController {
 
     @FXML private TextArea chatArea;
-    @FXML private TextField inputField;
+    @FXML private TextArea inputField;
     @FXML private Button sendButton;
 
     private final HelloModel model = new HelloModel();
@@ -29,6 +29,16 @@ public class HelloController {
             chatArea.appendText(message + "\n");
         }));
         sendButton.setOnAction(e->sendMessage());
+        inputField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                if (event.isShiftDown()) {
+                    inputField.appendText("\n");
+                } else {
+                    sendMessage();
+                }
+                event.consume();
+            }
+        });
     }
     @FXML
     private void sendMessage() {

@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.HelloController"
-      spacing="10">
+<VBox spacing="10" style="-fx-background-color: GRAY;"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.HelloController">
+
     <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
+        <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
 
-    <TextArea fx:id="chatArea" editable="false" prefHeight="400"/>
+    <TextArea fx:id="chatArea" editable="false" prefHeight="400" />
 
     <HBox spacing="5">
-        <TextField fx:id="inputField" promptText="Skriv meddelande..." HBox.hgrow="ALWAYS"/>
-        <Button fx:id="sendButton" text="Skicka"/>
+        <TextArea fx:id="inputField"
+                  promptText="Skriv meddelande..."
+                  prefRowCount="2"
+                  wrapText="true"
+                  style="-fx-background-color: WHITE;"
+                  HBox.hgrow="ALWAYS"/>
+        <Button fx:id="sendButton" text="Skicka" />
     </HBox>
 </VBox>
