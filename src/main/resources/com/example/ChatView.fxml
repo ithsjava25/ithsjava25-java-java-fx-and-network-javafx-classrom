@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.controller.ChatController"
+      prefHeight="750.0" prefWidth="950.0"
+      style="-fx-background-color: linear-gradient(to bottom, #f5f0e8 0%, #e8dfd0 100%);">
+
+    <padding>
+        <Insets top="25" right="25" bottom="25" left="25"/>
+    </padding>
+
+    <!-- Header with red sun -->
+    <StackPane prefHeight="120" style="-fx-background-color: transparent;">
+        <VBox.margin>
+            <Insets bottom="20"/>
+        </VBox.margin>
+
+        <HBox alignment="TOP_LEFT" spacing="0">
+            <padding>
+                <Insets top="10" left="20"/>
+            </padding>
+            <Label text="🌸" style="-fx-font-size: 24px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 0, 2);"/>
+        </HBox>
+
+
+        <!-- titeln -->
+        <VBox alignment="CENTER" spacing="5">
+            <Label text="Java 2025 Chat"
+                   style="-fx-font-size: 32px;
+                          -fx-font-weight: bold;
+                          -fx-text-fill: #3d3d3d;
+                          -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.8), 3, 0, 0, 1);"/>
+        </VBox>
+
+        <!-- online status -->
+        <HBox alignment="BOTTOM_RIGHT">
+            <padding>
+                <Insets bottom="5" right="5"/>
+            </padding>
+            <Label fx:id="statusLabel" text="● online"
+                   style="-fx-text-fill: #c93939;
+                          -fx-font-size: 10px;
+                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 2, 0, 0, 1);"/>
+        </HBox>
+    </StackPane>
+
+    <!-- dekorativ trälinje -->
+    <HBox alignment="CENTER_LEFT" spacing="10"
+          style="-fx-padding: 0 0 15 0;">
+        <VBox.margin>
+            <Insets bottom="15"/>
+        </VBox.margin>
+        <Label text="🌸" style="-fx-font-size: 14px;"/>
+        <Region style="-fx-background-color: linear-gradient(to right, rgba(61, 61, 61, 0.3), rgba(61, 61, 61, 0.1));
+                       -fx-pref-height: 2;"
+                HBox.hgrow="ALWAYS"/>
+        <Label text="🌸" style="-fx-font-size: 12px;"/>
+        <Region style="-fx-background-color: linear-gradient(to right, rgba(61, 61, 61, 0.1), rgba(61, 61, 61, 0.3));
+                       -fx-pref-height: 2;"
+                HBox.hgrow="ALWAYS"/>
+        <Label text="🌸" style="-fx-font-size: 14px;"/>
+    </HBox>
+
+    <!-- meddelande området -->
+    <StackPane VBox.vgrow="ALWAYS">
+        <VBox.margin>
+            <Insets bottom="20"/>
+        </VBox.margin>
+
+        <!-- bakgrunden -->
+        <Region style="-fx-background-color: rgba(255, 250, 240, 0.85);
+                       -fx-border-color: #8b7d6b;
+                       -fx-border-width: 2;
+                       -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 15, 0, 0, 0);"/>
+
+        <!-- sakura blommor -->
+        <HBox alignment="TOP_RIGHT">
+            <padding>
+                <Insets top="20" right="30"/>
+            </padding>
+            <Label text="🌸"
+                   style="-fx-font-size: 80px;
+                          -fx-text-fill: rgba(214, 69, 69, 0.08);
+                          -fx-rotate: -15;"/>
+        </HBox>
+
+        <HBox alignment="BOTTOM_LEFT">
+            <padding>
+                <Insets bottom="30" left="40"/>
+            </padding>
+            <Label text="🌸"
+                   style="-fx-font-size: 60px;
+                          -fx-text-fill: rgba(214, 69, 69, 0.06);
+                          -fx-rotate: 20;"/>
+        </HBox>
+
+        <!-- meddelande lista -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent;
+                           -fx-background: transparent;">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <ListView fx:id="messageListView"
+                      style="-fx-background-color: transparent;
+                             -fx-background-insets: 0;
+                             -fx-border-width: 0;
+                             -fx-padding: 10;">
+            </ListView>
+        </ScrollPane>
+    </StackPane>
+
+    <!-- dekorativa blad -->
+    <HBox alignment="CENTER" spacing="20"
+          style="-fx-padding: 15 0 15 0;">
+        <VBox.margin>
+            <Insets bottom="15"/>
+        </VBox.margin>
+
+        <Label text="🌸" style="-fx-font-size: 10px; -fx-text-fill: rgba(214, 69, 69, 0.4);"/>
+        <Region style="-fx-background-color: rgba(139, 125, 107, 0.25); -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+        <Label text="🌸" style="-fx-font-size: 14px; -fx-text-fill: rgba(214, 69, 69, 0.5);"/>
+        <Region style="-fx-background-color: rgba(139, 125, 107, 0.25); -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+        <Label text="🌸" style="-fx-font-size: 10px; -fx-text-fill: rgba(214, 69, 69, 0.4);"/>
+    </HBox>
+
+    <!-- input område -->
+    <VBox spacing="12"
+          style="-fx-background-color: rgba(255, 250, 240, 0.95);
+                 -fx-border-color: #8b7d6b;
+                 -fx-border-width: 2;
+                 -fx-padding: 20;
+                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 10, 0, 0, 3);">
+
+        <HBox alignment="CENTER_LEFT" spacing="8">
+            <Label text="🌸" style="-fx-font-size: 16px;"/>
+            <Label text="Your Message"
+                   style="-fx-text-fill: #6b5d54;
+                          -fx-font-size: 11px;
+                          -fx-font-weight: bold;"/>
+        </HBox>
+
+        <HBox spacing="15" alignment="CENTER_LEFT">
+
+            <TextField fx:id="messageInput"
+                       promptText="Skriv något fint..."
+                       HBox.hgrow="ALWAYS"
+                       onAction="#handleSendButtonAction"
+                       style="-fx-background-color: rgba(255, 255, 255, 0.7);
+                              -fx-text-fill: #3d3d3d;
+                              -fx-prompt-text-fill: rgba(61, 61, 61, 0.4);
+                              -fx-border-color: rgba(139, 125, 107, 0.4);
+                              -fx-border-width: 0 0 2 0;
+                              -fx-padding: 14;
+                              -fx-font-size: 14px;
+                              -fx-background-radius: 0;
+                              -fx-border-radius: 0;">
+                <font>
+                    <Font size="14"/>
+                </font>
+            </TextField>
+
+            <Button text="Send 🌸"
+                    onAction="#handleSendButtonAction"
+                    defaultButton="true"
+                    style="-fx-background-color: linear-gradient(to bottom, #d64545 0%, #c93939 100%);
+                           -fx-text-fill: #fffaf0;
+                           -fx-font-size: 13px;
+                           -fx-font-weight: bold;
+                           -fx-background-radius: 25;
+                           -fx-cursor: hand;
+                           -fx-padding: 12 28 12 28;
+                           -fx-border-color: #b83232;
+                           -fx-border-width: 2;
+                           -fx-border-radius: 25;
+                           -fx-effect: dropshadow(gaussian, rgba(214, 69, 69, 0.4), 8, 0, 0, 3);"
+                    prefHeight="45"/>
+        </HBox>
+
+
+        <HBox alignment="CENTER" spacing="5" style="-fx-padding: 8 0 0 0;">
+            <Label text="🌸" style="-fx-font-size: 8px; -fx-text-fill: rgba(214, 69, 69, 0.5);"/>
+            <Label text="Skriv något fint..."
+                   style="-fx-text-fill: rgba(61, 61, 61, 0.6);
+                          -fx-font-size: 9px;
+                          -fx-font-style: italic;"/>
+            <Label text="🌸" style="-fx-font-size: 8px; -fx-text-fill: rgba(214, 69, 69, 0.5);"/>
+        </HBox>
+    </VBox>
+
+    <!-- längst ner blad -->
+    <HBox alignment="CENTER" spacing="15" style="-fx-padding: 15 0 5 0;">
+        <Label text="🌸" style="-fx-font-size: 12px; -fx-text-fill: rgba(214, 69, 69, 0.4);"/>
+        <Label text="🌸" style="-fx-font-size: 16px; -fx-text-fill: rgba(214, 69, 69, 0.5);"/>
+        <Label text="🌸" style="-fx-font-size: 12px; -fx-text-fill: rgba(214, 69, 69, 0.4);"/>
+    </HBox>
+</VBox>
