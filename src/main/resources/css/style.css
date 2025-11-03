@@ -12,8 +12,8 @@
 }
 
 .title-bar {
-    -fx-text-fill: #cfd4e1;
-    -fx-font-family: "Century Gothic";
+    -fx-text-fill: #d91d5f;
+    -fx-font-family: "Britannic Bold";
     -fx-font-size: 36;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .message-bubble {
-    -fx-background-color: rgba(143, 61, 209, 0.6);
+    -fx-background-color: rgb(217, 29, 95);
     -fx-text-fill: white;
     -fx-padding: 8px 12px;
     -fx-background-radius: 10;

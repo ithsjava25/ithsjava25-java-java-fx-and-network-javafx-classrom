@@ -64,9 +64,9 @@ public class HelloController {
                         chatBox.getChildren().add(label);
 
                     }
-                    Platform.runLater(() -> {
-                        messageToLast.setVvalue(1.0);
-                    });
+                    //Platform.runLater(() -> {
+                       // messageToLast.setVvalue(1.0);
+                    //});
                 });
 
     }
@@ -75,6 +75,7 @@ public class HelloController {
         //Kontrollerar om text-fältet är tomt
         //Lägger till meddelandet i listan från model och tömmer sedan fältet där text matas in(prompt-meddelande visas igen)
         if (!messageInput.getText().isEmpty()) {
+            model.sendMessage();
             model.addMessages(messageInput.getText());
             messageInput.clear();
         }
