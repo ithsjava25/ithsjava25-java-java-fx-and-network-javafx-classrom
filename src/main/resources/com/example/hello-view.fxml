@@ -12,6 +12,7 @@
     <HBox alignment="CENTER" VBox.vgrow="ALWAYS" spacing="5">
         <Text text="left"/>
         <TextArea fx:id="myTextArea" editable="false" wrapText="true" prefHeight="300.0" VBox.vgrow="ALWAYS">
+            <ListView fx:id="messageView" />
             <padding>
                 <Insets bottom="1.0" left="1.0" right="1.0" top="1.0"/>
             </padding>
@@ -31,6 +32,7 @@
                     <Font size="14.0"/>
                 </font>
             </Button>
+            <Button text = "send message" onAction="#sendMessage" />
         </items>
     </SplitPane>
 
