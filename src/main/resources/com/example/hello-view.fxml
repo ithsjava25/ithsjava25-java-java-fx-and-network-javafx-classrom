@@ -15,9 +15,7 @@
     </top>
 
     <center>
-        <ScrollPane fx:id="messageToLast" fitToWidth="true">
-            <VBox fx:id="chatBox" styleClass="chat-box-container" />
-        </ScrollPane>
+        <ListView fx:id="chatBox" styleClass="chat-box-container" />
     </center>
 
     <bottom>

@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -23,9 +24,9 @@ public class HelloModel {
      * Handles and returns a list of messages observed by JavaFX
      * Stores, changes and returns data. Remove?
      */
-    //Lista som håller alla meddelanden, bindnings-bar och observerbar
+    //Lista som håller alla meddelanden
     //FXCollections.observableArrayList() = Nyckel som gör listan ändrings-bar och som JavaFX kan lyssna på
-    private final ListProperty<String> messages = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     //Istället för String NtfyMessageDto
     private final String hostName;
     private final HttpClient http = HttpClient.newHttpClient();
@@ -38,19 +39,19 @@ public class HelloModel {
     }
 
     //getter från private
-    public ListProperty<String> getMessages() {
+    public ObservableList<NtfyMessageDto> getMessages() {
         return messages;
     }
 
     //tar in ett meddelande från controller och lägger till det i listan
-    public void addMessages(String message) {
+    public void addMessages(NtfyMessageDto message) {
         messages.add(message);
     }
 
-    public void sendMessage() {
+    public void sendMessage(String messageText) {
         //Send message to client - HTTP meddelande
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString("Test1"))
+                .POST(HttpRequest.BodyPublishers.ofString(messageText))
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
         try {
@@ -70,15 +71,13 @@ public class HelloModel {
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
+                        .map(s -> mapper.readValue(s, NtfyMessageDto.class))
                         .peek(System.out::println)
-                        .map(s -> mapper.readValue(s, NtfyMessageDto.class)));
-                        //.forEach(s ->
-                                //Platform.runLater(() -> messages.add(s))));
+                        .forEach(s ->
+                                Platform.runLater(() -> messages.add(s))));
         //.exceptionally()
         //close
     }
 }
-@JsonIgnoreProperties(ignoreUnknown = true)
-record NtfyMessageDto(String id, long time, String event, String topic, String message){}
 
 

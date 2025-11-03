@@ -23,6 +23,9 @@
 .chat-box-container {
     -fx-spacing: 10px;
     -fx-padding: 10px;
+    -fx-background: transparent;
+    -fx-background-color: rgba(255, 255, 255, 0.6);
+    -fx-background-radius: 5;
 }
 
 .message-bubble {
@@ -35,11 +38,6 @@
     -fx-font-family: "Century Gothic";
 }
 
-.scroll-pane {
-    -fx-background: transparent;
-    -fx-background-color: rgba(255, 255, 255, 0.6);
-    -fx-background-radius: 5;
-}
 
 /* --- BOTTOM (Inputfält & Knapp) --- */
 

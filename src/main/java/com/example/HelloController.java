@@ -2,10 +2,7 @@ package com.example;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 /**
@@ -26,13 +23,10 @@ public class HelloController {
     @FXML
     private Button sendButton;
 
-    //Kopplar en VBox från FXML där alla meddelanden visas
-    @FXML
-    private VBox chatBox;
 
-    //Får chattvyn att skrolla ner till senaste meddelandet
+    //Ytan för alla meddelanden som visas
     @FXML
-    private ScrollPane messageToLast;
+    private ListView<NtfyMessageDto> chatBox;
 
     //Metoden körs automatiskt när appen startar
     @FXML
@@ -46,37 +40,45 @@ public class HelloController {
         });
 
         //Om användaren trycker på Enter eller klickar med musen -> skicka meddelandet
-        messageInput.setOnAction((event) -> sendMessage());
-        sendButton.setOnAction(event -> sendMessage());
+        messageInput.setOnAction((event) -> sendMessageToModel());
+        sendButton.setOnAction(event -> sendMessageToModel());
 
-        //Lyssna på förändringar i meddelandelistan, observable = listan,
-        // oldList = listan innan förändringar, newList = listan efter förändringar
-        model.getMessages()
-                .addListener((observable, oldList, newList) -> {
-                    //Tar bort den gamla listan för att lägga till den nya
-                    chatBox.getChildren().clear();
-                    //lägg till varje meddelande som en pratbubbla(Label)
-                    for (String msg : newList) {
-                        //Skapar en etikett med stilen från css-klassen message-bubble
-                        Label label = new Label(msg);
-                        label.getStyleClass().add("message-bubble");
-                        //Lägger till den i vbox
-                        chatBox.getChildren().add(label);
+        //Kopplar Listan i view med ObservableList i HelloModel
+        chatBox.setItems(model.getMessages());
 
-                    }
-                    //Platform.runLater(() -> {
-                       // messageToLast.setVvalue(1.0);
-                    //});
-                });
+        //Styr hur varje meddelande ska visas i chatboxen
+        chatBox.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(NtfyMessageDto item, boolean empty) {
+                super.updateItem(item, empty);
+                //Kräver en null check då JavaFX återanvänder cellerna
+               if (item == null || empty) {
+                   setText(null);
+                   setGraphic(null);
+            }
+            else{
+                //Skapar en label med meddelande-texten och sätter en stil från css
+                   Label label = new Label(item.message());
+                    label.getStyleClass().add("message-bubble");
+                    setGraphic(label);
+                }
+            }
+        });
 
     }
 
-    private void sendMessage() {
+    private void sendMessageToModel() {
         //Kontrollerar om text-fältet är tomt
-        //Lägger till meddelandet i listan från model och tömmer sedan fältet där text matas in(prompt-meddelande visas igen)
         if (!messageInput.getText().isEmpty()) {
-            model.sendMessage();
-            model.addMessages(messageInput.getText());
+            model.sendMessage(messageInput.getText());
+            NtfyMessageDto dto = new NtfyMessageDto(String.valueOf(System.currentTimeMillis())
+                    , System.currentTimeMillis()
+                    ,"Message"
+                    ,"topic"
+                    ,messageInput.getText()
+            );
+            //Lägger till meddelandet i listan från model och tömmer sedan fältet där text matas in(prompt-meddelande visas igen)
+            model.addMessages(dto);
             messageInput.clear();
         }
     }
