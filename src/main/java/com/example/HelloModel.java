@@ -1,20 +1,58 @@
 package com.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * Model layer: encapsulates application data and business logic.
  */
 public class HelloModel {
+
+
+    private final NtfyConnection connection;
+
+    private final ObservableList<NtfyMessageDto> messages= FXCollections.observableArrayList();
+    private final StringProperty messageToSend= new SimpleStringProperty();
+
+
+    public HelloModel(NtfyConnection connection){
+        this.connection=connection;
+        receiveMessage();
+
+    }
+
+    public ObservableList<NtfyMessageDto> getMessages(){
+        return messages;
+    }
+
+    public String getMessageToSend() {
+        return messageToSend.get();
+    }
+
+    public StringProperty messageToSendProperty() {
+        return messageToSend;
+    }
+
+    public void setMessageToSend(String message){
+        messageToSend.set(message);
+    }
+
     /**
      * Returns a greeting based on the current Java and JavaFX versions.
      */
@@ -25,183 +63,16 @@ public class HelloModel {
     }
 
 
-
-    public record ChatEntry(
-            String sender,
-            String message,
-            LocalDate timeStamp){}
-
-
-    private static final DateTimeFormatter TIME_FORMATTER=DateTimeFormatter.ofPattern("HH:mm");
-
-    public ObservableList<ChatEntry> getChatHistory() {
+    public void sendMessage() {
+        connection.send(messageToSend.get());
     }
 
-    ObservableList<ChatEntry> chatHistory=new ObservableList<String>() {
-        @Override
-        public void addListener(ListChangeListener<? super String> listChangeListener) {
 
-        }
 
-        @Override
-        public void removeListener(ListChangeListener<? super String> listChangeListener) {
-
-        }
-
-        @Override
-        public boolean addAll(String... strings) {
-            return false;
-        }
-
-        @Override
-        public boolean setAll(String... strings) {
-            return false;
-        }
-
-        @Override
-        public boolean setAll(Collection<? extends String> collection) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(String... strings) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(String... strings) {
-            return false;
-        }
-
-        @Override
-        public void remove(int i, int i1) {
-
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return false;
-        }
-
-        @Override
-        public Iterator<String> iterator() {
-            return null;
-        }
-
-        @Override
-        public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @Override
-        public <T> T[] toArray(T[] a) {
-            return null;
-        }
-
-        @Override
-        public boolean add(String s) {
-            return false;
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            return false;
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends String> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(int index, Collection<? extends String> c) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public void clear() {
-
-        }
-
-        @Override
-        public String get(int index) {
-            return "";
-        }
-
-        @Override
-        public String set(int index, String element) {
-            return "";
-        }
-
-        @Override
-        public void add(int index, String element) {
-
-        }
-
-        @Override
-        public String remove(int index) {
-            return "";
-        }
-
-        @Override
-        public int indexOf(Object o) {
-            return 0;
-        }
-
-        @Override
-        public int lastIndexOf(Object o) {
-            return 0;
-        }
-
-        @Override
-        public ListIterator<String> listIterator() {
-            return null;
-        }
-
-        @Override
-        public ListIterator<String> listIterator(int index) {
-            return null;
-        }
-
-        @Override
-        public List<String> subList(int fromIndex, int toIndex) {
-            return List.of();
-        }
-
-        @Override
-        public void addListener(InvalidationListener invalidationListener) {
-
-        }
-
-        @Override
-        public void removeListener(InvalidationListener invalidationListener) {
-
-        }
+    public void receiveMessage(){
+        connection.receive(m-> Platform.runLater(()->messages.add(m)));
     }
+
+
 
 }

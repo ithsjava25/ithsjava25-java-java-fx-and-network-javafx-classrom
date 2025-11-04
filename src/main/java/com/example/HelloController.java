@@ -1,47 +1,50 @@
 package com.example;
 
-
-import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
-/**
- * Controller layer: mediates between the view (FXML) and the model.
- */
 public class HelloController {
 
-    private final HelloModel model = new HelloModel();
+    private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
+    public ListView<NtfyMessageDto> chatListView;
 
     @FXML
-    public TextField messageInput;
-    @FXML
-    public Button sendButton;
-    @FXML
-    public Button attachButton;
-    @FXML
-    public TextField nameInput;
-
-
+    private Button sendButton;
 
     @FXML
-    public ListView<HelloModel.ChatEntry> chatListView;
+    private TextField messageInput;
+
+    @FXML
+    private Button attachFile;
 
     @FXML
     private void initialize() {
+        if (sendButton != null) {
+            sendButton.setText(model.getGreeting());
+        }
 
-            ObservableList<HelloModel.ChatEntry> history = model.getChatHistory();
+        if (messageInput!=null){
+            messageInput.textProperty().bindBidirectional(model.messageToSendProperty());
+        }
 
-            chatListView.setItems(history);
-
+        if(chatListView!=null){
+            chatListView.setItems(model.getMessages());
+        }
     }
 
     @FXML
-    public void handleSendButton() {
-        String messageText= messageInput.getText();
-        String senderName=nameInput.getText();
+    public void sendMessage(ActionEvent actionEvent) {
+        model.sendMessage();
 
+        model.setMessageToSend("");
 
+        if (messageInput!=null){
+            messageInput.requestFocus();
+        }
     }
+
+
 }
