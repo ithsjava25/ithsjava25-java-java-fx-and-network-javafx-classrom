@@ -3,32 +3,46 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="500.0" prefWidth="700.0" style=" -fx-background-size: cover;                    -fx-background-position: center center;                    -fx-background-repeat: no-repeat;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+<BorderPane prefHeight="500.0" prefWidth="700.0"
+            style="-fx-background-size: cover; -fx-background-position: center center;-fx-background-repeat: no-repeat;"
+            xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.HelloController">
     <center>
 
         <ListView fx:id="chatListView" BorderPane.alignment="CENTER" />
     </center>
     <bottom>
 
-        <HBox alignment="CENTER" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.8); -fx-padding: 10;">
+        <HBox alignment="CENTER" spacing="10.0"
+              style="-fx-background-color: rgba(255, 255, 255, 0.8); -fx-padding: 10;">
             <children>
 
-                <TextField fx:id="messageInput" onAction="#sendMessage" promptText="Write your message here..." HBox.hgrow="ALWAYS" />
+                <TextField fx:id="messageInput"
+                           onAction="#sendMessage"
+                           promptText="Write your message here..."
+                           HBox.hgrow="ALWAYS" />
 
 
-                <Button fx:id="sendButton" mnemonicParsing="false" onAction="#sendMessage"
-                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" text="Send message" />
+                <Button fx:id="sendButton" mnemonicParsing="false"
+                        onAction="#sendMessage"
+                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"
+                        text="Send message" />
 
 
-                <Button fx:id="attachFile" mnemonicParsing="false" style="-fx-background-color: #2196F3;
-                            -fx-text-fill: white; -fx-font-weight: bold;" text="AttachFile" />
+                <Button fx:id="attachFile"
+                        mnemonicParsing="false"
+                        onAction="#attachFile"
+                        style="-fx-background-color: #2196F3;-fx-text-fill: white; -fx-font-weight: bold;"
+                        text="Attach File" />
             </children>
         </HBox>
     </bottom>
     <top>
         <VBox style="-fx-background-color: rgba(0, 0, 0, 0.7); -fx-padding: 10;">
             <children>
-                <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Välkommen till SuperChatten!" textFill="WHITE" />
+                <Label style="-fx-font-size: 18px; -fx-font-weight: bold;"
+                       text="Välkommen till SuperChatten!"
+                       textFill="WHITE" />
             </children>
         </VBox>
     </top>

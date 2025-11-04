@@ -45,6 +45,10 @@ public class HelloController {
             messageInput.requestFocus();
         }
     }
+    @FXML
+    public void attachFile(ActionEvent actionEvent){
+
+    }
 
 
 }
