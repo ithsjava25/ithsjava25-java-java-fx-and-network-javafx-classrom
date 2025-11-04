@@ -40,11 +40,6 @@ public class HelloModel {
         return messages;
     }
 
-    //tar in ett meddelande från controller och lägger till det i listan
-    public void addMessages(NtfyMessageDto message) {
-        messages.add(message);
-    }
-
     public void sendMessage(String messageText) {
         //Send message to client - HTTP meddelande
         HttpRequest httpRequest = HttpRequest.newBuilder()

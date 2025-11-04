@@ -78,7 +78,7 @@ public class HelloController {
                     ,messageInput.getText()
             );
             //Lägger till meddelandet i listan från model och tömmer sedan fältet där text matas in(prompt-meddelande visas igen)
-            model.addMessages(dto);
+            model.getMessages().add(dto);
             messageInput.clear();
         }
     }
