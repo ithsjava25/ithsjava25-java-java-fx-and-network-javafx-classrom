@@ -7,6 +7,7 @@
 
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Label?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.HelloController"
             stylesheets="@chat-style.css">
@@ -21,6 +22,7 @@
         <HBox spacing="5" style="-fx-padding: 10;">
             <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
             <Button text="Skicka" onAction="#handleSend" />
+            <Label fx:id="statusLabel" textFill="red" />
         </HBox>
     </bottom>
 
