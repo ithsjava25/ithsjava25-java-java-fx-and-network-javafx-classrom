@@ -1,10 +1,7 @@
 package com.example;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Platform;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import tools.jackson.databind.ObjectMapper;
@@ -61,6 +58,7 @@ public class HelloModel {
         } catch (InterruptedException e) {
             System.out.println("Sending message interrupted");
         }
+
     }
 
     public void receiveMessage() {

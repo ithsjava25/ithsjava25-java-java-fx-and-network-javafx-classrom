@@ -83,6 +83,11 @@ public class HelloController {
         }
     }
 
+    private void receiveMessageFromModel() {
+        chatBox.setItems(model.getMessages());
+
+    }
+
     private void updateSendButtonState() {
         // Kollar om texten, efter att ha tagit bort ledande/efterföljande mellanslag, är tom.
         boolean isTextPresent = !messageInput.getText().trim().isEmpty();

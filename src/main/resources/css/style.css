@@ -28,6 +28,10 @@
     -fx-background-radius: 5;
 }
 
+.list-cell {
+    -fx-background-color: transparent;
+}
+
 .message-bubble {
     -fx-background-color: rgb(217, 29, 95);
     -fx-text-fill: white;
