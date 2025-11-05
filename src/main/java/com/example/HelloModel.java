@@ -14,7 +14,7 @@ public class HelloModel {
     private final NtfyConnection connection;
 
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private final StringProperty messageToSend = new SimpleStringProperty();
+    private final StringProperty messageToSend = new SimpleStringProperty("");
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
