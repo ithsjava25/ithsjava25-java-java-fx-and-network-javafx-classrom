@@ -12,7 +12,6 @@ import javafx.collections.ObservableList;
 public class HelloModel {
 
     private final NtfyConnection connection;
-
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final StringProperty messageToSend = new SimpleStringProperty("");
 
@@ -37,9 +36,6 @@ public class HelloModel {
         messageToSend.set(message);
     }
 
-    /**
-     * Returns a greeting based on the current Java and JavaFX versions.
-     */
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
