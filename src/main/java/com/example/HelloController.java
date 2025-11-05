@@ -2,7 +2,9 @@ package com.example;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
@@ -12,7 +14,7 @@ import javafx.scene.layout.VBox;
 public class HelloController {
 
     //En model skapas som i bakgrunden är en lista och håller koll på meddelanden
-    private final HelloModel model = new HelloModel();
+    private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
     //@FXML kopplingar
     //Kopplar ett textfält från FXML där användaren skriver ett meddelande
@@ -32,6 +34,7 @@ public class HelloController {
     @FXML
     private void initialize() {
         //Sätter ursprungstillståndet (default) för skicka-knappen
+
         updateSendButtonState();
 
         //Lägger till en lyssnare för att uppdatera knappen vid inmatning av text
@@ -43,9 +46,9 @@ public class HelloController {
         messageInput.setOnAction((event) -> sendMessageToModel());
         sendButton.setOnAction(event -> sendMessageToModel());
 
-        //Kopplar Listan i view med ObservableList i HelloModel
-        chatBox.setItems(model.getMessages());
 
+
+        //model.receiveMessage();
         //Styr hur varje meddelande ska visas i chatboxen
         chatBox.setCellFactory(listView -> new ListCell<>() {
             @Override
@@ -60,32 +63,45 @@ public class HelloController {
                 //Skapar en label med meddelande-texten och sätter en stil från css
                    Label label = new Label(item.message());
                     label.getStyleClass().add("message-bubble");
-                    setGraphic(label);
+
+                    String time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                                    .format(java.time.Instant.ofEpochMilli(item.time())
+                                            .atZone(java.time.ZoneId.systemDefault()));
+                    Label labelTime = new Label(time);
+                    labelTime.getStyleClass().add("time-stamp");
+
+                    //Layout
+                   VBox messageBox = new VBox(label, labelTime);
+                   messageBox.setSpacing(2);
+
+                   //Vänster eller höger i ListView
+                   HBox hbox = new HBox(messageBox);
+                   hbox.setMaxWidth(chatBox.getWidth()-20);
+
+                   String messagePosition = item.message();
+                   if (messagePosition != null && messagePosition.startsWith("User:")) {
+                       hbox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                       label.getStyleClass().add("outgoing-message");
+                   } else {
+                       hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                       label.getStyleClass().add("incoming-message");
+                   }
+                    setGraphic(hbox);
                 }
             }
         });
-
+        //Kopplar Listan i view med ObservableList i HelloModel
+        chatBox.setItems(model.getMessages());
     }
 
     private void sendMessageToModel() {
+        String outgoingMessage = messageInput.getText().trim();
         //Kontrollerar om text-fältet är tomt
-        if (!messageInput.getText().isEmpty()) {
-            model.sendMessage(messageInput.getText());
-            NtfyMessageDto dto = new NtfyMessageDto(String.valueOf(System.currentTimeMillis())
-                    , System.currentTimeMillis()
-                    ,"Message"
-                    ,"topic"
-                    ,messageInput.getText()
-            );
-            //Lägger till meddelandet i listan från model och tömmer sedan fältet där text matas in(prompt-meddelande visas igen)
-            model.getMessages().add(dto);
+        if (!outgoingMessage.isEmpty()) {
+            model.sendMessage("User: " + outgoingMessage);
+            //tömmer sedan fältet där text matas in(prompt-meddelande visas igen)
             messageInput.clear();
         }
-    }
-
-    private void receiveMessageFromModel() {
-        chatBox.setItems(model.getMessages());
-
     }
 
     private void updateSendButtonState() {

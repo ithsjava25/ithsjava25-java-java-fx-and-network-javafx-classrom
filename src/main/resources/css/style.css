@@ -38,8 +38,25 @@
     -fx-padding: 8px 12px;
     -fx-background-radius: 10;
     -fx-wrap-text: true;
-    -fx-max-width: 400px;
+    -fx-max-width: 200px;
     -fx-font-family: "Century Gothic";
+}
+
+.incoming-message {
+    -fx-background-color: black;
+    -fx-text-fill: white;
+
+}
+
+.outgoing-message {
+    -fx-background-color: black;
+    -fx-text-fill: white;
+}
+
+.time-stamp {
+    -fx-font-size: 10px;
+    -fx-text-fill: gray;
+    -fx-padding: 8px 12px;
 }
 
 

@@ -2,6 +2,8 @@ package com.example;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import tools.jackson.databind.ObjectMapper;
@@ -21,55 +23,48 @@ public class HelloModel {
      * Handles and returns a list of messages observed by JavaFX
      * Stores, changes and returns data. Remove?
      */
+
     //Lista som håller alla meddelanden
     //FXCollections.observableArrayList() = Nyckel som gör listan ändrings-bar och som JavaFX kan lyssna på
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    //Istället för String NtfyMessageDto
-    private final String hostName;
-    private final HttpClient http = HttpClient.newHttpClient();
-    private final ObjectMapper mapper = new ObjectMapper();
 
-    public HelloModel() {
-        Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+//För tester
+    private final NtfyConnection connection;
+    private final StringProperty messageToSend = new SimpleStringProperty();
 
+    public HelloModel(NtfyConnection connection) {
+
+        this.connection = connection;
+        receiveMessage();
     }
 
     //getter från private
     public ObservableList<NtfyMessageDto> getMessages() {
         return messages;
     }
+    //test
+    public String getMessageToSend() {
+        return messageToSend.get();
+    }
 
-    public void sendMessage(String messageText) {
-        //Send message to client - HTTP meddelande
-        HttpRequest httpRequest = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(messageText))
-                .uri(URI.create(hostName + "/mytopic"))
-                .build();
-        try {
-            var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            System.out.println("Error sending message");
-        } catch (InterruptedException e) {
-            System.out.println("Sending message interrupted");
-        }
+    public StringProperty messageToSendProperty() {
+        return messageToSend;
+    }
+
+    public void setMessageToSend(String message) {
+        messageToSend.set(message);
+    }
+    public void sendMessage(String message) {
+
+        messageToSend.set(message);
+        connection.send(messageToSend.get());
 
     }
 
     public void receiveMessage() {
-        HttpRequest httpRequest = HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create(hostName + "/mytopic/json"))
-                .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> response.body()
-                        .map(s -> mapper.readValue(s, NtfyMessageDto.class))
-                        .peek(System.out::println)
-                        .forEach(s ->
-                                Platform.runLater(() -> messages.add(s))));
-        //.exceptionally()
-        //close
+        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+
     }
 }
 
