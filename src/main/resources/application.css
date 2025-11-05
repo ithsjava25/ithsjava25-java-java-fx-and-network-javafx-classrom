@@ -1,0 +1,32 @@
+.text-field {
+    -fx-font-size: 14px;
+}
+
+.button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}
+
+.label {
+    -fx-font-weight: bold;
+}
+
+.list-cell {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+    -fx-padding: 8px;
+    -fx-text-fill: #222;
+}
+
+.list-view {
+    -fx-background-color: #f9f9f9;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #ddd;
+}
+
+#logOut{
+    -fx-background-color: red;
+}
+
