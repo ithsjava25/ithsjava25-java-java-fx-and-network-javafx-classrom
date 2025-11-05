@@ -45,6 +45,21 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>4.0.0-beta.15</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -55,7 +70,7 @@
                 <configuration>
                     <mainClass>com.example.HelloFX</mainClass>
                     <options>
-                    <option>--enable-native-access=javafx.graphics</option>
+                        <option>--enable-native-access=javafx.graphics</option>
                     </options>
                     <launcher>javafx</launcher>
                     <stripDebug>true</stripDebug>
