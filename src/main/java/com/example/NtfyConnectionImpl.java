@@ -20,10 +20,14 @@ public class NtfyConnectionImpl implements NtfyConnection {
         hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
     }
 
+    public NtfyConnectionImpl(String hostName){
+        this.hostName = hostName;
+    }
+
     @Override
     public boolean send(String message) {
                 HttpRequest httpRequest = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString("Tjena"))
+                .POST(HttpRequest.BodyPublishers.ofString(message))
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
         try {
