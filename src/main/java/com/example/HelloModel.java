@@ -23,15 +23,15 @@ public class HelloModel {
 
 
     public ObservableList<NtfyMessageDto> getMessages() {
-        return messages;
+         return messages;
     }
 
     public String getMessageToSend() {
-        return messageToSend.get();
+         return messageToSend.get();
     }
 
     public StringProperty messageToSendProperty() {
-        return messageToSend;
+         return messageToSend;
     }
 
     public void setMessageToSend(String message) {
