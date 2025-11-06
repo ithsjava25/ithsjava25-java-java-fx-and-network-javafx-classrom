@@ -10,6 +10,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -38,18 +40,22 @@ public class HelloModel {
     }
 
     public ObservableList<NtfyMessageDto> getMessages(){
+
         return messages;
     }
 
     public String getMessageToSend() {
+
         return messageToSend.get();
     }
 
     public StringProperty messageToSendProperty() {
+
         return messageToSend;
     }
 
     public void setMessageToSend(String message){
+
         messageToSend.set(message);
     }
 
@@ -64,15 +70,19 @@ public class HelloModel {
 
 
     public void sendMessage() {
+
         connection.send(messageToSend.get());
     }
 
 
 
     public void receiveMessage(){
+
         connection.receive(m-> Platform.runLater(()->messages.add(m)));
     }
 
 
-
+    public void sendFile(File file) throws FileNotFoundException {
+        connection.sendFile(file);
+    }
 }

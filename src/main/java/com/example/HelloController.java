@@ -5,6 +5,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class HelloController {
 
@@ -46,7 +50,18 @@ public class HelloController {
         }
     }
     @FXML
-    public void attachFile(ActionEvent actionEvent){
+    public void attachFile(ActionEvent actionEvent) throws FileNotFoundException {
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose file to attach");
+
+        File selectedFile = fileChooser.showOpenDialog(chatListView.getScene().getWindow());
+
+        if (selectedFile != null) {
+            // 3. SKICKA FILEN TILL MODELLEN
+            // Vi behöver en ny metod i HelloModel för att hantera detta.
+            model.sendFile(selectedFile);
+        }
 
     }
 
