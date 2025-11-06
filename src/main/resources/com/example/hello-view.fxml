@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.HelloController"
+      alignment="CENTER"
+      spacing="10">
+
+    <!-- Padding -->
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <!-- Greeting label -->
+    <Label fx:id="messageLabel" text="Hello, JavaFX!" />
+
+    <!-- List of messages -->
+    <ListView fx:id="messageView" VBox.vgrow="ALWAYS" prefHeight="300" prefWidth="400" />
+
+    <!-- Input area + send button -->
+    <HBox spacing="10" alignment="CENTER">
+        <TextArea fx:id="messageInput" prefHeight="50" prefWidth="300" wrapText="true"/>
+        <Button text="Send message" onAction="#sendMessage" />
+    </HBox>
+
+</VBox>
