@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
         <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+        <Button text="Send message" onAction="#sendMessage" />
+    <ListView fx:id="messageView"/>
+</VBox>
