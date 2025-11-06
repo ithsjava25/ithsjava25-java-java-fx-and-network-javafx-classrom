@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HelloFX extends Application {
 

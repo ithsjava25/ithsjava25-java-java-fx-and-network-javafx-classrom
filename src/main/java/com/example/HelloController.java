@@ -2,10 +2,12 @@ package com.example;
 
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -14,6 +16,7 @@ import javafx.scene.layout.VBox;
 public class HelloController {
 
     private final HelloModel model = new HelloModel();
+    public ListView<NtfyMessageDto> messageView;
 
     @FXML
     private Label statusLabel;
@@ -40,7 +43,7 @@ public class HelloController {
         addMessageBubble("Du: " + message, true);
 
         // Skicka meddelandet till servern
-        model.sendMessage(topic, message);
+        model.sendMessage();
 
         messageField.clear();
     }
@@ -64,27 +67,18 @@ public class HelloController {
     @FXML
     private void initialize() {
         // När nya meddelanden kommer in, uppdatera UI
-        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) change -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    for (NtfyMessageDto msg : change.getAddedSubList()) {
-                        Platform.runLater(() -> addMessageBubble(msg.message(), false));
-                    }
-                }
-            }
-        });
-
-        // Starta mottagning av meddelanden
-        model.receiveMessage(topic, this::showStatus);
-
         // Hantera Enter-tangenten i textfältet
         if (messageField != null) {
             messageField.setOnAction(e -> handleSend());
         }
-
+        messageView.setItems(model.getMessages());
         // Scrolla automatiskt till botten när nytt meddelande läggs till
         chatBox.heightProperty().addListener((observable, oldValue, newValue) ->
                 chatScroll.setVvalue(1.0));
+    }
+
+    public void sendMessage(ActionEvent actionEvent) {
+        model.sendMessage();
     }
 
     public void showStatus(String text) {
