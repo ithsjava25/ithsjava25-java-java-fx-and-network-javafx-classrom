@@ -1,22 +1,10 @@
 package com.example;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.exc.IgnoredPropertyException;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * Model layer: encapsulates application data and business logic.

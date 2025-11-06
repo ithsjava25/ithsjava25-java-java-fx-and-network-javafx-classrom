@@ -1,9 +1,6 @@
 package com.example;
-
 import io.github.cdimascio.dotenv.Dotenv;
-import javafx.application.Platform;
 import tools.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
