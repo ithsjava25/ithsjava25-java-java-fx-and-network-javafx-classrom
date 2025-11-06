@@ -4,6 +4,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,6 +38,36 @@ class HelloModelTest {
         //Verify call made to server
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
+    }
+    @Test
+    void receiveMessage() {
+        //Arrange  Given
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+        model.setMessageToSend("Hello World");
+        //Act  When
+        model.receiveMessage();
+        //Assert   Then
+        assertThat(spy.message).isEqualTo("Hello World");
+    }
+    @Test
+    void sendFile() throws FileNotFoundException {
+        //Arrange  Given
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        File tempFile;
+        try{
+            tempFile=File.createTempFile("testFile", ".txt");
+        } catch(IOException e){
+            throw new RuntimeException("Could not create temporary File for test", e);
+        }
+        //Act  When
+        model.sendFile(tempFile);
+        //Assert   Then
+        assertThat(spy.fileSent).isNotNull();
+        assertThat(spy.fileSent).isEqualTo(tempFile);
+        tempFile.delete();
     }
 
 
