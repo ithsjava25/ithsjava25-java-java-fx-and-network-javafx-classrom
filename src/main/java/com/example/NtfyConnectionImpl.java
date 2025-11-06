@@ -1,15 +1,14 @@
 package com.example;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import javafx.application.Platform;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
@@ -29,14 +28,14 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
-    public void send(String message) {
+    public CompletableFuture<Void> send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message)) // för att testet ska funka utan "
                 .header("Cache", "no")
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+        return http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(response -> System.out.println("Message sent!"))
                 .exceptionally(e -> {
                     System.out.println("Error sending message");

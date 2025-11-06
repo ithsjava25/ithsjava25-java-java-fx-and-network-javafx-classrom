@@ -1,17 +1,16 @@
 package com.example;
 
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static java.lang.reflect.Array.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @WireMockTest
 class HelloModelTest {
@@ -30,16 +29,18 @@ class HelloModelTest {
     }
 
     @Test
-    void sendMessageToFakeServer(WireMockRuntimeInfo wmRunTimeInfo) {
+    void sendMessageToFakeServer(WireMockRuntimeInfo wmRunTimeInfo) throws InterruptedException, ExecutionException {
         var con = new NtfyConnectionImpl("http://localhost:" + wmRunTimeInfo.getHttpPort());
         var model = new HelloModel(con);
         model.setMessageToSend("Hello World");
         stubFor(post("/mytopic").willReturn(ok()));
 
-        model.sendMessage();
+        var messageHolder = model.sendMessage();
+        messageHolder.get();
 
         //Verify call made to server
         WireMock.verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
+// Test för att se att vi får meddelanden tillbaka. receiveMessage?
 }
