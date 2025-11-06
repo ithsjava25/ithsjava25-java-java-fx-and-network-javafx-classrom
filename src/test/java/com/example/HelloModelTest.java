@@ -34,8 +34,13 @@ class HelloModelTest {
 
         model.sendMessage();
 
-        //Verify call made to server
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
+
+    // TODO Test(er) för inkommande meddelanden? Andra metoder i HelloModel?
+    @Test
+    void receiveMessage() {
+    }
+
 }

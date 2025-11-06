@@ -24,12 +24,12 @@ public class HelloModel {
         return messages;
     }
 
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
     public StringProperty messageToSendProperty() {
         return messageToSend;
+    }
+
+    public String getMessageToSend() {
+        return messageToSend.get();
     }
 
     public void setMessageToSend(String message) {
@@ -47,7 +47,6 @@ public class HelloModel {
 
     public void sendMessage() {
         connection.send(messageToSend.get());
-
     }
 
     public void receiveMessage() {
