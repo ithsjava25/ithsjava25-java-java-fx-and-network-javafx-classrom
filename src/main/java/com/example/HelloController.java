@@ -2,10 +2,8 @@ package com.example;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.util.Callback;
 
 import java.io.IOException;
 
@@ -14,7 +12,7 @@ import java.io.IOException;
  */
 public class HelloController {
 
-    private final HelloModel model = new HelloModel();
+    private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
     public ListView<NtfyMessageDto> messageView;
 
     @FXML
@@ -34,17 +32,31 @@ public class HelloController {
         if (messageLabel != null) {
             messageLabel.setText(model.getGreeting());
         }
-        // messageView.setItems(model.sendMessage());
-
+       messageView.setItems(model.getMessages());
+       messageView.setCellFactory(showOnlyMessages());
 
         chatButton.setOnAction(event -> {
             String input = chatArea.getText().trim();
             if (!input.isEmpty()) {
-                // Lägg till texten i myTextArea
-                myTextArea.appendText(input + "\n");
-                chatArea.clear(); // Töm inmatningsfältet
+                model.setMessageToSend(input);
+                model.sendMessage();
+                chatArea.clear();
             }
         });
+    }
+
+    private static Callback<ListView<NtfyMessageDto>, ListCell<NtfyMessageDto>> showOnlyMessages() {
+        return List -> new ListCell<>() {
+            @Override
+            protected void updateItem(NtfyMessageDto item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                } else {
+                    setText(getItem().message());
+                }
+            }
+        };
     }
 
     public void sendMessage(ActionEvent actionEvent) throws IOException, InterruptedException {
