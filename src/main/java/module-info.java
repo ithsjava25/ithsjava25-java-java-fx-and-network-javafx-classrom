@@ -6,6 +6,7 @@ module hellofx {
     requires java.net.http;
     requires jdk.hotspot.agent;
     requires org.json;
+    requires io.github.cdimascio.dotenv.java;
 
     opens com.example to javafx.fxml;
     exports com.example;

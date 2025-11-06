@@ -8,19 +8,35 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONObject;
 
 public class NtfyClient {
-
+    private final String baseUrl;
     private final String topic;
     private final HttpClient client;
 
     public NtfyClient(String topic) {
+
+        Dotenv dotenv = Dotenv.load();
+        String backendUrl = "https://ntfy.sh/defaulttopic";
+        this.baseUrl = dotenv.get("BACKEND_URL");
+        System.out.println("Backend URL: " + backendUrl);
+
+        try {
+            dotenv = Dotenv.load();
+            if (dotenv.get("BACKEND_URL") != null) {
+                backendUrl = dotenv.get("BACKEND_URL");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Could not load .env file, using default URL.");
+        }
+
         this.topic = topic;
         this.client = HttpClient.newHttpClient();
     }
 
-    // ---- SEND ----
+
     public void sendMessage(String username, String message) {
         try {
             String json = String.format("""
@@ -43,10 +59,10 @@ public class NtfyClient {
         }
     }
 
-    // ---- RECEIVE ----
+
     public void subscribe(MessageHandler handler) {
         new Thread(() -> {
-            while (true) { // reconnect loop for robustness
+            while (true) {
                 try {
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create("https://ntfy.sh/" + topic + "/json"))
