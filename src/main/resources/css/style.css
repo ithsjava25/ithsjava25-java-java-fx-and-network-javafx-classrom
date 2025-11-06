@@ -49,13 +49,13 @@
 }
 
 .outgoing-message {
-    -fx-background-color: black;
-    -fx-text-fill: white;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #0e0a0a;
 }
 
 .time-stamp {
     -fx-font-size: 10px;
-    -fx-text-fill: gray;
+    -fx-text-fill: #d91d5f;
     -fx-padding: 8px 12px;
 }
 

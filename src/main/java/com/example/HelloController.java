@@ -64,9 +64,7 @@ public class HelloController {
                    Label label = new Label(item.message());
                     label.getStyleClass().add("message-bubble");
 
-                    String time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-                                    .format(java.time.Instant.ofEpochMilli(item.time())
-                                            .atZone(java.time.ZoneId.systemDefault()));
+                    String time = item.formattedTime();
                     Label labelTime = new Label(time);
                     labelTime.getStyleClass().add("time-stamp");
 
