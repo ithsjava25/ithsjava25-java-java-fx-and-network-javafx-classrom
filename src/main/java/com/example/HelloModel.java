@@ -17,8 +17,8 @@ public class HelloModel {
      private final StringProperty messageToSend = new SimpleStringProperty();
 
      public HelloModel(NtfyConnection connection) {
-         receiveMessage();
          this.connection = connection;
+         receiveMessage();
      }
 
 
