@@ -31,12 +31,23 @@ class HelloModelTest {
         var con = new NtfyConnectionImpl("http://localhost:" + wmRuntimeInfo.getHttpPort());
         var model = new HelloModel(con);
         model.setMessageToSend("");
-        stubFor(post("/mytopic").willReturn(ok()));
+        stubFor(post("/catChat").willReturn(ok()));
 
         model.sendMessage("Hello World");
 
-        WireMock.verify(postRequestedFor(urlEqualTo("/mytopic"))
+        WireMock.verify(postRequestedFor(urlEqualTo("/catChat"))
                 .withRequestBody(matching("Hello World")));
+    }
+
+    @Test
+    void messageIsAddedToObservableList() {
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        var testText = new NtfyMessageDto("id1", 143275436L,"Message", "catChat", "Godmorgon");
+        spy.simulateIncomingMessage(testText);
+
+        assertThat(model.getMessages()).extracting(NtfyMessageDto::message).contains("Godmorgon");
     }
 
 

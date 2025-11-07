@@ -1,6 +1,7 @@
 package com.example;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -90,6 +91,10 @@ public class HelloController {
         });
         //Kopplar Listan i view med ObservableList i HelloModel
         chatBox.setItems(model.getMessages());
+        //Flyttar Platform.runlater till controller pågrund a runtimeexeption när tester körs
+        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) changes -> {
+            Platform.runLater(() -> chatBox.refresh());
+        });
     }
 
     private void sendMessageToModel() {

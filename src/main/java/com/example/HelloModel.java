@@ -63,7 +63,7 @@ public class HelloModel {
 
     public void receiveMessage() {
 
-        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+        connection.receive(messages::add);
 
     }
 }
