@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 public class NtfyConnectionSpy implements NtfyConnection {
 
+    public String messageSent;
     String message;
     public Consumer<NtfyMessageDto> messageHandler;
     public File fileSent;

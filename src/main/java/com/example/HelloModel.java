@@ -80,8 +80,10 @@ public class HelloModel {
 
 
     public void sendMessage() {
+        String message=messageToSend.get();
 
-        connection.send(messageToSend.get());
+        if (message != null && !message.trim().isEmpty()) {
+            connection.send(message);}
     }
 
 

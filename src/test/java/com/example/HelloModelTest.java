@@ -1,6 +1,7 @@
 package com.example;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import javafx.beans.property.StringProperty;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,6 +81,29 @@ class HelloModelTest {
         assertThat(spy.fileSent).isEqualTo(tempFile);
         tempFile.delete();
     }
+    @Test
+    @DisplayName("Model should not call send on connection if message is empty or whitespace")
+    void sendMessage_shouldNotSendIfMessageIsEmpty() {
+        //Arrange  Given
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        model.setMessageToSend(null);
+
+        //Act  When
+        model.sendMessage();
+        //Assert   Then
+        assertThat(spy.messageSent).isNull();
+
+        model.setMessageToSend(" ");
+
+        model.sendMessage();
+
+        assertThat(spy.messageSent).isNull();
+
+
+    }
+
 
 
 }
