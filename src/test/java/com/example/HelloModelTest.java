@@ -3,6 +3,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,18 +41,28 @@ class HelloModelTest {
                 .withRequestBody(matching("Hello World")));
     }
     @Test
-    void receiveMessage() {
+    void receiveMessageIsAddedToObservableList() {
         //Arrange  Given
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
-        model.setMessageToSend("Hello World");
+
+        var testDto=new NtfyMessageDto(
+                "id-123",
+                System.currentTimeMillis(),
+                "This is a test message",
+                "mytopic",
+                "message");
+
+        assertThat(model.getMessages()).isEmpty();
+
         //Act  When
-        model.receiveMessage();
+        spy.messageHandler.accept(testDto);
         //Assert   Then
-        assertThat(spy.message).isEqualTo("Hello World");
+        assertThat(model.getMessages()).hasSize(1);
+        assertThat(model.getMessages().get(0).message().equals("This is a test message"));
     }
     @Test
-    void sendFile() throws FileNotFoundException {
+    void sendFileWithTempFile() throws FileNotFoundException {
         //Arrange  Given
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);

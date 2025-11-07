@@ -8,6 +8,7 @@ public class NtfyConnectionSpy implements NtfyConnection {
 
     String message;
     public Consumer<NtfyMessageDto> messageHandler;
+    public File fileSent;
 
     @Override
     public boolean send(String message) {
@@ -23,6 +24,7 @@ public class NtfyConnectionSpy implements NtfyConnection {
 
     @Override
     public boolean sendFile(File file) throws FileNotFoundException {
-        return false;
+        this.fileSent=file;
+        return true;
     }
 }
