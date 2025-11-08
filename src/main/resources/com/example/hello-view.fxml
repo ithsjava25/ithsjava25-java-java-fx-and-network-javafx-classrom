@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
-
-    <Label fx:id="messageLabel" text="Adams Chat Client" />
-    <Button onAction="#sendMessage" prefHeight="25.0" prefWidth="115.0" text="Send message" />
-    <ListView fx:id="messageView" />
-
-</VBox>
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
+    <children>
+        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
+    </children>
+</StackPane>
