@@ -21,7 +21,6 @@ public class HelloModel {
          receiveMessage();
      }
 
-
     public ObservableList<NtfyMessageDto> getMessages() {
          return messages;
     }
