@@ -19,7 +19,7 @@ public class HelloFX extends Application {
     public void start(Stage stage) throws Exception {
         // Load the FXML file (absolute path is safer)
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("/com/example/hello-view.fxml"));
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/hello-view2.fxml"));
+        //FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/hello-view2.fxml"));
         stage.setTitle("JavaFX Chat (ntfy)");
         Parent root = fxmlLoader.load();
 

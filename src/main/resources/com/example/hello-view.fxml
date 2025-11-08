@@ -19,7 +19,14 @@
             <Button onAction="#handleSend" text="Send" />
             <ListView fx:id="chatList" />
         </HBox>
-   <Button fx:id="logOut" layoutX="528.0" mnemonicParsing="false" prefHeight="71.0" prefWidth="72.0" text="Logout" textFill="#5b3333">
+   <Button fx:id="logOut"
+           layoutX="528.0"
+           mnemonicParsing="false"
+           prefHeight="71.0"
+           prefWidth="72.0"
+           text="Logout"
+           textFill="#5b3333"
+           onAction="#logout">
       <font>
          <Font size="13.0" />
       </font>
