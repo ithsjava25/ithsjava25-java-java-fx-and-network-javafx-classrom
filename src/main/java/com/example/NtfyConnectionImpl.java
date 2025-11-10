@@ -30,7 +30,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
     @Override
     public CompletableFuture<Void> send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(message)) // för att testet ska funka utan "
+                .POST(HttpRequest.BodyPublishers.ofString(message))
                 .header("Cache", "no")
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
@@ -42,7 +42,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     return null;
                 });
     }
-//        try {
 //            // Todo: handle long blocking send request to not freeze the java FX thread
 //            //1. Use thread send message?
 //            //2. Use async?

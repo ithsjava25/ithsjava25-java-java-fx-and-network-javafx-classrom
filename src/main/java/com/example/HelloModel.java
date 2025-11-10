@@ -49,8 +49,8 @@ public class HelloModel {
 
     public CompletableFuture<Void> sendMessage() {
         return connection.send(messageToSend.get());
-
 }
+
     public void receiveMessage() {
 
         connection.receive(m->Platform.runLater(()-> messages.add(m)));

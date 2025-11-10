@@ -5,20 +5,20 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox prefHeight="500.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+<VBox stylesheets="@../../css/style.css" prefHeight="500.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.HelloController">
 
     <Label fx:id="messageLabel" text="Hello, JavaFX!"/>
-    <HBox alignment="CENTER" VBox.vgrow="ALWAYS" spacing="5">
-        <Text text="left"/>
-        <ListView fx:id="messageView" >
+    <BorderPane VBox.vgrow="ALWAYS" >
+<center>
+        <ListView  fx:id="messageView" >
             <padding>
                 <Insets bottom="1.0" left="1.0" right="1.0" top="1.0"/>
             </padding>
         </ListView>
-        <Text text="right"/>
+</center>
 
-    </HBox>
+    </BorderPane>
     <SplitPane dividerPositions="0.7"  VBox.vgrow="NEVER">
         <items>
             <TextArea fx:id="chatArea" wrapText="true" maxHeight="-Infinity" prefHeight="100.0" prefRowCount="3"/>
