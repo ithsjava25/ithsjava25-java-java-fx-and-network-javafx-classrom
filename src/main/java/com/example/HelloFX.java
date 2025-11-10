@@ -1,5 +1,6 @@
 package com.example;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,7 +11,6 @@ public class HelloFX extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        System.out.println(System.getenv("HOST_NAME"));
 
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Parent root = fxmlLoader.load();
