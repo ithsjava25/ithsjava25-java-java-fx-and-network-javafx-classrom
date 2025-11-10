@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.util.function.Consumer;
 
 /**
  * Model layer: encapsulates application data and business logic.
@@ -58,5 +59,16 @@ public class HelloModel {
 
     public void receiveMessage() {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+    }
+
+    /**
+     * For testing - allows setting a callback for received messages
+     */
+    public void setOnMessageReceived(Consumer<String> onMessageReceived) {
+        connection.receive(ntfyMessage -> {
+            //Test callback
+            onMessageReceived.accept(ntfyMessage.message());
+            Platform.runLater(() -> messages.add(ntfyMessage));
+        });
     }
 }
