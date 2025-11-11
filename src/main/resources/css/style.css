@@ -20,6 +20,11 @@ styles.css
     -fx-background-radius: 5;      /* Rundade hörn */
     -fx-border-radius: 5;
 }
+.list-cell{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-control-inner-background: transparent;
+}
 /* Ta bort bakgrund och kantlinje när musen är över */
 .list-cell:filled:hover {
     -fx-background-color: #e0e0e0;

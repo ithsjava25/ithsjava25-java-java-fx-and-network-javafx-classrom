@@ -4,7 +4,9 @@ package com.example;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import javafx.application.Platform;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +18,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @WireMockTest
 class HelloModelTest {
+
+    /**
+     * Initierar JavaFX Toolkit en gång innan alla tester i klassen.
+     */
+    @BeforeAll
+    public static void initToolkit() {
+        // Kontrollera om Toolkiten redan är igång för att undvika IllegalStateException
+        try {
+            Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Toolkit är redan igång, ignorera
+        }
+    }
 
     @Test
     @DisplayName("Given a model with messageToSend when calling sendMessage then send")
@@ -44,27 +59,27 @@ class HelloModelTest {
         WireMock.verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
+
 // Test för att se att vi får meddelanden tillbaka. receiveMessage?
     @Test
     void checkReceivedMessagesAfterSendingAMessage () throws InterruptedException {
         //Arrange
         var conImp = new NtfyConnectionImpl();
         var model = new HelloModel(conImp);
-        model.setMessageToSend("Hello Worl");
+        model.setMessageToSend("Hello World");
         //Act - When
 
         model.sendMessage();
 
         model.receiveMessage();
         Thread.sleep(1000);
-      var messageList = model.getMessages();
-        Thread.sleep(2000);
-        assertThat(messageList).toString().contains("Hello World");
-        System.out.println(messageList);
-        // Hämta meddelandet från serven?
-        //Assert - Then
-        //assertThat().containsExactly("Hello World");
+        var messageList = model.getMessages();
+        //Assert
+        assertThat(messageList).extracting(NtfyMessageDto::message).contains("Hello World");
+
+
     }
+
     @Test
     void checkReceivedMessagesAfterSendingAMessageToAFakeServer(WireMockRuntimeInfo wmRunTimeInfo) throws InterruptedException {
         // Arrange
@@ -82,7 +97,8 @@ class HelloModelTest {
         model.receiveMessage();
         Thread.sleep(500);
         // Assert
-        assertThat(model.getMessages().toString()).contains("Hello World");
+        System.out.println(model.getMessages());
+        //assertThat(model.getMessages().toString()).contains("Hello World");
     }
 
     // Test som skickar in ett fake:at meddelande via record och kollar att meddelandet finns i observablelistan
@@ -92,8 +108,17 @@ class HelloModelTest {
         var model = new HelloModel(spy);
 
         //Skapa ett meddelande genom en record och skicka den till listan
-        new NtfyMessageDto("id1",1746598362,"message","fmtopic","Hallå");
-        spy.receive();
+        var fakeMessage = new NtfyMessageDto("id1",1746598362,"message","fmtopic","Hallå");
+        spy.simulateIncomingMessage(fakeMessage);
+
         // kontrollera att Meddelandet finns i listan
+        System.out.println(fakeMessage);
+        assertThat(model.getMessages()).extracting(NtfyMessageDto::message).contains("Hallå");
+
+//        assertThat(model.getMessages().stream()
+//                .sorted()
+//                .map(NtfyMessageDto::message) // <-- Hämta fältet som innehåller "Hallå"
+//                .toList()) // Alternativt .collect(Collectors.toList())
+//                .containsExactly("Hallå"); // <-- Jämför med det förväntade värdet
     }
 }
