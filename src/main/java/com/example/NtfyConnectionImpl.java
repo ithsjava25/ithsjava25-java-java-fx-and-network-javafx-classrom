@@ -56,17 +56,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
-                        .filter(line -> line.startsWith("data: "))
-                        .map(line -> line.substring(6))
-                        .map(json -> {
-                            try {
-                                return mapper.readValue(json, NtfyMessageDto.class);
-                            } catch (Exception e) {
-                                System.err.println("Error parsing JSON: " + json);
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
+                        .map(s -> mapper.readValue(s, NtfyMessageDto.class))
                         .forEach(messageHandler));
     }
 }

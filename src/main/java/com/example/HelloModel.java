@@ -56,7 +56,6 @@ public class HelloModel {
         connection.send(msg);
     }
 
-
     public void receiveMessage() {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));
     }
