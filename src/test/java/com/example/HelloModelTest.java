@@ -1,8 +1,10 @@
 package com.example;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class HelloModelTest {
@@ -21,8 +23,15 @@ class HelloModelTest {
     }
 
     @Test
-    void sendMessageToFakeServer() {
-        var con = new NtfyConnectionImpl();
+    void sendMessageToFakeServer(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        var con = new NtfyConnectionImpl("https://ntfy.fungover.org" + wmRuntimeInfo.getHttpPort());
+        var model = new HelloModel(con);
+        model.setMessageToSend("Hello World");
+        stubFor(post("/mytopic").willReturn(ok()))
 
+        model.sendMessage();
+
+        verify(postRequestedFor(urlEqualTo("/mytopic"))
+                .withRequestBody(matching("Hello World")));
     }
 }
