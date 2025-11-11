@@ -63,7 +63,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.example.HelloFX</mainClass>
+                    <mainClass>com.example.ChatApplication</mainClass>
                     <options>
                         <option>--enable-native-access=javafx.graphics</option>
                     </options>

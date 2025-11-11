@@ -8,9 +8,9 @@ import javafx.scene.control.TextField;
 /**
  * Controller layer: mediates between the view (FXML) and the model.
  */
-public class HelloController {
+public class ChatController {
 
-    private final HelloModel model = new HelloModel();
+    private final ChatModel model = new ChatModel();
     public TextField inputTextField;
     public Button sendButton;
 

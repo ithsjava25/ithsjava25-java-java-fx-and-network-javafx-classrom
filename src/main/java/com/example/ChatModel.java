@@ -3,7 +3,7 @@ package com.example;
 /**
  * Model layer: encapsulates application data and business logic.
  */
-public class HelloModel {
+public class ChatModel {
     /**
      * Returns a greeting based on the current Java and JavaFX versions.
      */
