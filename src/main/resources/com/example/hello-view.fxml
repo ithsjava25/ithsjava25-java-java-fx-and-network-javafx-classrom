@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ListView?>
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-        <Button text="Send message" onAction="#sendMessage"/>
-        <ListView fx:id="messageView" />
-</VBox>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+   <center>
+      <VBox alignment="CENTER">
+              <ListView fx:id="messageView" />
+      </VBox>
+   </center>
+   <bottom>
+       <HBox spacing="2" BorderPane.alignment="CENTER">
+           <TextField fx:id="input" onAction="#sendMessage" promptText="..." HBox.hgrow="ALWAYS" />
+           <Button alignment="BOTTOM_RIGHT" onAction="#sendMessage" text="Send" />
+           <MenuButton mnemonicParsing="false" text="Menu">
+               <items>
+                   <MenuItem fx:id="addTopic" mnemonicParsing="false" onAction="#changeTopic" onMenuValidation="#changeTopic" text="Change Topic" />
+                   <SeparatorMenuItem mnemonicParsing="false" />
+                   <MenuItem mnemonicParsing="false" text="Add Image" />
+               </items>
+           </MenuButton>
+       </HBox>
+   </bottom>
+   <top>
+           <Label fx:id="topic" BorderPane.alignment="CENTER" />
+   </top>
+</BorderPane>

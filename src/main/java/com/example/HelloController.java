@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 
 /**
  * Controller layer: mediates between the view (FXML) and the model.
@@ -11,21 +12,27 @@ import javafx.scene.control.ListView;
 public class HelloController {
 
     private final HelloModel model = new HelloModel();
-    public ListView<NtfyMessage> messageView;
+    public ListView<String> messageView;
 
     @FXML
-    private Label messageLabel;
+    private Label topic;
+
+    @FXML
+    TextField input;
 
     @FXML
     private void initialize() {
-        if (messageLabel != null) {
-            messageLabel.setText(model.getGreeting());
-        }
-        messageView.setItems(model.getMessageHistory());
+        topic.textProperty().bind(model.topicProperty());
+        messageView.setItems(model.getFormatedMessages());
         model.receiveMessage();
     }
 
     public void sendMessage(ActionEvent actionEvent) {
-        model.sendMessage();
+        model.sendMessage(input.getText().trim());
+        input.clear();
+    }
+
+    public void changeTopic(ActionEvent actionEvent) {
+        model.changeTopic();
     }
 }
