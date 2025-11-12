@@ -6,9 +6,21 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    <TextField fx:id="messageInput" promptText="Skriv ett meddelande här..." />
-    <Button text="Send message" onAction="#sendMessage"/>
-    <ListView fx:id="messageView"/>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+<VBox spacing="20" alignment="CENTER" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController"
+      stylesheets="@style.css">
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30"/>
+    </padding>
+
+    <Label fx:id="messageLabel" text="Hello, JavaFX running on fumes here!!" styleClass="greeting" />
+
+    <HBox spacing="10" alignment="CENTER">
+        <TextField fx:id="messageInput" promptText="Skriv ett meddelande..." styleClass="input"/>
+        <Button text="Skicka" onAction="#sendMessage" styleClass="send-button"/>
+    </HBox>
+
+    <ListView fx:id="messageView" styleClass="message-list"/>
 </VBox>
