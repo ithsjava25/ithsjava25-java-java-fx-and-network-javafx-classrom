@@ -49,6 +49,7 @@ public class HelloModel {
     }
 
     public CompletableFuture<Boolean> sendMessage() {
+        System.out.println("Meddelande att skicka: " + messageToSend.get());
         return connection.send(messageToSend.get());
     }
 

@@ -39,6 +39,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
         return http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
                 .thenApply( response -> {
+                    System.out.println("Statuskod: " + response.statusCode());
                     System.out.println("Your message was sent");
                     return true;
             })
