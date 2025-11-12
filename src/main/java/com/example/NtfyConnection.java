@@ -1,12 +1,17 @@
 package com.example;
 
+
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 public interface NtfyConnection {
 
-   public boolean send(String message);
+    //Skicka ett meddelande till servern
+    boolean send(String message);
 
+    boolean sendFile(Path file, String messageWithFile);
 
-   public void receive(Consumer<NtfyMessageDto> consumer);
+    //Startar en prenumeration och tar emot en consumer som ska köras varje gång ett meddelande kommer
+   Subscription receive(Consumer<NtfyMessageDto> consumer);
 
 }

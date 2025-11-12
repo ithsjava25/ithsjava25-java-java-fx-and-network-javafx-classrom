@@ -1,7 +1,6 @@
 package com.example;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import javafx.application.Platform;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -9,12 +8,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
+    //Adressen till servern
     private final String hostName;
+    //För att skicka och ta emot HTTP-meddelanden
     private final HttpClient http = HttpClient.newHttpClient();
+    //För att konvertera JSON till java objekt
     private final ObjectMapper mapper = new ObjectMapper();
 
     public NtfyConnectionImpl() {
@@ -26,6 +29,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
         this.hostName = hostName;
     }
 
+    //Skickar ett meddelande till servern via POST
     @Override
     public boolean send(String message) {
         //Send message to client - HTTP meddelande
@@ -37,6 +41,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .build();
         try {
             var response = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+            return true;
         } catch (IOException e) {
             System.out.println("Error sending message");
         } catch (InterruptedException e) {
@@ -46,17 +51,37 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
-    public void receive(Consumer<NtfyMessageDto> messageHandler) {
+    public boolean sendFile(Path file, String messageWithFile) {
+        return false;
+    }
+
+
+    //Skapar en asynkron (flera trådar) GET-stream
+    //VArje rad ändras till ett NtfyMessageDTO och skickas till messageHandler, hopp in i model
+    //Returnerar ett objekt av Subscription som kan stoppa streamen(connected.cancel(true))
+    @Override
+    public Subscription receive(Consumer<NtfyMessageDto> messageHandler) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(hostName + "/catChat/json"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
+        var connected = http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
                         .map(s -> mapper.readValue(s, NtfyMessageDto.class))
                         .filter(message -> message.event().equals("message"))
                         .peek(System.out::println)
                         .forEach(messageHandler));
+        return new Subscription() {
+            @Override
+            public void close() {
+                connected.cancel(true);
+            }
+
+            @Override
+            public boolean isOpen() {
+                return !connected.isDone();
+            }
+        };
     }
 }

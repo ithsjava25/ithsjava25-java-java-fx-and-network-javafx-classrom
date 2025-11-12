@@ -6,14 +6,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Objects;
+
 
 /**
  * Model layer: encapsulates application data and business logic.
@@ -21,24 +16,28 @@ import java.util.Objects;
 public class HelloModel {
     /**
      * Handles and returns a list of messages observed by JavaFX
-     * Stores, changes and returns data. Remove?
+     * Stores, changes and returns data.
      */
 
     //Lista som håller alla meddelanden
-    //FXCollections.observableArrayList() = Nyckel som gör listan ändrings-bar och som JavaFX kan lyssna på
+    //FXCollections.observableArrayList() = Nyckel som gör listan ändrings-bar och uppdaterar GUIt
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
 
-//För tester
+//Kopplar upp till nätverket , används för att skicka och ta emot meddelanden
     private final NtfyConnection connection;
+    //Innehåller meddelandet som ska skickas, kopplat till GUI via SimpleStringProperty
     private final StringProperty messageToSend = new SimpleStringProperty();
+    //Fält för att kunna styra anslutningen
+    private final Subscription subscription;
 
+    //Konstruktorn tar emot nätverkskoppling, antingen ett test via spy eller en riktig via impl
     public HelloModel(NtfyConnection connection) {
 
         this.connection = connection;
-        receiveMessage();
+        subscription = receiveMessage(); //subscription startar automatiskt när modellen skapas
     }
 
-    //getter från private
+    //getter från private, används av controller för att koppla til ListView
     public ObservableList<NtfyMessageDto> getMessages() {
         return messages;
     }
@@ -46,14 +45,16 @@ public class HelloModel {
     public String getMessageToSend() {
         return messageToSend.get();
     }
-
+//Getter från private för meddelandet som ska skickas
     public StringProperty messageToSendProperty() {
         return messageToSend;
     }
-
+//Sätter meddelande för tester
     public void setMessageToSend(String message) {
         messageToSend.set(message);
     }
+
+    //Sätter meddelandet till inkommande parameter från test, eller controller (connection skickar till nätverket)
     public void sendMessage(String message) {
 
         messageToSend.set(message);
@@ -61,10 +62,21 @@ public class HelloModel {
 
     }
 
-    public void receiveMessage() {
+    //Startar en prenumeration på inkommande meddelnaden,
+    //Returnerar ett Subscription-objekt så den kan stoppas
+    public Subscription receiveMessage() {
 
-        connection.receive(messages::add);
+        return connection.receive(messages::add);
 
+    }
+
+    public void stopSubscription() {
+        if (subscription != null && subscription.isOpen())
+            try{
+            subscription.close();
+        } catch(IOException e) {
+                System.out.println("Error closing subscription" + e.getMessage());
+            }
     }
 }
 

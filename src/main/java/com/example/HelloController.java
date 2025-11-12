@@ -18,6 +18,12 @@ public class HelloController {
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
     //@FXML kopplingar
+    @FXML
+    private Button connectToServer;
+
+    @FXML
+    private Button disconnectFromServer;
+
     //Kopplar ett textfält från FXML där användaren skriver ett meddelande
     @FXML
     private TextField messageInput;
@@ -34,6 +40,9 @@ public class HelloController {
     //Metoden körs automatiskt när appen startar
     @FXML
     private void initialize() {
+        //todo: Initialisera uppkopplingsknapparna för server-anslutning
+        //todo: metod för nätverksuppkoppling?
+
         //Sätter ursprungstillståndet (default) för skicka-knappen
 
         updateSendButtonState();
@@ -47,7 +56,10 @@ public class HelloController {
         messageInput.setOnAction((event) -> sendMessageToModel());
         sendButton.setOnAction(event -> sendMessageToModel());
 
+        disconnectFromServer.setOnAction(event -> setDisconnectFromServer());
+        connectToServer.setOnAction(event -> setConnectToServer());
 
+        disconnectFromServer.setDisable(true);
 
         //model.receiveMessage();
         //Styr hur varje meddelande ska visas i chatboxen
@@ -91,7 +103,7 @@ public class HelloController {
         });
         //Kopplar Listan i view med ObservableList i HelloModel
         chatBox.setItems(model.getMessages());
-        //Flyttar Platform.runlater till controller pågrund a runtimeexeption när tester körs
+        //Flyttar Platform.runlater till controller på grund av runtimeexeption när tester körs, även för en mer solid MVC
         model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) changes -> {
             Platform.runLater(() -> chatBox.refresh());
         });
@@ -113,5 +125,21 @@ public class HelloController {
 
         // Sätt disable till TRUE om det INTE finns text.
         sendButton.setDisable(!isTextPresent);
+    }
+
+    //Starta prenumeration via model och uppdaterar button
+    public void setConnectToServer() {
+        if(disconnectFromServer.isDisable()) {
+            model.receiveMessage();
+            connectToServer.setDisable(true);
+            disconnectFromServer.setDisable(false);
+        }
+    }
+
+    //Stoppar prenumerationen och uppdaterar button
+    public void setDisconnectFromServer() {
+        model.stopSubscription();
+        connectToServer.setDisable(false);
+        disconnectFromServer.setDisable(true);
     }
 }
