@@ -7,13 +7,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.util.function.Consumer;
 
-/**
- * Model layer: encapsulates application data and business logic.
- */
 public class HelloModel {
 
     private final NtfyConnection connection;
-
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final StringProperty messageToSend = new SimpleStringProperty();
 
@@ -38,9 +34,6 @@ public class HelloModel {
         messageToSend.set(message);
     }
 
-    /**
-     * Returns a greeting based on the current Java and JavaFX versions.
-     */
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
@@ -50,24 +43,29 @@ public class HelloModel {
     public void sendMessage() {
         String msg = messageToSend.get();
         if (msg == null || msg.isBlank()) {
-            System.out.println("Nothing to send!");
             return;
         }
         connection.send(msg);
     }
 
-    public void receiveMessage() {
-        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+    public void sendMessageAsync(Consumer<Boolean> callback) {
+        String msg = messageToSend.get();
+        if (msg == null || msg.isBlank()) {
+            callback.accept(false);
+            return;
+        }
+
+        try {
+            boolean success = connection.send(msg);
+            callback.accept(success);
+        } catch (Exception e) {
+            callback.accept(false);
+        }
     }
 
-    /**
-     * For testing - allows setting a callback for received messages
-     */
-    public void setOnMessageReceived(Consumer<String> onMessageReceived) {
-        connection.receive(ntfyMessage -> {
-            //Test callback
-            onMessageReceived.accept(ntfyMessage.message());
-            Platform.runLater(() -> messages.add(ntfyMessage));
+    private void receiveMessage() {
+        connection.receive(message -> {
+            Platform.runLater(() -> messages.add(message));
         });
     }
 }
