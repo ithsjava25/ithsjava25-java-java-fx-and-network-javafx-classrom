@@ -28,6 +28,11 @@ public class NtfyConnectionImpl implements NtfyConnection {
         Dotenv dotenv = Dotenv.load();
         hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
     }
+    public NtfyConnectionImpl(String hostName) {
+        this.hostName = hostName;
+        Dotenv dotenv = Dotenv.load();
+        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+    }
 
     @Override
     public String getTopic() {

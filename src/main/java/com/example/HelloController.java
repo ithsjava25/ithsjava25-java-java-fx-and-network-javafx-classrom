@@ -19,7 +19,7 @@ public class HelloController {
     public Label topicLabel;
 
     @FXML
-    private ComboBox topicComboBox;
+    private ComboBox<String> topicComboBox;
 
     @FXML
     private Button sendButton;
@@ -40,6 +40,11 @@ public class HelloController {
             topicComboBox.setItems(FXCollections.observableArrayList(Arrays.asList("general", "funStuff", "support")));
 
             topicComboBox.getSelectionModel().select(model.currentTopicProperty().get());
+            topicComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldTopic, newTopic) -> {
+                if (newTopic != null) {
+                    model.reconnectToTopic(newTopic);
+                }
+            });
 
         }
 
@@ -81,14 +86,10 @@ public class HelloController {
         File selectedFile = fileChooser.showOpenDialog(chatListView.getScene().getWindow());
 
         if (selectedFile != null) {
-            // 3. SKICKA FILEN TILL MODELLEN
-            // Vi behöver en ny metod i HelloModel för att hantera detta.
             model.sendFile(selectedFile);
         }
 
     }
 
 
-    public void handleTopicChange(ActionEvent actionEvent) {
-    }
 }

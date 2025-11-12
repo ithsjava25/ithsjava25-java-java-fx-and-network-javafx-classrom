@@ -16,12 +16,7 @@
         <HBox alignment="CENTER" spacing="10.0"
               style="-fx-background-color: rgba(255, 255, 255, 0.8); -fx-padding: 10;">
             <children>
-                <Label fx:id="topicLabel" text="Välj Chattkanal (Topic):" style="-fx-text-fill: white; -fx-font-weight: bold;" />
 
-                <ComboBox fx:id="topicComboBox"
-                          prefWidth="200.0"
-                          promptText="Välj en kanal"
-                          onAction="#handleTopicChange" />
 
                 <TextField fx:id="messageInput"
                            onAction="#sendMessage"
@@ -49,6 +44,19 @@
                 <Label style="-fx-font-size: 18px; -fx-font-weight: bold;"
                        text="Welcome to SuperChatten!"
                        textFill="WHITE" />
+
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10 0 0 0;">
+
+                    <Label fx:id="topicLabel"
+                           style="-fx-font-size: 14px; -fx-font-weight: bold;"
+                           textFill="WHITE" />
+
+                    <ComboBox fx:id="topicComboBox"
+                              prefWidth="200.0"
+                              promptText="Choose a chanel:"
+                              onAction="#handleTopicChange" />
+                </HBox>
             </children>
         </VBox>
     </top>
