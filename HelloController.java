@@ -5,10 +5,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -26,11 +24,8 @@ public class HelloController {
     @FXML
     private TextField usernameField;
 
-
-
     private NtfyClient ntfy;
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
-
 
 
     @FXML
@@ -56,21 +51,6 @@ public class HelloController {
         ntfy.sendMessage(username, message);
         messageField.clear();
     }
-    @FXML
-    private void handleAttachFile(ActionEvent event) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select a file to send");
-
-        File selectedFile = fileChooser.showOpenDialog(null);
-
-        if (selectedFile != null) {
-            System.out.println("Selected file: " + selectedFile.getAbsolutePath());
-            sendFileToBackend(selectedFile);
-        }
-    }
-
-    private void sendFileToBackend(File selectedFile) {
-    }
 
     Stage stage;
     public void logout(ActionEvent event) {
@@ -84,7 +64,6 @@ public class HelloController {
         System.out.println("You have been logged out");
         stage.close();
         }
-
     }
 }
 
