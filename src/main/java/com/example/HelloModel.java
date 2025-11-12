@@ -55,4 +55,9 @@ public class HelloModel {
     public void receiveMessage() {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));
     }
+
+    public void testAddMessage() {
+        NtfyMessageDto test = new NtfyMessageDto("id123", System.currentTimeMillis(), "message", "mytopic", "Testmeddelande");
+        Platform.runLater(() -> messages.add(test));
+    }
 }

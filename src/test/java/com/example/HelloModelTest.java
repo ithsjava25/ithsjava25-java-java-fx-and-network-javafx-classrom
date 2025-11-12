@@ -31,12 +31,12 @@ class HelloModelTest {
         var con = new NtfyConnectionImpl("http://localhost:" + wmRuntimeInfo.getHttpPort());
         var model = new HelloModel(con);
         model.setMessageToSend("Hello World");
-        stubFor(post("/linustopic").willReturn(ok()));
+        stubFor(post("/mytopic").willReturn(ok()));
 
         model.sendMessage().join();
 
         //Verify call made to server
-        verify(postRequestedFor(urlEqualTo("/linustopic"))
+        verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
 
@@ -53,7 +53,7 @@ class HelloModelTest {
                 "123",
                 System.currentTimeMillis(),
                 "message",
-                "linustopic",
+                "mytopic",
                 "Hej från testet!"
         );
 
@@ -67,7 +67,7 @@ class HelloModelTest {
     @Test
     @DisplayName("Given HelloModel with spy connection, when a message is simulated, then it should be added to messages list")
     void receiveShouldAddMessageToModel() {
-        // Arrange
+        new javafx.embed.swing.JFXPanel();
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
 
@@ -75,7 +75,7 @@ class HelloModelTest {
                 "123",
                 System.currentTimeMillis(),
                 "message",
-                "linustopic",
+                "mytopic",
                 "Hej från testet!"
         );
 

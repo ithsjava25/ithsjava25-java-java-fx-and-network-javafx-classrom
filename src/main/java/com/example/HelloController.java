@@ -19,13 +19,20 @@ public class HelloController {
 
     @FXML
     private void initialize() {
+        System.out.println("Controller init: kopplar ListView");
         if (messageLabel != null) {
             messageLabel.setText(model.getGreeting());
         }
         messageView.setItems(model.getMessages());
     }
 
+    @FXML
+    private javafx.scene.control.TextField messageInput;
+
+
     public void sendMessage(ActionEvent actionEvent) {
+        String content = messageInput.getText();
+        model.setMessageToSend(content);
         model.sendMessage();
     }
 }

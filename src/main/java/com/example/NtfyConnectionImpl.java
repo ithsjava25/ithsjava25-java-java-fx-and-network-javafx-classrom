@@ -14,7 +14,9 @@ import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.ALWAYS)
+            .build();
     private final String hostName;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -32,7 +34,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .header("Cache", "no")
-                .uri(URI.create(hostName + "/linustopic"))
+                .uri(URI.create(hostName + "/mytopic"))
                 .build();
 
         return http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
@@ -50,15 +52,23 @@ public class NtfyConnectionImpl implements NtfyConnection {
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
-                .uri(URI.create(hostName + "/linustopic/json"))
+                .uri(URI.create(hostName + "/mytopic/json"))
                 .build();
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
-                        .map(s ->
-                                mapper.readValue(s, NtfyMessageDto.class))
-                        .filter(message -> message.event().equals("message"))
-                        .peek(System.out::println)
+                        .flatMap(line -> {
+                            if (line.isBlank()) return java.util.stream.Stream.empty();
+                            try {
+                                NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
+                                return java.util.stream.Stream.of(msg);
+                            } catch (Exception e) {
+                                System.err.println("Kunde inte tolka: " + line);
+                                return java.util.stream.Stream.empty();
+                            }
+                        })
+                        .filter(msg -> "message".equals(msg.event()))
+                        .peek(msg -> System.out.println("Mottaget: " + msg.message()))
                         .forEach(messageHandler));
     }
 }
