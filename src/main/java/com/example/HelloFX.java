@@ -9,8 +9,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Objects;
 
 public class HelloFX extends Application {
@@ -45,6 +51,33 @@ public class HelloFX extends Application {
             logout(stage);
 
         });
+    }
+
+    private void sendFileToBackend(File file) {
+        try {
+            String backendUrl = System.getenv("BACKEND_URL");
+            if (backendUrl == null) {
+                System.err.println("BACKEND_URL not set");
+                return;
+            }
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(backendUrl).openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/octet-stream");
+            conn.setRequestProperty("Title", file.getName());
+
+            try (OutputStream os = conn.getOutputStream();
+                 FileInputStream fis = new FileInputStream(file)) {
+                fis.transferTo(os);
+            }
+
+            int responseCode = conn.getResponseCode();
+            System.out.println("Upload response: " + responseCode);
+            conn.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     public void logout(Stage stage) {
 

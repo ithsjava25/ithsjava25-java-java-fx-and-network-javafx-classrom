@@ -17,16 +17,10 @@
             <TextField fx:id="usernameField" prefWidth="120" promptText="Username" />
             <TextField fx:id="messageField" promptText="Type a message..." HBox.hgrow="ALWAYS" />
             <Button onAction="#handleSend" text="Send" />
+            <Button layoutX="420" layoutY="520" onAction="#handleAttachFile" prefWidth="80" text="📎 Attach" />
             <ListView fx:id="chatList" />
         </HBox>
-   <Button fx:id="logOut"
-           layoutX="528.0"
-           mnemonicParsing="false"
-           prefHeight="71.0"
-           prefWidth="72.0"
-           text="Logout"
-           textFill="#5b3333"
-           onAction="#logout">
+   <Button fx:id="logOut" layoutX="528.0" layoutY="335.0" mnemonicParsing="false" onAction="#logout" prefHeight="71.0" prefWidth="72.0" text="Logout" textFill="#5b3333">
       <font>
          <Font size="13.0" />
       </font>
