@@ -272,6 +272,7 @@ class HelloModelTest {
         model.setMessageToSend("Hello World");
 
         stubFor(post("/mytopic").willReturn(ok()));
+        stubFor(get("/mytopic/json").willReturn(ok()));
 
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
