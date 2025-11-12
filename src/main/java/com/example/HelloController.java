@@ -1,19 +1,25 @@
 package com.example;
 
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 
 public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
+    @FXML
     public ListView<NtfyMessageDto> chatListView;
+    @FXML
+    public Label topicLabel;
+
+    @FXML
+    private ComboBox topicComboBox;
 
     @FXML
     private Button sendButton;
@@ -30,12 +36,29 @@ public class HelloController {
             sendButton.setText(model.getGreeting());
         }
 
+        if (topicComboBox != null) {
+            topicComboBox.setItems(FXCollections.observableArrayList(Arrays.asList("general", "funStuff", "support")));
+
+            topicComboBox.getSelectionModel().select(model.currentTopicProperty().get());
+
+        }
+
         if (messageInput!=null){
             messageInput.textProperty().bindBidirectional(model.messageToSendProperty());
         }
 
         if(chatListView!=null){
             chatListView.setItems(model.getMessages());
+        }
+
+
+    }
+
+    @FXML
+    public void handleTopicChange(ActionEvent actionEvent) {
+        String newTopic = topicComboBox.getSelectionModel().getSelectedItem();
+        if (newTopic != null) {
+            model.reconnectToTopic(newTopic);
         }
     }
 
@@ -66,4 +89,6 @@ public class HelloController {
     }
 
 
+    public void handleTopicChange(ActionEvent actionEvent) {
+    }
 }

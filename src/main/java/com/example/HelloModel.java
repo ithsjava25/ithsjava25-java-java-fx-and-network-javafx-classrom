@@ -28,30 +28,38 @@ public class HelloModel {
 
 
     private final NtfyConnection connection;
+    private final StringProperty currentTopic = new SimpleStringProperty("general");
 
-    private final ObservableList<NtfyMessageDto> messages= FXCollections.observableArrayList();
-    private final StringProperty messageToSend= new SimpleStringProperty();
+    private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
+    private final StringProperty messageToSend = new SimpleStringProperty();
 
     private static void runOnFx(Runnable task) {
         try {
             if (Platform.isFxApplicationThread()) task.run();
             else Platform.runLater(task);
         } catch (IllegalStateException notInitialized) {
-            // JavaFX toolkit not initialized (e.g., unit tests): run inline
             task.run();
         }
     }
 
 
-    public HelloModel(NtfyConnection connection){
-        this.connection=connection;
-        receiveMessage();
+    public HelloModel(NtfyConnection connection) {
+        this.connection = connection;
+        connection.connect(currentTopic.get(), this::receiveMessageHandler);
 
     }
 
-    public ObservableList<NtfyMessageDto> getMessages(){
+    public ObservableList<NtfyMessageDto> getMessages() {
 
         return messages;
+    }
+
+    public StringProperty currentTopicProperty() {
+        return currentTopic;
+    }
+
+    public void setCurrentTopic(String topic) {
+        currentTopic.set(topic);
     }
 
     public String getMessageToSend() {
@@ -64,37 +72,48 @@ public class HelloModel {
         return messageToSend;
     }
 
-    public void setMessageToSend(String message){
+    public void setMessageToSend(String message) {
 
         messageToSend.set(message);
     }
 
-    /**
-     * Returns a greeting based on the current Java and JavaFX versions.
-     */
+
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
         return "Send message";
     }
 
+    public void reconnectToTopic(String newTopic) {
+
+        if (newTopic.equals(connection.getTopic())) {
+            return;
+        }
+
+        setCurrentTopic(newTopic);
+
+        runOnFx(messages::clear);
+
+        connection.connect(newTopic, this::receiveMessageHandler);
+    }
+
+    private void receiveMessageHandler(NtfyMessageDto message) {
+        runOnFx(() -> messages.add(message));
+    }
+
 
     public void sendMessage() {
-        String message=messageToSend.get();
+        String message = messageToSend.get();
 
         if (message != null && !message.trim().isEmpty()) {
-            connection.send(message);}
+            connection.send(message, currentTopic.get());
+        }
     }
 
 
 
-    public void receiveMessage(){
-
-        connection.receive(m-> runOnFx(() -> messages.add(m)));
+    public void sendFile(File file) {
+        connection.sendFile(file, currentTopic.get());
     }
 
-
-    public void sendFile(File file) throws FileNotFoundException {
-        connection.sendFile(file);
-    }
 }

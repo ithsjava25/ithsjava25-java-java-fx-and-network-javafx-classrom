@@ -6,9 +6,17 @@ import java.util.function.Consumer;
 
 public interface NtfyConnection {
 
-    public boolean send(String message);
+    String getTopic();
+
+    boolean send(String message, String topic);
+
+    boolean sendFile(File file, String topic);
+
+    void connect(String topic, Consumer<NtfyMessageDto> messageHandler);
+
+    //public boolean send(String message);
 
     public void receive(Consumer<NtfyMessageDto> messageHandler);
 
-    public boolean sendFile(File file) throws FileNotFoundException;
+    //public boolean sendFile(File file) throws FileNotFoundException;
 }
