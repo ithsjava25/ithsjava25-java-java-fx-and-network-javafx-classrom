@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +21,7 @@ class HelloModelTest {
         var model = new HelloModel(spy);
         model.setMessageToSend("Hello World");
         //Act  When
-        model.sendMessage();
+        model.sendMessage().join();
         //Assert   Then
         assertThat(spy.message).isEqualTo("Hello World");
     }
@@ -29,12 +31,60 @@ class HelloModelTest {
         var con = new NtfyConnectionImpl("http://localhost:" + wmRuntimeInfo.getHttpPort());
         var model = new HelloModel(con);
         model.setMessageToSend("Hello World");
-        stubFor(post("/mytopic").willReturn(ok()));
+        stubFor(post("/linustopic").willReturn(ok()));
 
-        model.sendMessage();
+        model.sendMessage().join();
 
         //Verify call made to server
-        verify(postRequestedFor(urlEqualTo("/mytopic"))
+        verify(postRequestedFor(urlEqualTo("/linustopic"))
                 .withRequestBody(matching("Hello World")));
     }
+
+    @Test
+    @DisplayName("Given a registered message handler, when a message is simulated, then it should be received")
+    void receiveShouldTriggerHandler() {
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        AtomicReference<NtfyMessageDto> received = new AtomicReference<>();
+        spy.receive(received::set);
+
+        NtfyMessageDto mockResponse = new NtfyMessageDto(
+                "123",
+                System.currentTimeMillis(),
+                "message",
+                "linustopic",
+                "Hej från testet!"
+        );
+
+        // Act
+        spy.simulateIncomingMessage(mockResponse);
+
+        // Assert
+        assertThat(received.get()).isEqualTo(mockResponse);
+    }
+
+    @Test
+    @DisplayName("Given HelloModel with spy connection, when a message is simulated, then it should be added to messages list")
+    void receiveShouldAddMessageToModel() {
+        // Arrange
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        NtfyMessageDto mockMessage = new NtfyMessageDto(
+                "123",
+                System.currentTimeMillis(),
+                "message",
+                "linustopic",
+                "Hej från testet!"
+        );
+
+        // Act
+        spy.simulateIncomingMessage(mockMessage);
+
+        // Assert
+        assertThat(model.getMessages()).containsExactly(mockMessage);
+    }
+
+
 }
