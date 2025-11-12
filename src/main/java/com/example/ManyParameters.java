@@ -7,7 +7,6 @@ public class ManyParameters {
 
     }
 
-
     static void main() {
         ManyParametersBuilder builder = new ManyParametersBuilder();
         builder

@@ -1,5 +1,6 @@
 package com.example;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionSpy implements NtfyConnection{
@@ -7,9 +8,9 @@ public class NtfyConnectionSpy implements NtfyConnection{
     String message;
 
     @Override
-    public boolean send(String message) {
+    public CompletableFuture<Boolean> send(String message) {
         this.message = message;
-        return true;
+        return CompletableFuture.completedFuture(true);
     }
 
     @Override

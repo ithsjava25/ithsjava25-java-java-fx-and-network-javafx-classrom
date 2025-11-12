@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
@@ -27,31 +28,29 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
-    public boolean send(String message) {
+    public CompletableFuture<Boolean> send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .header("Cache", "no")
-                .uri(URI.create(hostName + "/mytopic"))
+                .uri(URI.create(hostName + "/linustopic"))
                 .build();
-        try {
-            //Todo: handle long blocking send requests to not freeze the JavaFX thread
-            //1. Use thread send message?
-            //2. Use async?
-            var reponse = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
-            return true;
-        } catch (IOException e) {
-            System.out.println("Error sending message");
-        } catch (InterruptedException e) {
-            System.out.println("Interruped sending message");
-        }
-        return false;
+
+        return http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+                .thenApply( response -> {
+                    System.out.println("Your message was sent");
+                    return true;
+            })
+                .exceptionally(e -> {
+                    System.out.println("Error sending the message: " + e.getMessage());
+                    return false;
+            });
     }
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
-                .uri(URI.create(hostName + "/mytopic/json"))
+                .uri(URI.create(hostName + "/linustopic/json"))
                 .build();
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
