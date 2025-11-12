@@ -6,6 +6,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -51,6 +52,10 @@ public class HelloModel {
     public CompletableFuture<Boolean> sendMessage() {
         System.out.println("Meddelande att skicka: " + messageToSend.get());
         return connection.send(messageToSend.get());
+    }
+
+    public CompletableFuture<Boolean> sendFile(Path filePath) {
+        return connection.sendFile(filePath);
     }
 
     public void receiveMessage() {

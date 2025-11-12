@@ -20,6 +20,7 @@
     <HBox spacing="10" alignment="CENTER">
         <TextField fx:id="messageInput" promptText="Skriv ett meddelande..." styleClass="input"/>
         <Button text="Skicka" onAction="#sendMessage" styleClass="send-button"/>
+        <Button text="Skicka fil" onAction="#sendFile" styleClass="send-button"/>
     </HBox>
 
     <ListView fx:id="messageView" styleClass="message-list"/>

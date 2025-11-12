@@ -3,11 +3,13 @@ package com.example;
 import io.github.cdimascio.dotenv.Dotenv;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -47,6 +49,26 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     System.out.println("Error sending the message: " + e.getMessage());
                     return false;
             });
+    }
+
+    public CompletableFuture<Boolean> sendFile(Path path) {
+        try {
+            String filename = path.getFileName().toString();
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .PUT(HttpRequest.BodyPublishers.ofFile(path))
+                    .header("Filename", filename)
+                    .header("Content-Type", "application/octet-stream")
+                    .uri(URI.create(hostName + "/mytopic"))
+                    .build();
+
+            return http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+                    .thenApply(response -> response.statusCode() == 200);
+
+        } catch (IOException e) {
+            System.out.println("Kunde inte läsa filen: " + e.getMessage());
+            return CompletableFuture.completedFuture(false);
+        }
     }
 
     @Override

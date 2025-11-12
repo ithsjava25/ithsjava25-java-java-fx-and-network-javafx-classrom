@@ -1,5 +1,6 @@
 package com.example;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -18,6 +19,11 @@ public class NtfyConnectionSpy implements NtfyConnection{
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
         this.messageHandler = messageHandler;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> sendFile(Path path) {
+        return null;
     }
 
     public void simulateIncomingMessage(NtfyMessageDto message) {
