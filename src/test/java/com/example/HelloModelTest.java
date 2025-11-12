@@ -9,7 +9,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.awaitility.Awaitility;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -70,15 +72,16 @@ class HelloModelTest {
         model.setMessageToSend("Hello World");
         //Act - When
 
-        model.sendMessage();
+        model.sendMessage().join();
 
-        model.receiveMessage();
-
-        Thread.sleep(1000);
-
-        var messageList = model.getMessages();
         //Assert
-        assertThat(messageList).extracting(NtfyMessageDto::message).contains("Hello World");
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(100))
+                .untilAsserted(() -> {
+                    assertThat(model.getMessages()).isNotEmpty();
+                    assertThat(model.getMessages().getLast().message()).contains("Hello World");
+                });
     }
 
     @Test
@@ -86,7 +89,6 @@ class HelloModelTest {
         // Arrange
         var conImp = new NtfyConnectionImpl("http://localhost:" + wmRunTimeInfo.getHttpPort());
 
-        //stubFor(get("/mytopic/json").willReturn(ok("{\"message\":\"hej\"}")));
         stubFor(get("/mytopic/json")
                 .willReturn(aResponse()
                         .withHeader("Content-type", "application/json")
@@ -94,10 +96,13 @@ class HelloModelTest {
 
         var model = new HelloModel(conImp);
 
-        Thread.sleep(1000);
-
-        assertThat(model.getMessages().getLast().message()).isEqualTo("Hello World");
-
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(4))
+                .pollInterval(Duration.ofMillis(100)) // Kolla var 100:e ms
+                .untilAsserted(() -> {
+                    assertThat(model.getMessages()).isNotEmpty();
+                    assertThat(model.getMessages().getLast().message()).isEqualTo("Hello World");
+                });
     }
 
     // Test som skickar in ett fake:at meddelande via record och kollar att meddelandet finns i observablelistan

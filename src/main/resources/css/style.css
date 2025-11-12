@@ -7,6 +7,7 @@ styles.css
     -fx-background-color: #ffffff, linear-gradient(to bottom, #8b0000, #ffd700);
     -fx-background-insets: 0, 5;
     -fx-background-radius: 0, 10;
+
 }
 /*.list-view{*/
 /*    -fx-background-color: linear-gradient(to bottom, #8b0000, #ffd700);*/
@@ -30,7 +31,6 @@ styles.css
     -fx-background-color: #e0e0e0;
     -fx-text-fill: #000000;
 }
-
 /* ------------------------------------------------------------------- */
 /* 3. STYLA DEN MARKERADE CELLEN (SELECTED) */
 /* ------------------------------------------------------------------- */
@@ -48,10 +48,15 @@ styles.css
     -fx-font-weight: bold;
 }
 .text-area{
-    -fx-padding: 10px 20px;
+    -fx-padding: 5px 7px;
     -fx-text-fill: black;
-    -fx-border-color: #ffd700 #ffd700 #ffd700;
+    -fx-font-size: 14;
+    -fx-border: 1px solid #ccc;
+    -fx-border-radius: 8px;
+    -fx-background-color: transparent;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
 }
+.text-area:focus {}
 .button{
     -fx-background-color: #007bff;
     -fx-text-fill: white;
