@@ -244,4 +244,40 @@ class HelloModelTest {
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+    @Test
+    void shouldRejectAllInvalidIncomingMessages() throws InterruptedException {
+        NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
+        HelloModel model = new HelloModel(connectionSpy);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) latch.countDown();
+            }
+        });
+
+        connectionSpy.simulateIncoming(new NtfyMessageDto("id1", 1, "message", "room", ""));
+        connectionSpy.simulateIncoming(new NtfyMessageDto("id2", 2, "message", "room", "  "));
+        connectionSpy.simulateIncoming(null);
+
+        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        assertThat(messageAdded).isFalse();
+        assertThat(model.getMessages()).isEmpty();
+    }
+    //integration test
+    @Test
+    void shouldCommunicateWithMockedServer(WireMockRuntimeInfo wmInfo) throws InterruptedException {
+        NtfyConnectionImpl connection = new NtfyConnectionImpl("http://localhost:" + wmInfo.getHttpPort());
+        HelloModel model = new HelloModel(connection);
+        model.setMessageToSend("Hello World");
+
+        stubFor(post("/mytopic").willReturn(ok()));
+
+        CountDownLatch latch = new CountDownLatch(1);
+        model.sendMessageAsync(success -> latch.countDown());
+
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+        verify(postRequestedFor(urlEqualTo("/mytopic"))
+                .withRequestBody(matching("Hello World")));
+    }
 }
