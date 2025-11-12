@@ -1,22 +1,27 @@
 package com.example;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
-/**
- * Controller layer: mediates between the view (FXML) and the model.
- */
 public class HelloController {
+    @FXML private TextArea chatArea;
+    @FXML private TextField inputField;
 
-    private final HelloModel model = new HelloModel();
+    private HelloModel model;
 
     @FXML
-    private Label messageLabel;
+    public void initialize() {
+        model = new HelloModel("javafx-chat"); // Du kan byta topic-namnet
+        model.listen(msg -> chatArea.appendText(msg + "\n"));
+    }
 
     @FXML
-    private void initialize() {
-        if (messageLabel != null) {
-            messageLabel.setText(model.getGreeting());
+    public void onSendButtonClick() {
+        String text = inputField.getText().trim();
+        if (!text.isEmpty()) {
+            model.sendMessage(text);
+            inputField.clear();
         }
     }
 }
