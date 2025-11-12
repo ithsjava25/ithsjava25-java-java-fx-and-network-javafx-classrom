@@ -222,4 +222,26 @@ class HelloModelTest {
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+    @Test
+    void shouldIgnoreMessagesWithBlankContent() throws InterruptedException {
+        NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
+        HelloModel model = new HelloModel(connectionSpy);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) latch.countDown();
+            }
+        });
+
+        NtfyMessageDto whitespaceMsg = new NtfyMessageDto("id1", 1, "message", "room", "   ");
+        NtfyMessageDto emptyMsg = new NtfyMessageDto("id2", 2, "message", "room", "");
+
+        connectionSpy.simulateIncoming(whitespaceMsg);
+        connectionSpy.simulateIncoming(emptyMsg);
+
+        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        assertThat(messageAdded).isFalse();
+        assertThat(model.getMessages()).isEmpty();
+    }
 }

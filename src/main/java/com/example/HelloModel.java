@@ -65,7 +65,7 @@ public class HelloModel {
 
     private void receiveMessage() {
         connection.receive(message -> {
-            if (message == null) {
+            if (message == null || message.message() == null || message.message().isBlank()) {
                 return;
             }
             Platform.runLater(() -> messages.add(message));
