@@ -204,4 +204,22 @@ class HelloModelTest {
         assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
         assertThat(model.getMessages()).contains(incomingMsg);
     }
+    @Test
+    void shouldDiscardNullIncomingMessage() throws InterruptedException {
+        NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
+        HelloModel model = new HelloModel(connectionSpy);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) latch.countDown();
+            }
+        });
+
+        connectionSpy.simulateIncoming(null);
+
+        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        assertThat(messageAdded).isFalse();
+        assertThat(model.getMessages()).isEmpty();
+    }
 }
