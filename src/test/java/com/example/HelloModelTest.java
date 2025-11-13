@@ -21,19 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WireMockTest
 class HelloModelTest {
 
-    /**
-     * Initierar JavaFX Toolkit en gång innan alla tester i klassen.
-     */
-    @BeforeAll
-    public static void initToolkit() {
-        // Kontrollera om Toolkiten redan är igång för att undvika IllegalStateException
-        try {
-            Platform.startup(() -> {
-            });
-        } catch (IllegalStateException e) {
-            // Toolkit är redan igång, ignorera
-        }
-    }
 
     @Test
     @DisplayName("Given a model with messageToSend when calling sendMessage then send")
@@ -98,24 +85,24 @@ class HelloModelTest {
 
         Awaitility.await()
                 .atMost(Duration.ofSeconds(4))
-                .pollInterval(Duration.ofMillis(100)) // Kolla var 100:e ms
+                .pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> {
                     assertThat(model.getMessages()).isNotEmpty();
                     assertThat(model.getMessages().getLast().message()).isEqualTo("Hello World");
                 });
     }
 
-    // Test som skickar in ett fake:at meddelande via record och kollar att meddelandet finns i observablelistan
+    // Test that sends a fake message via record and verifies that the message appears in the observable list
     @Test
     void checkThatReceivedFakeMessageAppearInList() {
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
 
-        //Skapa ett meddelande genom en record och skicka den till listan
+        // Create a message through a record and send it to the list
         var fakeMessage = new NtfyMessageDto("id1", 1746598362, "message", "fmtopic", "Hallå");
         spy.simulateIncomingMessage(fakeMessage);
 
-        // kontrollera att Meddelandet finns i listan
+        // Verify that the message is in the list
         assertThat(model.getMessages()).extracting(NtfyMessageDto::message).contains("Hallå");
 
     }

@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 public interface NtfyConnection {
 
-    public CompletableFuture<Void> send(String message);
+    CompletableFuture<Void> send(String message);
 
-    public void receive(Consumer<NtfyMessageDto> messageHandler);
+    void receive(Consumer<NtfyMessageDto> messageHandler);
 }

@@ -3,22 +3,17 @@
 styles.css
  */
 .root {
-   /* -fx-background-color: linear-gradient(to bottom, #8b0000, #ffd700);*/
     -fx-background-color: #ffffff, linear-gradient(to bottom, #8b0000, #ffd700);
     -fx-background-insets: 0, 4;
     -fx-background-radius: 0, 3;
 
 }
-/*.list-view{*/
-/*    -fx-background-color: linear-gradient(to bottom, #8b0000, #ffd700);*/
-/*}*/
 .list-view {
-    -fx-background-color: transparent; /* Gör bakgrunden transparent */
+    -fx-background-color: transparent; /* Make background transparent */
     -fx-background-insets: 0;
     -fx-padding: 0;
-    -fx-border-color: transparent;     /* Ta bort kantlinje */
-    /* ... (tidigare stilar) */
-    -fx-background-radius: 5;      /* Rundade hörn */
+    -fx-border-color: transparent;
+    -fx-background-radius: 5;
     -fx-border-radius: 5;
 }
 .list-cell{
@@ -26,24 +21,20 @@ styles.css
     -fx-border-color: transparent;
     -fx-control-inner-background: transparent;
 }
-/* Ta bort bakgrund och kantlinje när musen är över */
+/* Remove background and border on hover */
 .list-cell:filled:hover {
     -fx-background-color: #e0e0e0;
     -fx-text-fill: #000000;
 }
-/* ------------------------------------------------------------------- */
-/* 3. STYLA DEN MARKERADE CELLEN (SELECTED) */
-/* ------------------------------------------------------------------- */
-.list-cell:filled:selected {
-    /* En modern, accentuerad bakgrundsfärg (t.ex. blå) */
-    -fx-background-color: #007bff;
-    -fx-text-fill: white;          /* Vit text för hög kontrast */
 
-    /* Lägg till en liten inre skugga för djup */
+.list-cell:filled:selected {
+
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
 }
 
-/* Ta bort kantlinje när man är markerad */
 .list-cell:filled:selected .text {
     -fx-font-weight: bold;
 }

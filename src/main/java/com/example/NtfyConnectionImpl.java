@@ -42,9 +42,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     return null;
                 });
     }
-//            // Todo: handle long blocking send request to not freeze the java FX thread
-//            //1. Use thread send message?
-//            //2. Use async?
 
         @Override
         public void receive (Consumer < NtfyMessageDto > messageHandler) {

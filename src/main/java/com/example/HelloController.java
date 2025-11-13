@@ -35,14 +35,6 @@ public class HelloController {
        messageView.setItems(model.getMessages());
        messageView.setCellFactory(showOnlyMessages());
 
-        chatButton.setOnAction(event -> {
-            String input = chatArea.getText().trim();
-            if (!input.isEmpty()) {
-                model.setMessageToSend(input);
-                model.sendMessage();
-                chatArea.clear();
-            }
-        });
     }
 
     private static Callback<ListView<NtfyMessageDto>, ListCell<NtfyMessageDto>> showOnlyMessages() {
@@ -50,18 +42,22 @@ public class HelloController {
             @Override
             protected void updateItem(NtfyMessageDto item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+                if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(getItem().message());
+                    setText(item.message());
                 }
             }
         };
     }
 
-    public void sendMessage(ActionEvent actionEvent) throws IOException, InterruptedException {
-        model.sendMessage();
+    public void sendMessage(ActionEvent actionEvent) {
+        String input = chatArea.getText().trim();
+        if (!input.isEmpty()) {
+            model.setMessageToSend(input);
+            model.sendMessage();
+            chatArea.clear();
+        }
     }
-
 }
 
