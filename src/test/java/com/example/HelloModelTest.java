@@ -297,12 +297,15 @@ class HelloModelTest {
     //integration test
     @Test
     void shouldCommunicateWithMockedServer(WireMockRuntimeInfo wmInfo) throws InterruptedException {
+        stubFor(post("/mytopic").willReturn(ok()));
+        stubFor(get("/mytopic/json").willReturn(ok().withBody("")));
+
         NtfyConnectionImpl connection = new NtfyConnectionImpl("http://localhost:" + wmInfo.getHttpPort());
         HelloModel model = new HelloModel(connection);
-        model.setMessageToSend("Hello World");
 
-        stubFor(post("/mytopic").willReturn(ok()));
-        stubFor(get("/mytopic/json").willReturn(ok()));
+        Thread.sleep(100);
+
+        model.setMessageToSend("Hello World");
 
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
@@ -312,4 +315,3 @@ class HelloModelTest {
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
-}
