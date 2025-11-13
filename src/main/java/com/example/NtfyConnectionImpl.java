@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
@@ -16,6 +17,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
     private final HttpClient http = HttpClient.newHttpClient();
     private final String hostName;
     private final ObjectMapper mapper = new ObjectMapper();
+    private CompletableFuture<Void> receiveTask;
 
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
@@ -40,18 +42,22 @@ public class NtfyConnectionImpl implements NtfyConnection {
             System.out.println("Error sending message");
         } catch (InterruptedException e) {
             System.out.println("Interruped sending message");
+            Thread.currentThread().interrupt();
         }
         return false;
     }
 
     @Override
-    public void receive(String topic, Consumer<NtfyMessageDto> messageHandler) {
+    public synchronized void receive(String topic, Consumer<NtfyMessageDto> messageHandler) {
+        if (receiveTask != null) {
+            receiveTask.cancel(true);
+        }
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(hostName + "/" + topic + "/json"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
+        receiveTask = http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
                         .map(s -> {
                             try {
@@ -60,7 +66,8 @@ public class NtfyConnectionImpl implements NtfyConnection {
                                 return null;
                             }
                         })
-                        .filter(message -> message.event().equals("message"))
+                        .filter(Objects::nonNull)
+                        .filter(message -> "message".equals(message.event()))
                         .peek(System.out::println)
                         .forEach(messageHandler));
     }
