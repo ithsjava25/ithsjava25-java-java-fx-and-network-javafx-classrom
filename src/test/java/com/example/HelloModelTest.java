@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +16,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @WireMockTest
+@Timeout(10) // Global timeout för alla tester i klassen
 class HelloModelTest {
 
     @BeforeAll
@@ -23,9 +25,8 @@ class HelloModelTest {
             if (!Platform.isFxApplicationThread()) {
                 Platform.startup(() -> {});
             }
-        } catch (UnsupportedOperationException e) {
+        } catch (IllegalStateException | UnsupportedOperationException e) {
             System.out.println("Headless environment detected – skipping JavaFX startup");
-        } catch (IllegalStateException e) {
         }
     }
 
@@ -39,7 +40,8 @@ class HelloModelTest {
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
 
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for message send").isTrue();
         assertThat(connectionSpy.message).isEqualTo("Hello World");
     }
 
@@ -63,7 +65,8 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(1, TimeUnit.SECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for consecutive sends").isTrue();
         assertThat(results[0]).isTrue();
         assertThat(results[1]).isTrue();
         assertThat(connectionSpy.message).isEqualTo("Second");
@@ -87,7 +90,8 @@ class HelloModelTest {
                 latch.countDown();
             });
 
-            latch.await(1, TimeUnit.SECONDS);
+            boolean completed = latch.await(5, TimeUnit.SECONDS);
+            assertThat(completed).as("Timed out waiting for blank message rejection").isTrue();
             assertThat(wasSuccessful[0]).isFalse();
             assertThat(connectionSpy.message).isNull();
         }
@@ -107,7 +111,8 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(1, TimeUnit.SECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for empty text rejection").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(connectionSpy.message).isNull();
     }
@@ -126,7 +131,8 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(1, TimeUnit.SECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for null message rejection").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(connectionSpy.message).isNull();
     }
@@ -153,7 +159,8 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(1, TimeUnit.SECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for connection failure").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(model.getMessageToSend()).isEqualTo("Fail this message");
     }
@@ -174,17 +181,13 @@ class HelloModelTest {
         CountDownLatch latch = new CountDownLatch(1);
         boolean[] wasSuccessful = new boolean[1];
 
-        try {
-            model.sendMessageAsync(success -> {
-                wasSuccessful[0] = success;
-                latch.countDown();
-            });
-        } catch (Exception ex) {
-            wasSuccessful[0] = false;
+        model.sendMessageAsync(success -> {
+            wasSuccessful[0] = success;
             latch.countDown();
-        }
+        });
 
-        latch.await(1, TimeUnit.SECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for exception handling").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
     }
 
@@ -206,7 +209,8 @@ class HelloModelTest {
 
         connectionSpy.simulateIncoming(incomingMsg);
 
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for incoming message").isTrue();
         assertThat(model.getMessages()).contains(incomingMsg);
     }
 
@@ -224,7 +228,7 @@ class HelloModelTest {
 
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(1, TimeUnit.SECONDS);
+        boolean messageAdded = latch.await(5, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
@@ -247,7 +251,7 @@ class HelloModelTest {
         connectionSpy.simulateIncoming(whitespaceMsg);
         connectionSpy.simulateIncoming(emptyMsg);
 
-        boolean messageAdded = latch.await(1, TimeUnit.SECONDS);
+        boolean messageAdded = latch.await(5, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
@@ -268,7 +272,7 @@ class HelloModelTest {
         connectionSpy.simulateIncoming(new NtfyMessageDto("id2", 2, "message", "room", "  "));
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(1, TimeUnit.SECONDS);
+        boolean messageAdded = latch.await(5, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
@@ -286,7 +290,8 @@ class HelloModelTest {
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
 
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for server communication").isTrue();
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
