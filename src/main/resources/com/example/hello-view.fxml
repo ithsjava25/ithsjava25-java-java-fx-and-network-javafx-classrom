@@ -13,18 +13,29 @@
         <Insets bottom="20" left="20" right="20" top="20" />
     </padding>
 
-    <Label fx:id="messageLabel" style="-fx-font-size: 20px;" text="JavaFX Chat App 💬" />
+    <Label fx:id="messageLabel"
+           style="-fx-font-size: 20px;"
+           text="JavaFX Chat App 💬" />
 
-    <HBox alignment="CENTER_LEFT" spacing="10">
+    <HBox alignment="CENTER_LEFT"
+          spacing="10">
         <Label text="Topic:" />
-        <TextField fx:id="topicField" text="mytopic" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="topicField"
+                   text="mytopic"
+                   HBox.hgrow="ALWAYS" />
+        <Button text="Connect"
+                onAction="#connectToTopic" />
     </HBox>
 
     <HBox spacing="10">
-        <TextField fx:id="inputField" promptText="Type a message!" HBox.hgrow="ALWAYS" />
-        <Button onAction="#sendMessage" text="Send" />
+        <TextField fx:id="inputField"
+                   promptText="Type a message!"
+                   HBox.hgrow="ALWAYS" />
+        <Button text="Send"
+                onAction="#sendMessage" />
     </HBox>
 
-    <ListView fx:id="messageView" VBox.vgrow="ALWAYS" />
+    <ListView fx:id="messageView"
+              VBox.vgrow="ALWAYS" />
 
 </VBox>

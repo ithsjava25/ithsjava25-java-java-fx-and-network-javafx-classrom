@@ -14,6 +14,7 @@ public class HelloModel {
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final StringProperty messageToSend = new SimpleStringProperty();
+    private final StringProperty topic = new SimpleStringProperty("mytopic");
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
@@ -36,6 +37,18 @@ public class HelloModel {
         messageToSend.set(message);
     }
 
+    public String getTopic() {
+        return topic.get();
+    }
+
+    public StringProperty topicProperty() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic.set(topic);
+    }
+
     /**
      * Returns a greeting based on the current Java and JavaFX versions.
      */
@@ -46,10 +59,15 @@ public class HelloModel {
     }
 
     public void sendMessage() {
-        connection.send(messageToSend.get());
+        connection.send(topic.get(), messageToSend.get());
+    }
+
+    public void connectToTopic() {
+        messages.clear();
+        receiveMessage();
     }
 
     public void receiveMessage() {
-        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+        connection.receive(topic.get(), m -> Platform.runLater(() -> messages.add(m)));
     }
 }

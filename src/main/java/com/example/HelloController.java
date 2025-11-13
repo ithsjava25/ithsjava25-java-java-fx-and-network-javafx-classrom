@@ -12,6 +12,7 @@ import javafx.scene.control.TextField;
 public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
+
     public ListView<NtfyMessageDto> messageView;
 
     @FXML
@@ -28,8 +29,14 @@ public class HelloController {
         if (messageLabel != null) {
             messageLabel.setText(model.getGreeting());
         }
+
         inputField.textProperty().bindBidirectional(model.messageToSendProperty());
+
+        topicField.textProperty().bindBidirectional(model.topicProperty());
+
         messageView.setItems(model.getMessages());
+
+        model.connectToTopic();
     }
 
     public void sendMessage(ActionEvent actionEvent) {
@@ -37,5 +44,9 @@ public class HelloController {
             model.sendMessage();
             inputField.clear();
         }
+    }
+
+    public void connectToTopic(ActionEvent actionEvent) {
+        model.connectToTopic();
     }
 }
