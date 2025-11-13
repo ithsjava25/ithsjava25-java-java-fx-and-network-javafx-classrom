@@ -4,6 +4,7 @@ module hellofx {
     requires io.github.cdimascio.dotenv.java;
     requires java.net.http;
     requires javafx.graphics;
+    requires java.desktop;
 
     requires com.fasterxml.jackson.databind;
 

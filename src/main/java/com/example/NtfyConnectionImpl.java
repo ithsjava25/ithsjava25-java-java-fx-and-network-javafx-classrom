@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.cdimascio.dotenv.Dotenv;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.*;
@@ -52,6 +53,82 @@ public class NtfyConnectionImpl implements NtfyConnection {
         });
 
         return true;
+    }
+
+
+
+    @Override
+    public boolean sendFile(File file, String filename) {
+        try {
+            if (!file.exists()) {
+                System.err.println("❌ Filen finns inte: " + file.getAbsolutePath());
+                return false;
+            }
+
+            if (file.length() > 15 * 1024 * 1024) { // 15 MB limit
+                System.err.println("❌ Filen är för stor: " + file.length() + " bytes");
+                return false;
+            }
+
+            String actualFilename = (filename != null) ? filename : file.getName();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(hostName + "/mytopic"))
+                    .header("Filename", actualFilename)
+                    .header("Cache", "no")
+                    .PUT(HttpRequest.BodyPublishers.ofFile(file.toPath()))
+                    .build();
+
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("✅ Fil skickad: " + actualFilename);
+                return true;
+            } else {
+                System.err.println("❌ Fel vid filöverföring: " + response.statusCode());
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Fel vid filöverföring: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    @Override
+    public boolean sendFileFromUrl(String fileUrl, String filename) {
+        try {
+            String actualFilename = (filename != null) ? filename : extractFilenameFromUrl(fileUrl);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(hostName + "/mytopic"))
+                    .header("Attach", fileUrl)
+                    .header("Filename", actualFilename)
+                    .header("Cache", "no")
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("✅ Fil från URL skickad: " + actualFilename);
+                return true;
+            } else {
+                System.err.println("❌ Fel vid URL-filöverföring: " + response.statusCode());
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Fel vid URL-filöverföring: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private String extractFilenameFromUrl(String url) {
+        try {
+            return url.substring(url.lastIndexOf('/') + 1);
+        } catch (Exception e) {
+            return "file";
+        }
     }
 
     @Override

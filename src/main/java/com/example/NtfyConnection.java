@@ -1,11 +1,11 @@
 package com.example;
 
+import java.io.File;
 import java.util.function.Consumer;
 
 public interface NtfyConnection {
-
-    public boolean send(String message);
-
-    public void receive(Consumer<NtfyMessageDto> messageHandler);
-
+    boolean send(String message);
+    boolean sendFile(File file, String filename);
+    boolean sendFileFromUrl(String fileUrl, String filename);
+    void receive(Consumer<NtfyMessageDto> messageHandler);
 }

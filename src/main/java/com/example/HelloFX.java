@@ -15,8 +15,13 @@ public class HelloFX extends Application {
         });
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Parent root = fxmlLoader.load();
+
+        // Sätt primaryStage i controllern
+        HelloController controller = fxmlLoader.getController();
+        controller.setPrimaryStage(stage);
+
         Scene scene = new Scene(root, 640, 480);
-        stage.setTitle("Hello MVC");
+        stage.setTitle("Hello MVC with File Support");
         stage.setScene(scene);
         stage.show();
     }

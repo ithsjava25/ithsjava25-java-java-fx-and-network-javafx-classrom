@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 
 <VBox alignment="CENTER" spacing="10" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.HelloController">
@@ -12,9 +13,12 @@
 
     <TextField fx:id="messageInput" promptText="Type message here"/>
 
-    <Button text="Send message" onAction="#sendMessage"/>
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Send message" onAction="#sendMessage"/>
+        <Button text="Send file" onAction="#sendFile"/>
+        <Button text="Send file from URL" onAction="#sendFileFromUrl"/>
+    </HBox>
 
-
-    <ListView fx:id="messageView"/>
+    <ListView fx:id="messageView" VBox.vgrow="ALWAYS"/>
 
 </VBox>
