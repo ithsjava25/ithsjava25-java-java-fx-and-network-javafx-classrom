@@ -6,12 +6,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.time.Instant;
@@ -21,11 +23,14 @@ public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
+
     @FXML private ListView<NtfyMessageDto> messageView;
     @FXML private Label statusLabel;
     @FXML private TextField messageField;
     @FXML private VBox chatBox;
     @FXML private ScrollPane chatScroll;
+
+
 
     @FXML
     private void handleSend() {
@@ -64,6 +69,21 @@ public class HelloController {
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
         imageView.getStyleClass().add("image-view");
+        imageView.setOnMouseClicked(e -> {
+            Stage stage = new Stage();
+            ImageView fullView = new ImageView(image);
+            fullView.setPreserveRatio(true);
+            fullView.setFitWidth(800);
+            fullView.setSmooth(true);
+
+            ScrollPane scrollPane = new ScrollPane(fullView);
+            scrollPane.setFitToWidth(true);
+
+            Scene scene = new Scene(scrollPane, 900, 700);
+            stage.setScene(scene);
+            stage.setTitle("Förhandsgranskning: " + imageFile.getName());
+            stage.show();
+        });
 
         Label timeLabel = new Label(
                 Instant.now().atZone(ZoneId.systemDefault()).toLocalTime().toString().substring(0, 5)
@@ -82,8 +102,14 @@ public class HelloController {
     }
 
     // ✅ uppdatera så att även tid visas på textbubblor
-    private void addMessageBubble(String text, boolean isSentByUser, long timestamp) {
-        if (text == null || text.isBlank()) return;
+    private void addMessageBubble(String rawText, boolean isSentByUser, long timestamp) {
+        if (rawText == null || rawText.isBlank()) return;
+
+        // 🧩 Försök plocka ut bara meddelandetexten om det är JSON
+        String text = rawText;
+        if (rawText.trim().startsWith("{") && rawText.contains("\"message\"")) {
+            text = rawText.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1");
+        }
 
         String timeString = java.time.Instant.ofEpochSecond(timestamp)
                 .atZone(java.time.ZoneId.systemDefault())
@@ -107,6 +133,39 @@ public class HelloController {
         chatBox.getChildren().add(container);
     }
 
+
+    @FXML
+    private void handleSendImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Välj en bild att skicka");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Bildfiler", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File imageFile = fileChooser.showOpenDialog(null);
+        if (imageFile != null) {
+            boolean success = model.sendImage(imageFile);  // skicka bilden via ntfy
+            if (success) {
+                Platform.runLater(() -> {
+                    // 🟢 Visa miniatyr direkt i chatten
+                    addImageBubble(imageFile, true);
+
+                    // 💬 Lägg även till textbubbla (valfritt)
+                    addMessageBubble("[📷 Bild skickad: " + imageFile.getName() + "]",
+                            true, java.time.Instant.now().getEpochSecond());
+                });
+            } else {
+                Platform.runLater(() ->
+                        showStatus("Misslyckades att skicka bilden: " + imageFile.getName())
+                );
+            }
+        }
+    }
+
+
+
+
+
     @FXML
     private void initialize() {
         if (messageField != null) {
@@ -119,6 +178,7 @@ public class HelloController {
                     for (NtfyMessageDto msg : change.getAddedSubList()) {
                         boolean sentByUser = msg.topic().equals("MartinsTopic");
                         addMessageBubble(msg.message(), sentByUser, msg.time());
+
                     }
                 }
             }

@@ -22,7 +22,7 @@
     <bottom>
         <HBox spacing="5" style="-fx-padding: 10;">
             <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
-            <Button text="📎 Bild" onAction="#handleSelectImage" />
+            <Button text="📎 Bild" onAction="#handleSendImage" />
             <Button text="Skicka" onAction="#handleSend" />
             <Label fx:id="statusLabel" textFill="red" />
         </HBox>
