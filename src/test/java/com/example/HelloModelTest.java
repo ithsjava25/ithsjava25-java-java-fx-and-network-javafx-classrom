@@ -22,7 +22,8 @@ class HelloModelTest {
     static void setupJavaFX() {
         try {
             if (!Platform.isFxApplicationThread()) {
-                Platform.startup(() -> {});
+                Platform.startup(() -> {
+                });
             }
         } catch (IllegalStateException | UnsupportedOperationException e) {
             System.out.println("Headless environment detected – skipping JavaFX startup");
@@ -144,8 +145,10 @@ class HelloModelTest {
             public void send(String message, Consumer<Boolean> callback) {
                 callback.accept(false);
             }
+
             @Override
-            public void receive(Consumer<NtfyMessageDto> messageHandler) { }
+            public void receive(Consumer<NtfyMessageDto> messageHandler) {
+            }
         };
         HelloModel model = new HelloModel(failingConn);
         model.setMessageToSend("Fail this message");
@@ -171,8 +174,10 @@ class HelloModelTest {
             public void send(String message, Consumer<Boolean> callback) {
                 throw new RuntimeException("Simulated crash");
             }
+
             @Override
-            public void receive(Consumer<NtfyMessageDto> messageHandler) { }
+            public void receive(Consumer<NtfyMessageDto> messageHandler) {
+            }
         };
         HelloModel model = new HelloModel(throwingConn);
         model.setMessageToSend("Crash this");
@@ -315,3 +320,4 @@ class HelloModelTest {
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }
+}
