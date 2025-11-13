@@ -2,6 +2,7 @@ package com.example;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -35,6 +36,33 @@ public class HelloController {
     }
 
     @FXML
+    private void showRawMessageData() {
+        NtfyMessageDto selected = messageView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            TextArea textArea = new TextArea(selected.toString());
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+
+            ScrollPane scrollPane = new ScrollPane(textArea);
+            scrollPane.setFitToWidth(true);
+            scrollPane.setFitToHeight(true);
+
+            Stage stage = new Stage();
+            stage.setTitle("Rå Meddelandedata - " + selected.getFormattedDateTime());
+            stage.setScene(new Scene(scrollPane, 600, 400));
+            stage.show();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Inget meddelande valt");
+            alert.setHeaderText(null);
+            alert.setContentText("Välj ett meddelande i listan för att se rådata.");
+            alert.showAndWait();
+        }
+    }
+
+
+    // Uppdatera även initialize för att lägga till context menu
+    @FXML
     private void initialize() {
         try {
             ntfyIcon.setImage(new Image(getClass().getResourceAsStream("/Ntfy-Icon.png")));
@@ -58,18 +86,32 @@ public class HelloController {
                     setGraphic(null);
                 } else {
                     if (item.hasAttachment()) {
-                        // Visa fil-meddelande med knapp för att ladda ner
                         setGraphic(createAttachmentCell(item));
                         setText(null);
                     } else {
-                        // Visa vanligt text-meddelande med formatterad tid
                         setGraphic(null);
                         setText(item.getDisplayText());
                     }
                 }
             }
         });
+
+        // Lägg till context menu för att visa rådata
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem showRawData = new MenuItem("Visa rådata");
+        showRawData.setOnAction(e -> showRawMessageData());
+        contextMenu.getItems().add(showRawData);
+
+        messageView.setContextMenu(contextMenu);
+
+        // Dubbelklick för att visa rådata
+        messageView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                showRawMessageData();
+            }
+        });
     }
+
 
     private HBox createAttachmentCell(NtfyMessageDto item) {
         HBox hbox = new HBox(10);

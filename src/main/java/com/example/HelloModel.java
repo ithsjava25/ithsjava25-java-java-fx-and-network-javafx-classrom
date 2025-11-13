@@ -47,31 +47,40 @@ public class HelloModel {
     }
 
     public void sendMessage(String enteredText) {
-        // Create local message immediately for instant feedback with current timestamp
-        NtfyMessageDto localMessage = new NtfyMessageDto(
-                "local-" + System.currentTimeMillis(),
-                System.currentTimeMillis() / 1000, // Convert to seconds (Unix timestamp)
-                "message",
-                "mytopic",
-                enteredText,
-                null,
-                null
-        );
+        // SKAPA INTE lokalt meddelande här - låt servern hantera det
+        // Meddelandet kommer automatiskt via receive() när servern skickar tillbaka det
 
-        Platform.runLater(() -> {
-            messages.add(localMessage);
-            System.out.println("Message sent locally: " + enteredText + " at " + localMessage.getFormattedDateTime());
-        });
-
-        // Then send to server
+        // Skicka bara till server
         boolean success = connection.send(enteredText);
         if (!success) {
             System.err.println("Failed to send message to server: " + enteredText);
+            // Visa felmeddelande till användaren
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Sändningsfel");
+                alert.setHeaderText(null);
+                alert.setContentText("Kunde inte skicka meddelandet: " + enteredText);
+                alert.showAndWait();
+            });
+        } else {
+            Platform.runLater(() -> {
+                // Rensa bara inputfältet, meddelandet kommer via receive()
+                System.out.println("Message sent to server: " + enteredText);
+            });
         }
     }
 
     public void receiveMessage() {
-        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+        connection.receive(m -> {
+            Platform.runLater(() -> {
+                // Debug: skriv ut rådata för varje meddelande
+                System.out.println("=== INKOMMANDE MEDDELANDE ===");
+                System.out.println(m.toString());
+                System.out.println("=============================");
+
+                messages.add(m);
+            });
+        });
     }
 
     public boolean sendFile(File file) {

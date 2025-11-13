@@ -14,6 +14,7 @@
                 <Button text="Send message" onAction="#sendMessage" />
                 <Button text="Attach file" onAction="#handleAttachFile" />
                 <Button text="Send file from URL" onAction="#sendFileFromUrl" />
+                <Button text="Visa Rådata" onAction="#showRawMessageData" />
             </children>
         </HBox>
         <ListView fx:id="messageView" VBox.vgrow="ALWAYS" />

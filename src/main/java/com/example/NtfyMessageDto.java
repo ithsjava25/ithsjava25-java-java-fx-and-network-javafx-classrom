@@ -26,7 +26,8 @@ public record NtfyMessageDto(
             @JsonProperty("content-type") String contentType,
             long size,
             long expires
-    ) {}
+    ) {
+    }
 
     // DateTimeFormatter for displaying time
     private static final DateTimeFormatter TIME_FORMATTER =
@@ -93,14 +94,20 @@ public record NtfyMessageDto(
 
     @Override
     public String toString() {
-        return "NtfyMessageDto{" +
-                "id='" + id + '\'' +
-                ", time=" + getFormattedDateTime() +
-                ", event='" + event + '\'' +
-                ", topic='" + topic + '\'' +
-                ", message='" + message + '\'' +
-                ", title='" + title + '\'' +
-                ", attachment=" + attachment +
-                '}';
+        return "NtfyMessageDto {\n" +
+                "  id='" + id + "'\n" +
+                "  time=" + getFormattedDateTime() + " (" + time + ")\n" +
+                "  event='" + event + "'\n" +
+                "  topic='" + topic + "'\n" +
+                "  message='" + message + "'\n" +
+                "  title='" + title + "'\n" +
+                "  attachment=" + (attachment != null ?
+                "Attachment{name='" + attachment.name() +
+                        "', url='" + attachment.url() +
+                        "', contentType='" + attachment.contentType() +
+                        "', size=" + attachment.size() +
+                        ", expires=" + attachment.expires() + "}"
+                : "null") + "\n" +
+                "}";
     }
 }
