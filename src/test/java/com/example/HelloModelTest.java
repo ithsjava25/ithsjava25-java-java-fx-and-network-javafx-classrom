@@ -18,9 +18,10 @@ public class HelloModelTest {
         //Arrange   Given
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
+        String message = "Hello World";
         model.setMessageToSend("Hello World");
         //Act   When
-        model.sendMessage();
+        model.sendMessage(message);
         //Assert    Then
         assertThat(spy.message).isEqualTo("Hello World");
 
@@ -30,12 +31,48 @@ public class HelloModelTest {
     void sendMessageToFakeServer (WireMockRuntimeInfo wireMockRuntimeInfo) {
         var con = new NtfyConnectionImpl("Http://localhost:" + wireMockRuntimeInfo.getHttpPort());
         var model = new HelloModel(con);
-        model.setMessageToSend("Hello World");
+        String message = "Hello World";
+        model.sendMessage(message);
         WireMock.stubFor(post("/MartinsTopic").willReturn(ok()));
 
-        model.sendMessage();
+        model.sendMessage("Hello World");
         //Verify call med to server.
         verify(postRequestedFor(urlEqualTo("/MartinsTopic"))
                 .withRequestBody(matching("Hello World")));
     }
+    @Test
+    @DisplayName("Given a model when a message is received then it should be added to the messages list")
+    void receiveMessageAddsToMessages() {
+        // Arrange
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        // Act – simulera att ett meddelande tas emot
+        spy.simulateIncomingMessage("Hej från servern!");
+
+        // Assert – kontrollera att det lades till i modellens lista
+        assertThat(model.getMessages())
+                .hasSize(1)
+                .first()
+                .extracting(NtfyMessageDto::message)
+                .isEqualTo("Hej från servern!");
+    }
+    @Test
+    @DisplayName("Given a model when a message is received then it should be added to the message list")
+    void receiveMessageAddsMessageToList() {
+        // Arrange
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        // Act
+        spy.simulateIncomingMessage("Hej från servern!");
+
+        // Assert
+        assertThat(model.getMessages())
+                .hasSize(1)
+                .extracting("message")
+                .contains("Hej från servern!");
+    }
+
+
 }

@@ -16,7 +16,9 @@ import javafx.scene.layout.VBox;
 public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
-    public ListView<NtfyMessageDto> messageView;
+
+    @FXML
+    private ListView<NtfyMessageDto> messageView;
 
     @FXML
     private Label statusLabel;
@@ -30,52 +32,78 @@ public class HelloController {
     @FXML
     private ScrollPane chatScroll;
 
-    private final String topic = "chatroom"; // kan ändras om du vill
-
     @FXML
     private void handleSend() {
         String message = messageField.getText().trim();
-        if (message.isEmpty()) {
-            return;
-        }
+        if (message.isEmpty()) return;
 
-        // Lägg till användarens meddelande i chatten direkt
-        addMessageBubble("Du: " + message, true);
-
-        // Skicka meddelandet till servern
         model.sendMessage(message);
-
         messageField.clear();
     }
 
-    private void addMessageBubble(String text, boolean isUser) {
-        if (text == null || text.isBlank()) {
-            return;
-        }
-        Label bubble = new Label(text);
-        bubble.setWrapText(true);
-        bubble.setMaxWidth(400);
-        bubble.getStyleClass().add(isUser ? "user-bubble" : "bot-bubble");
+    /**
+     * Lägger till en meddelandebubbla i chatten.
+     * @param text innehållet i bubblan
+     * @param isSentByUser om det är användarens eget meddelande
+     */
+    private void addMessageBubble(String text, boolean isSentByUser, long timestamp) {
+        if (text == null || text.isBlank()) return;
 
-        HBox container = new HBox(bubble);
+        // Format för tid (ex: 14:32)
+        String timeString = java.time.Instant.ofEpochSecond(timestamp)
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalTime()
+                .toString()
+                .substring(0, 5);
+
+        Label messageLabel = new Label(text);
+        messageLabel.setWrapText(true);
+        messageLabel.setMaxWidth(400);
+        messageLabel.getStyleClass().add(isSentByUser ? "sent-message" : "received-message");
+
+        Label timeLabel = new Label(timeString);
+        timeLabel.getStyleClass().add("timestamp");
+        timeLabel.setStyle("-fx-font-size: 10; -fx-text-fill: gray;");
+
+        VBox bubbleBox = new VBox(messageLabel, timeLabel);
+        bubbleBox.setAlignment(isSentByUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+        HBox container = new HBox(bubbleBox);
         container.setPadding(new Insets(5));
-        container.setAlignment(isUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+        container.setAlignment(isSentByUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
 
         chatBox.getChildren().add(container);
     }
 
+
     @FXML
     private void initialize() {
-        // När nya meddelanden kommer in, uppdatera UI
         // Hantera Enter-tangenten i textfältet
         if (messageField != null) {
             messageField.setOnAction(e -> handleSend());
         }
-        messageView.setItems(model.getMessages());
-        // Scrolla automatiskt till botten när nytt meddelande läggs till
-        chatBox.heightProperty().addListener((observable, oldValue, newValue) ->
-                chatScroll.setVvalue(1.0));
+
+        // Lyssna på inkommande meddelanden och uppdatera chatten
+        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) change -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    for (NtfyMessageDto msg : change.getAddedSubList()) {
+                        // Jämför topic eller clientId här om du vill särskilja egna/andras
+                        boolean sentByUser = msg.topic().equals("MartinsTopic");
+                        addMessageBubble(msg.message(), sentByUser, msg.time());
+                    }
+                }
+            }
+        });
+
+        // Scrolla automatiskt till botten vid nytt meddelande
+        chatBox.heightProperty().addListener((obs, oldVal, newVal) -> chatScroll.setVvalue(1.0));
     }
+
+    public void sendMessage(ActionEvent actionEvent) {
+        handleSend();
+    }
+
     public void showStatus(String text) {
         Platform.runLater(() -> statusLabel.setText(text));
     }

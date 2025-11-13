@@ -30,23 +30,23 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
 
     @Override
-    public boolean send(String message) {
+    public void send(String message) {
+        System.out.println("Sending to: " + hostName + "/MartinsTopic");
+        System.out.println("Message content: " + message);
+
         HttpRequest request = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
-               .uri(URI.create(hostName + "/MartinsTopic"))
-               .build();
+                .uri(URI.create(hostName + "/MartinsTopic"))
+                .build();
 
         try {
-            var respone = client.send(request, HttpResponse.BodyHandlers.discarding());
-            return true;
-        } catch (IOException e) {
-            System.out.println("Error sending message.");
-        } catch (InterruptedException e) {
-            System.out.println("Interrupted sending message.");
+            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("Response code: " + response.statusCode());
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Error sending message: " + e.getMessage());
         }
-        return false;
-
     }
+
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {

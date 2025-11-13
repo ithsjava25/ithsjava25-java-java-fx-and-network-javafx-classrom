@@ -16,56 +16,47 @@ public class HelloModel {
     private final StringProperty messageToSend = new SimpleStringProperty();
     private final String clientId = java.util.UUID.randomUUID().toString();
 
-    public HelloModel(NtfyConnection connection){
+    public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessage();
+        receiveMessage(); // start listening immediately
     }
 
     public ObservableList<NtfyMessageDto> getMessages() {
-
         return messages;
     }
 
-    public String getMessageToSend(){
+    public String getMessageToSend() {
         return messageToSend.get();
     }
 
     public StringProperty messageToSendProperty() {
-
         return messageToSend;
     }
 
-    public void setMessageToSend(String message){
+    public void setMessageToSend(String message) {
         this.messageToSend.set(message);
     }
 
     public void sendMessage(String message) {
-
         connection.send(message);
-//        HttpRequest request = HttpRequest.newBuilder()
-//                .POST(HttpRequest.BodyPublishers.ofString("Hello! This is a test."))
-//                .uri(URI.create(hostName + "/MartinsTopic"))
-//                .build();
-//
-//        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-//                .thenAccept(response -> System.out.println("Sent: " + response.statusCode()))
-//                .exceptionally(ex -> {
-//                    System.out.println("Error sending message: " + ex.getMessage());
-//                    return null;
-//                });
     }
 
     public void receiveMessage() {
-        connection.receive(m -> Platform.runLater(()-> messages.add(m)));
+        connection.receive(m -> {
+            if (Platform.isFxApplicationThread()) {
+                messages.add(m);
+            } else {
+                try {
+                    Platform.runLater(() -> messages.add(m));
+                } catch (IllegalStateException e) {
+                    // Fångas i tester där JavaFX Toolkit inte är initierad
+                    messages.add(m);
+                }
+            }
+        });
     }
 
 
-
-
-
-    /**
-     * Returns a greeting based on the current Java and JavaFX versions.
-     */
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");

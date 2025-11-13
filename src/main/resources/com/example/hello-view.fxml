@@ -3,29 +3,29 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Button?>
-
-
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
+
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.HelloController"
             stylesheets="@chat-style.css">
 
+    <!-- Chattfönster -->
     <center>
-        <ScrollPane fx:id="chatScroll" fitToWidth="true" VBox.vgrow="ALWAYS">
-            <VBox fx:id="chatBox" spacing="5" style="-fx-padding: 10;" />
+        <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <VBox fx:id="chatBox" spacing="8" style="-fx-padding: 16;" />
         </ScrollPane>
     </center>
 
+    <!-- Meddelandefält -->
     <bottom>
-        <HBox spacing="5" style="-fx-padding: 10;">
-            <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
-            <Button text="Skicka" onAction="#handleSend" />
-            <ListView fx:id="messageView"/>
-            <Label fx:id="statusLabel" textFill="red" />
-        </HBox>
+        <VBox spacing="4" style="-fx-padding: 8;">
+            <Label fx:id="statusLabel" textFill="#888" style="-fx-font-size: 12;" />
+            <HBox spacing="8">
+                <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
+                <Button text="Skicka" onAction="#handleSend" />
+            </HBox>
+        </VBox>
     </bottom>
-
 </BorderPane>
