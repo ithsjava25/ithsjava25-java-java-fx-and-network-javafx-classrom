@@ -68,21 +68,20 @@ public class HelloModel {
             if (message == null || message.message() == null || message.message().isBlank()) {
                 return;
             }
-
-            if (System.getProperty("java.awt.headless", "false").equals("true")) {
-                messages.add(message);
-                return;
-            }
-
-            try {
-                if (Platform.isFxApplicationThread()) {
-                    messages.add(message);
-                } else {
-                    Platform.runLater(() -> messages.add(message));
-                }
-            } catch (UnsupportedOperationException | IllegalStateException e) {
-                messages.add(message);
-            }
+            runOnFx(() -> messages.add(message));
         });
+    }
+
+
+    private static void runOnFx(Runnable task) {
+        try {
+            if (Platform.isFxApplicationThread()) {
+                task.run();
+            } else {
+                Platform.runLater(task);
+            }
+        } catch (IllegalStateException notInitialized) {
+            task.run();
+        }
     }
 }
