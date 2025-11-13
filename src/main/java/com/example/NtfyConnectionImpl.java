@@ -17,7 +17,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
     private final String hostName;
     private final ObjectMapper mapper = new ObjectMapper();
 
-
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
         hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
@@ -31,7 +30,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
     public CompletableFuture<Void> send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
-                .header("Cache", "no")
+                .header("Cache-Control", "no")
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
 
@@ -52,9 +51,15 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
             http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                     .thenAccept(response -> response.body()
-                            .map(s ->
-                                    mapper.readValue(s, NtfyMessageDto.class))
-                            .filter(message -> message.event().equals("message"))
+                            .map(s -> {
+                                try {
+                                    return mapper.readValue(s, NtfyMessageDto.class);
+                                } catch (Exception e) {
+                                    System.out.println("Failed to parse message");
+                                    return null;
+                                }
+                            })
+                            .filter(message -> message !=null && message.event().equals("message"))
                             .peek(System.out::println)
                             .forEach(messageHandler));
         }

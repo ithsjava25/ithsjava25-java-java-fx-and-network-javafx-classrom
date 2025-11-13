@@ -20,6 +20,7 @@ styles.css
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-control-inner-background: transparent;
+    -fx-font-size: 14;
 }
 /* Remove background and border on hover */
 .list-cell:filled:hover {
@@ -54,7 +55,6 @@ styles.css
     -fx-font-size: 16px;
     -fx-padding: 10px 20px;
     -fx-background-radius: 5px;
-    -fx-transition: background-color 0.3s ease;
 }
 .button:hover{
     -fx-background-color: #0056b3;
