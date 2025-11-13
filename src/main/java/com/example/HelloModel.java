@@ -59,11 +59,21 @@ public class HelloModel {
     }
 
     public void receiveMessage() {
-        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+        connection.receive(m -> runOnFx(() -> messages.add(m)));
     }
 
     public void testAddMessage() {
-        NtfyMessageDto test = new NtfyMessageDto("id123", System.currentTimeMillis(), "message", "mytopic", "Testmeddelande");
-        Platform.runLater(() -> messages.add(test));
+        NtfyMessageDto test = new NtfyMessageDto("id123", System.currentTimeMillis(), "message", "mytopic", "Testmeddelande", null);
+        runOnFx(() -> messages.add(test));
     }
+
+    static void runOnFx(Runnable task) {
+        try {
+            if (Platform.isFxApplicationThread()) task.run();
+            else Platform.runLater(task);
+        } catch (IllegalStateException notInitialized) {
+            task.run();
+        }
+    }
+
 }

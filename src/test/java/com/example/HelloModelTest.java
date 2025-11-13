@@ -54,7 +54,8 @@ class HelloModelTest {
                 System.currentTimeMillis(),
                 "message",
                 "mytopic",
-                "Hej från testet!"
+                "Hej från testet!",
+                null
         );
 
         // Act
@@ -76,7 +77,8 @@ class HelloModelTest {
                 System.currentTimeMillis(),
                 "message",
                 "mytopic",
-                "Hej från testet!"
+                "Hej från testet!",
+                null
         );
 
         // Act

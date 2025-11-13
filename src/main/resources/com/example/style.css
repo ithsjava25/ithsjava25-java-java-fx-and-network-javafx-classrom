@@ -27,9 +27,9 @@
 }
 
 .message-list {
-    -fx-background-color: #2e2e3e;
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
     -fx-border-radius: 5;
-    -fx-background-radius: 5;
-    -fx-pref-height: 200;
-    -fx-cell-size: 40;
+    -fx-padding: 10;
 }
+
