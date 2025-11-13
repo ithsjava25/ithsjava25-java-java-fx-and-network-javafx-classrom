@@ -21,17 +21,22 @@ public class NtfyConnectionImpl implements NtfyConnection {
     private final String hostName;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private String currentTopic = "general";
+
+    private String currentTopic = "mytopic";
+
     private CompletableFuture<Void> currentSubscription = CompletableFuture.completedFuture(null);
 
+
     public NtfyConnectionImpl() {
+
         Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+
+        this.hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
     }
+
+
     public NtfyConnectionImpl(String hostName) {
         this.hostName = hostName;
-        Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
     }
 
     @Override
@@ -76,57 +81,44 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
 
+    /**
+     * Skickar ett textmeddelande SYNKRONT (nödvändigt för integrationstester).
+     */
     @Override
     public boolean send(String message, String topic) {
+
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .header("Cache", "no")
                 .uri(URI.create(hostName + "/" + topic))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
-                .exceptionally(e -> {
-                    System.out.println("Error sending message to " + topic + ": " + e.getMessage());
-                    return null;
-                });
+        try {
 
-        return true;
+            HttpResponse<Void> response = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
 
-//        try {
-//            //Todo: handle long blocking send requests to not freeze the JavaFX thread
-//            //1. Use thread send message?
-//            //2. Use async?
-//            var response = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
-//            return true;
-//        } catch (IOException e) {
-//            System.out.println("Error sending message");
-//        } catch (InterruptedException e) {
-//            System.out.println("Interruped sending message");
-//        }
-//        return false;
+            return response.statusCode() >= 200 && response.statusCode() < 300;
+        } catch (IOException e) {
+            System.out.println("Error sending message to " + topic + ": " + e.getMessage());
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted sending message to " + topic + ": " + e.getMessage());
+            Thread.currentThread().interrupt();
+        }
+        return false;
     }
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
+        // Återanvänder connect-logiken
         connect(currentTopic, messageHandler);
-//        HttpRequest httpRequest = HttpRequest.newBuilder()
-//                .GET()
-//                .uri(URI.create(hostName + "/mytopic/json"))
-//                .build();
-//
-//        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
-//                .thenAccept(response -> response.body()
-//                        .map(s -> {
-//                            try {
-//                                return mapper.readValue(s, NtfyMessageDto.class);
-//                            } catch (JsonProcessingException e) {
-//                                return null;
-//                            }
-//                        })
-//                        .filter(message -> message.event().equals("message"))
-//                        .peek(System.out::println)
-//                        .forEach(messageHandler));
     }
+
+
+    private String cleanHeaderValue(String value) {
+
+        return value.replaceAll("[^\\w.\\-]", "-");
+    }
+
 
     @Override
     public boolean sendFile(File file, String topic) {
@@ -136,36 +128,33 @@ public class NtfyConnectionImpl implements NtfyConnection {
         }
 
         try {
+
             String contentType = Files.probeContentType(file.toPath());
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
+
+
+            String cleanedFilename = cleanHeaderValue(file.getName());
+
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .POST(HttpRequest.BodyPublishers.ofFile(file.toPath()))
-                    .header("Content-Type", determineContentType(file.getName()))
-                    .header("Filename", file.getName())
+                    .header("Content-Type", contentType)
+                    .header("Filename", cleanedFilename) // Använder det rensade filnamnet
                     .uri(URI.create(hostName + "/" + topic))
                     .build();
 
-            http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
-                    .exceptionally(e -> {
-                        System.out.println("Failure in asynchrone file transfer to " + topic + ":" + e.getMessage());
-                        return null;
-                    });
-            return true;
+
+            HttpResponse<Void> response = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+            return response.statusCode() >= 200 && response.statusCode() < 300;
 
         } catch (IOException e) {
-            System.out.println("Could not read file: " + e.getMessage());
+            System.out.println("Could not transfer file or read file: " + e.getMessage());
+            return false;
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted file transfer: " + e.getMessage());
+            Thread.currentThread().interrupt();
             return false;
         }
-
-
-    }
-
-    private String determineContentType(String fileName) {
-        if (fileName.endsWith(".png")) return "image/png";
-        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) return "image/jpeg";
-        if (fileName.endsWith(".pdf")) return "application/pdf";
-        return "application/octet-stream";
     }
 }
