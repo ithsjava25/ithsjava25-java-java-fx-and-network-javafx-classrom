@@ -15,6 +15,7 @@ public class HelloController {
 
     @FXML
     private Label messageLabel;
+
     @FXML
     private TextField messageField;
 
