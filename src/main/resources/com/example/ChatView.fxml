@@ -167,6 +167,19 @@
                 </font>
             </TextField>
 
+            <Button text="📎"
+                    onAction="#handleAttachFileAction"
+                    style="-fx-background-color: rgba(214, 69, 69, 0.7);
+                   -fx-text-fill: #fffaf0;
+                   -fx-font-size: 16px;
+                   -fx-background-radius: 50%;
+                   -fx-cursor: hand;
+                   -fx-padding: 10;
+                   -fx-min-width: 45;
+                   -fx-min-height: 45;"
+                    prefHeight="45"
+                    prefWidth="45"/>
+
             <Button text="Send 🌸"
                     onAction="#handleSendButtonAction"
                     defaultButton="true"

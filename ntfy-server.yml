@@ -1,0 +1,11 @@
+# ntfy server configuration
+base-url: "http://localhost:8080"
+
+# Enable attachments
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+attachment-total-size-limit: "5G"
+attachment-file-size-limit: "50M"
+attachment-expiry-duration: "3h"
+
+# Logging
+log-level: "info"

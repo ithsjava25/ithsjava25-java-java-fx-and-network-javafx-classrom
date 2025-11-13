@@ -8,9 +8,14 @@ public record NtfyMessage(
         Long time,
         String event,
         String topic,
-        String message
+        String message,
+        String attachment  // Nytt fält för filer
 ) {
     public NtfyMessage(String topic, String message) {
-        this(null, null, "message", topic, message);
+        this(null, null, "message", topic, message, null);
+    }
+
+    public NtfyMessage(String topic, String message, String attachment) {
+        this(null, null, "message", topic, message, attachment);
     }
 }

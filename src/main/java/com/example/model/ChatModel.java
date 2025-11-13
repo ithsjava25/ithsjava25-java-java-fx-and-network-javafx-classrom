@@ -6,6 +6,8 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.File;
+
 public class ChatModel {
 
     private final ObservableList<NtfyMessage> messages = FXCollections.observableArrayList();
@@ -22,7 +24,7 @@ public class ChatModel {
             url = System.getenv("NTFY_BASE_URL");
         }
         if (url == null || url.isBlank()) {
-            url = "https://ntfy.fungover.org";
+            url = "http://localhost:8080";
         }
 
         this.baseUrl = url;
@@ -48,5 +50,23 @@ public class ChatModel {
     public void sendMessage(String text) throws Exception {
         NtfyMessage message = new NtfyMessage(topic, text);
         networkClient.send(baseUrl, message);
+    }
+
+    public void sendFile(File file) throws Exception {
+        if (file == null || !file.exists()) {
+            throw new IllegalArgumentException("File not found");
+        }
+
+        networkClient.sendFile(baseUrl, topic, file);
+
+        String fileMessage = "📎 " + file.getName() + " (" + formatFileSize(file.length()) + ")";
+        sendMessage(fileMessage);
+    }
+
+    private String formatFileSize(long size) {
+        if (size < 1024) return size + " B";
+        if (size < 1024 * 1024) return String.format("%.1f KB", size / 1024.0);
+        if (size < 1024 * 1024 * 1024) return String.format("%.1f MB", size / (1024.0 * 1024));
+        return String.format("%.1f GB", size / (1024.0 * 1024 * 1024));
     }
 }

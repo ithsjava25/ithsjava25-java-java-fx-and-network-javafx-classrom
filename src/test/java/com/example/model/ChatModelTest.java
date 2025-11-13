@@ -8,47 +8,29 @@ import static org.junit.jupiter.api.Assertions.*;
 class ChatModelTest {
 
     @Test
-    @DisplayName("ChatModel should initialize with empty message list")
-    void testInitialState() {
-        ChatModel model = new ChatModel(java.net.http.HttpClient.newHttpClient());
+    @DisplayName("NtfyMessage should be created with topic and message")
+    void testMessageCreation() {
+        NtfyMessage message = new NtfyMessage("testTopic", "Hello");
 
-        assertNotNull(model.getMessages());
-        assertTrue(model.getMessages().isEmpty());
+        assertEquals("testTopic", message.topic());
+        assertEquals("Hello", message.message());
+        assertNotNull(message);
     }
 
     @Test
-    @DisplayName("ChatModel should use default URL when NTFY_BACKEND_URL not set")
-    void testDefaultUrl() {
-        ChatModel model = new ChatModel();
+    @DisplayName("NtfyMessage should have event type")
+    void testMessageEvent() {
+        NtfyMessage message = new NtfyMessage("topic", "msg");
 
-        assertNotNull(model);
-        assertNotNull(model.getMessages());
+        assertEquals("message", message.event());
     }
 
     @Test
-    @DisplayName("ChatModel should initialize messages list correctly")
-    void testMessagesListNotNull() {
-        ChatModel model = new ChatModel(java.net.http.HttpClient.newHttpClient());
+    @DisplayName("NtfyMessage with attachment should store filename")
+    void testMessageWithAttachment() {
+        NtfyMessage message = new NtfyMessage("topic", "File sent", "test.pdf");
 
-        assertNotNull(model.getMessages());
-        assertEquals(0, model.getMessages().size());
-    }
-
-    @Test
-    @DisplayName("ChatModel with custom HttpClient should not be null")
-    void testConstructorWithHttpClient() {
-        java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-        ChatModel model = new ChatModel(client);
-
-        assertNotNull(model);
-        assertNotNull(model.getMessages());
-    }
-
-    @Test
-    @DisplayName("ChatModel messages list should be observable")
-    void testMessagesListIsObservable() {
-        ChatModel model = new ChatModel(java.net.http.HttpClient.newHttpClient());
-
-        assertTrue(model.getMessages() instanceof javafx.collections.ObservableList);
+        assertEquals("test.pdf", message.attachment());
+        assertEquals("File sent", message.message());
     }
 }

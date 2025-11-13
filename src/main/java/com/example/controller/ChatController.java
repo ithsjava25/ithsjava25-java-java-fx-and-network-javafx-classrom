@@ -9,6 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 
 public class ChatController {
 
@@ -86,6 +89,33 @@ public class ChatController {
             task.setOnFailed(e -> {
                 System.err.println("Send failed: " + task.getException().getMessage());
                 updateStatusOffline();
+            });
+
+            new Thread(task).start();
+        }
+    }
+
+    @FXML
+    private void handleAttachFileAction() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File");
+        File file = fileChooser.showOpenDialog(messageInput.getScene().getWindow());
+
+        if (file != null) {
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    model.sendFile(file);
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> {
+                System.out.println("✅ File info sent: " + file.getName());
+            });
+
+            task.setOnFailed(e -> {
+                System.err.println("❌ File send failed: " + task.getException().getMessage());
             });
 
             new Thread(task).start();
