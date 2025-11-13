@@ -3,7 +3,6 @@ package com.example;
 import io.github.cdimascio.dotenv.Dotenv;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -27,36 +26,47 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
-    public boolean send(String message) {
-        HttpRequest httpRequest = HttpRequest.newBuilder()
+    public void send(String message, Consumer<Boolean> callback) {
+        HttpRequest request = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
-                .header("Cache", "no")
                 .uri(URI.create(hostName + "/mytopic"))
+                .header("Cache", "no")
                 .build();
-        try {
-            //Todo: handle long blocking send requests to not freeze the JavaFX thread
-            //1. Use thread send message?
-            //2. Use async?
-            var reponse = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
-            return true;
-        } catch (IOException e) {
-            System.out.println("Error sending message");
-        } catch (InterruptedException e) {
-            System.out.println("Interruped sending message");
-        }
-        return false;
+
+        http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .thenAccept(response -> {
+                    boolean success = response.statusCode() >= 200 && response.statusCode() < 300;
+                    callback.accept(success);
+                })
+                .exceptionally(throwable -> {
+                    System.err.println("Error sending message: " + throwable.getMessage());
+                    callback.accept(false);
+                    return null;
+                });
     }
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        HttpRequest httpRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(hostName + "/mytopic/json"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
+        http.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
-                        .map(s -> mapper.readValue(s, NtfyMessageDto.class))
-                        .forEach(messageHandler));
+                        .map(line -> {
+                            try {
+                                return mapper.readValue(line, NtfyMessageDto.class);
+                            } catch (Exception e) {
+                                System.err.println("Failed to parse message: " + line);
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .forEach(messageHandler))
+                .exceptionally(ex -> {
+                    System.err.println("Error receiving messages: " + ex.getMessage());
+                    return null;
+                });
     }
 }

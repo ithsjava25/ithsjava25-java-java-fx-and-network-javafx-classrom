@@ -4,8 +4,6 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.ListCell;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -14,32 +12,23 @@ public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
-    @FXML
-    private Label messageLabel;
+    @FXML private Label messageLabel;
+    @FXML private ListView<NtfyMessageDto> messageView;
+    @FXML private TextArea messageInput;
 
-    @FXML
-    private ListView<NtfyMessageDto> messageView;
-
-    @FXML
-    private TextArea messageInput;
-
-    // Formatter för tid
     private final DateTimeFormatter timeFormatter =
-            DateTimeFormatter.ofPattern("HH:mm:ss")
-                    .withZone(ZoneId.systemDefault());
+            DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
 
     @FXML
     private void initialize() {
-        // Visa hälsning
+        //visa välkomstmeddelande
         messageLabel.setText(model.getGreeting());
 
-        // Koppla ListView till modellens meddelanden
         messageView.setItems(model.getMessages());
 
-        // Bind TextArea till modellens property
         messageInput.textProperty().bindBidirectional(model.messageToSendProperty());
 
-        // Snyggare visning av meddelanden
+        //formatera meddelanden i ListView
         messageView.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(NtfyMessageDto msg, boolean empty) {
@@ -47,25 +36,36 @@ public class HelloController {
                 if (empty || msg == null) {
                     setText(null);
                 } else {
-                    setText("[" + timeFormatter.format(Instant.ofEpochMilli(msg.time())) + "] "
-                            + msg.message());
+                    setText("[" + timeFormatter.format(Instant.ofEpochMilli(msg.time())) + "] " + msg.message());
                 }
             }
         });
 
-        // Scrolla automatiskt ner till senaste meddelandet
+        // Scrolla automatiskt till senaste meddelandet
         model.getMessages().addListener((javafx.collections.ListChangeListener<NtfyMessageDto>) change -> {
-            Platform.runLater(() -> {
-                if (!messageView.getItems().isEmpty()) {
-                    messageView.scrollTo(messageView.getItems().size() - 1);
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    Platform.runLater(() -> {
+                        int size = messageView.getItems().size();
+                        if (size > 0) {
+                            messageView.scrollTo(size - 1);
+                        }
+                    });
                 }
-            });
+            }
         });
     }
 
     @FXML
-    private void sendMessage(ActionEvent actionEvent) {
-        model.sendMessage();
-        messageInput.clear();
+    private void sendMessage(ActionEvent event) {
+        //skicka asynkront – HelloModel hanterar rensning och callback
+        model.sendMessageAsync(success -> {
+            if (!success) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Kunde inte skicka meddelandet.");
+                    alert.show();
+                });
+            }
+        });
     }
 }

@@ -11,41 +11,20 @@ public class HelloModel {
 
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private final StringProperty messageToSend = new SimpleStringProperty();
+    private final StringProperty messageToSend = new SimpleStringProperty("");
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessage();
+        startReceiving();
     }
 
-    public ObservableList<NtfyMessageDto> getMessages() {
-        return messages;
-    }
-
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
-    public StringProperty messageToSendProperty() {
-        return messageToSend;
-    }
-
-    public void setMessageToSend(String message) {
-        messageToSend.set(message);
-    }
-
-    public String getGreeting() {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        return "Welcome to ChatApp, made in JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
-    }
-
-    public void sendMessage() {
-        String msg = messageToSend.get();
-        if (msg == null || msg.isBlank()) {
-            return;
-        }
-        connection.send(msg);
+    private void startReceiving() {
+        connection.receive(incoming -> {
+            if (incoming == null || incoming.message() == null || incoming.message().isBlank()) {
+                return;
+            }
+            runOnFx(() -> messages.add(incoming));
+        });
     }
 
     public void sendMessageAsync(Consumer<Boolean> callback) {
@@ -56,22 +35,24 @@ public class HelloModel {
         }
 
         try {
-            boolean success = connection.send(msg);
-            callback.accept(success);
+            connection.send(msg, success -> {
+                if (success) {
+                    runOnFx(() -> {
+                        if (msg.equals(messageToSend.get())) {
+                            messageToSend.set("");
+                        }
+                    });
+                    callback.accept(true);
+                } else {
+                    callback.accept(false);
+                }
+            });
         } catch (Exception e) {
+            // FÅNGA ALLA EXCEPTIONS HÄR!
+            System.err.println("Exception during send: " + e.getMessage());
             callback.accept(false);
         }
     }
-
-    private void receiveMessage() {
-        connection.receive(message -> {
-            if (message == null || message.message() == null || message.message().isBlank()) {
-                return;
-            }
-            runOnFx(() -> messages.add(message));
-        });
-    }
-
 
     private static void runOnFx(Runnable task) {
         try {
@@ -80,8 +61,14 @@ public class HelloModel {
             } else {
                 Platform.runLater(task);
             }
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            task.run();
+        } catch (Exception e) {
+            task.run(); // fallback i tester
         }
     }
+
+    public ObservableList<NtfyMessageDto> getMessages() { return messages; }
+    public String getMessageToSend() { return messageToSend.get(); }
+    public StringProperty messageToSendProperty() { return messageToSend; }
+    public void setMessageToSend(String v) { messageToSend.set(v); }
+    public String getGreeting() { return "Welcome to ChatApp"; }
 }
