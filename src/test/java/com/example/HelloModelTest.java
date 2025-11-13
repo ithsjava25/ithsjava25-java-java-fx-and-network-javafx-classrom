@@ -145,10 +145,8 @@ class HelloModelTest {
             public void send(String message, Consumer<Boolean> callback) {
                 callback.accept(false);
             }
-
             @Override
-            public void receive(Consumer<NtfyMessageDto> messageHandler) {
-            }
+            public void receive(Consumer<NtfyMessageDto> messageHandler) { }
         };
         HelloModel model = new HelloModel(failingConn);
         model.setMessageToSend("Fail this message");
