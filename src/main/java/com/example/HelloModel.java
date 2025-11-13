@@ -47,12 +47,26 @@ public class HelloModel {
     }
 
     public void sendMessage(String enteredText) {
+        // Create local message immediately for instant feedback with current timestamp
+        NtfyMessageDto localMessage = new NtfyMessageDto(
+                "local-" + System.currentTimeMillis(),
+                System.currentTimeMillis() / 1000, // Convert to seconds (Unix timestamp)
+                "message",
+                "mytopic",
+                enteredText,
+                null,
+                null
+        );
+
+        Platform.runLater(() -> {
+            messages.add(localMessage);
+            System.out.println("Message sent locally: " + enteredText + " at " + localMessage.getFormattedDateTime());
+        });
+
+        // Then send to server
         boolean success = connection.send(enteredText);
-        if (success) {
-            Platform.runLater(() -> {
-                messages.add(new NtfyMessageDto("local", System.currentTimeMillis(),
-                        "message", "mytopic", enteredText, null, null));
-            });
+        if (!success) {
+            System.err.println("Failed to send message to server: " + enteredText);
         }
     }
 

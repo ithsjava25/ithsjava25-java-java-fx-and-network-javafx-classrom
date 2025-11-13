@@ -62,11 +62,9 @@ public class HelloController {
                         setGraphic(createAttachmentCell(item));
                         setText(null);
                     } else {
-                        // Visa vanligt text-meddelande
+                        // Visa vanligt text-meddelande med formatterad tid
                         setGraphic(null);
-                        String displayText = String.format("[%s] %s", item.topic(),
-                                item.message() != null ? item.message() : "");
-                        setText(displayText);
+                        setText(item.getDisplayText());
                     }
                 }
             }
@@ -92,6 +90,11 @@ public class HelloController {
         fileIcon.setFitWidth(16);
         fileIcon.setFitHeight(16);
 
+        // Add timestamp to attachment display
+        String timeLabel = "[" + item.getFormattedTime() + "]";
+        Label timeLabelControl = new Label(timeLabel);
+        timeLabelControl.setStyle("-fx-text-fill: gray; -fx-font-size: 10px;");
+
         Label fileNameLabel = new Label(item.getAttachmentName());
 
         Button downloadBtn = new Button("Ladda ner");
@@ -102,9 +105,9 @@ public class HelloController {
                 item.getAttachmentContentType().startsWith("image/")) {
             Button previewBtn = new Button("Visa");
             previewBtn.setOnAction(e -> previewImage(item));
-            hbox.getChildren().addAll(fileIcon, fileNameLabel, downloadBtn, previewBtn);
+            hbox.getChildren().addAll(timeLabelControl, fileIcon, fileNameLabel, downloadBtn, previewBtn);
         } else {
-            hbox.getChildren().addAll(fileIcon, fileNameLabel, downloadBtn);
+            hbox.getChildren().addAll(timeLabelControl, fileIcon, fileNameLabel, downloadBtn);
         }
 
         return hbox;

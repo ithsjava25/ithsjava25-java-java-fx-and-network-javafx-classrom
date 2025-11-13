@@ -31,7 +31,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
         this.hostName = hostName;
     }
 
-    @Override
     public boolean send(String message) {
         try {
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -40,10 +39,15 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     .build();
 
             var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 400) {
+                System.err.println("Server error: " + response.statusCode() + " - " + response.body());
+                return false;
+            }
             return response.statusCode() >= 200 && response.statusCode() < 300;
 
         } catch (IOException | InterruptedException e) {
-            System.out.println("Error sending message: " + e.getMessage());
+            System.err.println("Error sending message: " + e.getMessage());
             Thread.currentThread().interrupt();
             return false;
         }
