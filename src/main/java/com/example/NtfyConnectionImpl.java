@@ -62,19 +62,18 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .build();
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> response.body()
-                        .forEach(line -> {
-                            try {
-                                NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
-                                if ("message".equals(msg.event())) {
-                                    messageHandler.accept(msg);
-                                }
-                            } catch (JsonProcessingException e) {
-                                System.err.println("⚠️ Fel vid JSON-avkodning: " + e.getMessage());
-                            }
-                        }))
+                .thenAccept(response -> response.body().forEach(line -> {
+                    try {
+                        NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
+                        if ("message".equals(msg.event())) {
+                            messageHandler.accept(msg);
+                        }
+                    } catch (JsonProcessingException e) {
+                        System.err.println("⚠️ JSON parsing error: " + e.getMessage());
+                    }
+                }))
                 .exceptionally(ex -> {
-                    System.err.println("❌ Fel vid mottagning: " + ex.getMessage());
+                    System.err.println("❌ Network error while receiving messages: " + ex.getMessage());
                     return null;
                 });
     }
