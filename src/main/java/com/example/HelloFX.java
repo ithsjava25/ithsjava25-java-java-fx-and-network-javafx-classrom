@@ -12,7 +12,9 @@ public class HelloFX extends Application {
     public void start(Stage stage) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             System.err.println("Globalt fel fångat: " + throwable.getMessage());
+            throwable.printStackTrace();
         });
+
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Parent root = fxmlLoader.load();
 
@@ -21,7 +23,7 @@ public class HelloFX extends Application {
         controller.setPrimaryStage(stage);
 
         Scene scene = new Scene(root, 640, 480);
-        stage.setTitle("Hello MVC with File Support");
+        stage.setTitle("NTFY Client");
         stage.setScene(scene);
         stage.show();
     }

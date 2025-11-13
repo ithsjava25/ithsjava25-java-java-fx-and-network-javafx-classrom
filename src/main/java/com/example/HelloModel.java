@@ -5,16 +5,21 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 
-/**
- * Model layer: encapsulates application data and business logic.
- */
 public class HelloModel {
 
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private final StringProperty messageToSend = new SimpleStringProperty("");
+    private final StringProperty messageToSend = new SimpleStringProperty();
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
@@ -25,10 +30,6 @@ public class HelloModel {
         return messages;
     }
 
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
     public StringProperty messageToSendProperty() {
         return messageToSend;
     }
@@ -37,43 +38,109 @@ public class HelloModel {
         messageToSend.set(message);
     }
 
+    public String getMessageToSend() {
+        return messageToSend.get();
+    }
+
     public String getGreeting() {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        return "Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
+        return "Welcome to NTFY chat";
     }
 
-    public void sendMessage() {
-        String msg = messageToSend.get();
-        if (msg == null || msg.isBlank()) {
-            System.err.println("⚠️ Tomt meddelande, inget skickas.");
-            return;
+    public void sendMessage(String enteredText) {
+        boolean success = connection.send(enteredText);
+        if (success) {
+            Platform.runLater(() -> {
+                messages.add(new NtfyMessageDto("local", System.currentTimeMillis(),
+                        "message", "mytopic", enteredText, null, null));
+            });
         }
-
-        boolean success = connection.send(msg);
-        if (!success) {
-            System.err.println("❌ Misslyckades att skicka meddelande: " + msg);
-        }
-    }
-
-    // Filhanteringsmetoder som anropar connection
-    public boolean sendFile(File file) {
-        return connection.sendFile(file, null);
-    }
-
-    public boolean sendFile(File file, String filename) {
-        return connection.sendFile(file, filename);
-    }
-
-    public boolean sendFileFromUrl(String url) {
-        return connection.sendFileFromUrl(url, null);
-    }
-
-    public boolean sendFileFromUrl(String url, String filename) {
-        return connection.sendFileFromUrl(url, filename);
     }
 
     public void receiveMessage() {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+    }
+
+    public boolean sendFile(File file) {
+        return connection.sendFile(file);
+    }
+
+    public boolean sendFileFromUrl(String url) {
+        System.out.println("sendFileFromUrl not implemented yet for URL: " + url);
+        return false;
+    }
+
+    public void downloadAttachment(NtfyMessageDto item, File destination) {
+        new Thread(() -> {
+            try {
+                String attachmentUrl = item.getAttachmentUrl();
+                if (attachmentUrl != null) {
+                    URL url = new URL(attachmentUrl);
+                    try (InputStream in = url.openStream();
+                         FileOutputStream out = new FileOutputStream(destination)) {
+
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Fil nedladdad");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Fil sparad som: " + destination.getAbsolutePath());
+                            alert.showAndWait();
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Fel vid nedladdning");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Kunde inte ladda ner filen: " + e.getMessage());
+                    alert.showAndWait();
+                });
+            }
+        }).start();
+    }
+
+    public void previewImage(NtfyMessageDto item) {
+        new Thread(() -> {
+            try {
+                String attachmentUrl = item.getAttachmentUrl();
+                if (attachmentUrl != null) {
+                    URL url = new URL(attachmentUrl);
+                    try (InputStream in = url.openStream()) {
+                        Image image = new Image(in);
+
+                        Platform.runLater(() -> {
+                            // Skapa ett nytt fönster för att visa bilden
+                            Stage imageStage = new Stage();
+                            ImageView imageView = new ImageView(image);
+                            imageView.setPreserveRatio(true);
+                            imageView.setFitWidth(600);
+
+                            ScrollPane scrollPane = new ScrollPane(imageView);
+                            scrollPane.setFitToWidth(true);
+                            scrollPane.setFitToHeight(true);
+
+                            javafx.scene.Scene scene = new javafx.scene.Scene(scrollPane, 800, 600);
+                            imageStage.setTitle("Förhandsvisning: " + item.getAttachmentName());
+                            imageStage.setScene(scene);
+                            imageStage.show();
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Fel vid förhandsvisning");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Kunde inte visa bilden: " + e.getMessage());
+                    alert.showAndWait();
+                });
+            }
+        }).start();
     }
 }
