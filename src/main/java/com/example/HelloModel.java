@@ -70,7 +70,7 @@ public class HelloModel {
             }
 
             if (System.getProperty("java.awt.headless", "false").equals("true")) {
-                messages.add(message); // lägg direkt i listan
+                messages.add(message);
                 return;
             }
 

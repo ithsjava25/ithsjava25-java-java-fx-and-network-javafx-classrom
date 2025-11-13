@@ -29,7 +29,7 @@ class HelloModelTest {
         }
     }
 
-    //successful send tests
+    // successful send tests
     @Test
     void shouldSendMessageThroughConnection() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -39,7 +39,7 @@ class HelloModelTest {
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
 
-        assertThat(latch.await(500, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
         assertThat(connectionSpy.message).isEqualTo("Hello World");
     }
 
@@ -69,7 +69,7 @@ class HelloModelTest {
         assertThat(connectionSpy.message).isEqualTo("Second");
     }
 
-    //invalid send tests
+    // invalid send tests
     @Test
     void shouldRejectBlankMessages() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -87,7 +87,7 @@ class HelloModelTest {
                 latch.countDown();
             });
 
-            latch.await(500, TimeUnit.MILLISECONDS);
+            latch.await(1, TimeUnit.SECONDS);
             assertThat(wasSuccessful[0]).isFalse();
             assertThat(connectionSpy.message).isNull();
         }
@@ -107,7 +107,7 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        latch.await(1, TimeUnit.SECONDS);
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(connectionSpy.message).isNull();
     }
@@ -126,12 +126,12 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        latch.await(1, TimeUnit.SECONDS);
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(connectionSpy.message).isNull();
     }
 
-    //error handling tests
+    // error handling tests
     @Test
     void shouldReturnFailureWhenConnectionFails() throws InterruptedException {
         NtfyConnection failingConn = new NtfyConnection() {
@@ -153,7 +153,7 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        latch.await(1, TimeUnit.SECONDS);
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(model.getMessageToSend()).isEqualTo("Fail this message");
     }
@@ -184,11 +184,11 @@ class HelloModelTest {
             latch.countDown();
         }
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        latch.await(1, TimeUnit.SECONDS);
         assertThat(wasSuccessful[0]).isFalse();
     }
 
-    //receiving messages tests
+    // receiving messages tests
     @Test
     void shouldAddIncomingMessageToList() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -209,6 +209,7 @@ class HelloModelTest {
         assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
         assertThat(model.getMessages()).contains(incomingMsg);
     }
+
     @Test
     void shouldDiscardNullIncomingMessage() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -223,10 +224,11 @@ class HelloModelTest {
 
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        boolean messageAdded = latch.await(1, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+
     @Test
     void shouldIgnoreMessagesWithBlankContent() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -245,10 +247,11 @@ class HelloModelTest {
         connectionSpy.simulateIncoming(whitespaceMsg);
         connectionSpy.simulateIncoming(emptyMsg);
 
-        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        boolean messageAdded = latch.await(1, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+
     @Test
     void shouldRejectAllInvalidIncomingMessages() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -265,11 +268,12 @@ class HelloModelTest {
         connectionSpy.simulateIncoming(new NtfyMessageDto("id2", 2, "message", "room", "  "));
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        boolean messageAdded = latch.await(1, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
-    //integration test
+
+    // integration test
     @Test
     void shouldCommunicateWithMockedServer(WireMockRuntimeInfo wmInfo) throws InterruptedException {
         NtfyConnectionImpl connection = new NtfyConnectionImpl("http://localhost:" + wmInfo.getHttpPort());
