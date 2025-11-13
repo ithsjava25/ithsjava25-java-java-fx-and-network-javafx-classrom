@@ -43,7 +43,7 @@ public class HelloController {
         addMessageBubble("Du: " + message, true);
 
         // Skicka meddelandet till servern
-        model.sendMessage();
+        model.sendMessage(message);
 
         messageField.clear();
     }
@@ -76,11 +76,6 @@ public class HelloController {
         chatBox.heightProperty().addListener((observable, oldValue, newValue) ->
                 chatScroll.setVvalue(1.0));
     }
-
-    public void sendMessage(ActionEvent actionEvent) {
-        model.sendMessage();
-    }
-
     public void showStatus(String text) {
         Platform.runLater(() -> statusLabel.setText(text));
     }

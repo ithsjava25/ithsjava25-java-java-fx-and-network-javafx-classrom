@@ -39,9 +39,9 @@ public class HelloModel {
         this.messageToSend.set(message);
     }
 
-    public void sendMessage() {
+    public void sendMessage(String message) {
 
-        connection.send(messageToSend.get());
+        connection.send(message);
 //        HttpRequest request = HttpRequest.newBuilder()
 //                .POST(HttpRequest.BodyPublishers.ofString("Hello! This is a test."))
 //                .uri(URI.create(hostName + "/MartinsTopic"))

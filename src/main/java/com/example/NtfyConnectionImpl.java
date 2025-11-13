@@ -50,22 +50,37 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create(hostName + "/MartinsTopic/json"))
-                .build();
+        new Thread(() -> {
+            while (true) {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .GET()
+                        .uri(URI.create(hostName + "/MartinsTopic/json"))
+                        .build();
 
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofLines()).thenAccept(response -> response.body()
-                .map(s-> {
+                try {
+                    client.send(request, HttpResponse.BodyHandlers.ofLines())
+                            .body()
+                            .forEach(line -> {
+                                try {
+                                    NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
+                                    if ("message".equals(msg.event())) {
+                                        Platform.runLater(() -> messageHandler.accept(msg));
+                                    }
+                                } catch (JsonProcessingException e) {
+                                    // Ignorera tomma eller ogiltiga rader
+                                }
+                            });
+                } catch (IOException | InterruptedException e) {
+                    System.out.println("Disconnected from ntfy, reconnecting...");
                     try {
-                        return mapper.readValue(s, NtfyMessageDto.class);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
+                        Thread.sleep(2000); // Vänta lite innan reconnect
+                    } catch (InterruptedException ex) {
+                        break;
                     }
-                })
-                .filter(message->message.event().equals("message"))
-                .peek(System.out::println)
-                .forEach(messageHandler));
+                }
+            }
+        }, "NtfyReceiverThread").start();
     }
+
 
 }
