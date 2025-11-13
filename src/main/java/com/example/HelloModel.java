@@ -1,11 +1,14 @@
 package com.example;
 
-/**
- * Model layer: encapsulates application data and business logic.
- */
 public class HelloModel {
+
     /**
-     * Returns a greeting based on the current Java and JavaFX versions.
+     * Builds a greeting string that includes the JavaFX and Java runtime versions.
+     *
+     * <p>The method reads the system properties "javafx.version" and "java.version" and inserts their
+     * values into the greeting text.
+     *
+     * @return the greeting in the form "Hello, JavaFX {javafxVersion}, running on Java {javaVersion}."
      */
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
