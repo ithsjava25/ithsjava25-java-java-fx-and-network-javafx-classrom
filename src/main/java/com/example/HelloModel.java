@@ -60,8 +60,25 @@ public class HelloModel {
     public void sendMessage() {
         String message = messageToSend.get();
         if (message != null && !message.trim().isEmpty()) {
+
+            // 1. Skapa den lokala DTO:n (med isLocal = true)
+            NtfyMessageDto localMessage = new NtfyMessageDto(
+                    UUID.randomUUID().toString(),
+                    System.currentTimeMillis() / 1000L,
+                    "message",
+                    currentTopic.get(),
+                    message.trim(),
+                    true // Markera som lokalt skickat
+            );
+
+            // 2. Lägg till i listan (UI-uppdatering) PÅ RÄTT TRÅD
+            runOnFx(() -> messages.add(localMessage));
+
+            // 3. Skicka meddelandet via anslutningen
             connection.send(message, currentTopic.get());
-            messageToSend.set(""); // Rensa meddelandefältet efter skickning
+
+            // 4. Rensa meddelandefältet efter skickning
+            messageToSend.set("");
         }
     }
 
@@ -69,27 +86,27 @@ public class HelloModel {
     public void sendFile() {
         File file = fileToSend.get();
         if (file != null) {
-            // Vi använder den specifika sendFile-metoden för att säkerställa att Content-Type och Filename headers sätts
+
+            // 1. Skapa den lokala DTO:n för fil (ofta med tom message)
+            NtfyMessageDto localFileMessage = new NtfyMessageDto(
+                    UUID.randomUUID().toString(),
+                    System.currentTimeMillis() / 1000L,
+                    "file", // Använd "file" event om det är en fil
+                    currentTopic.get(),
+                    "Fil skickad: " + file.getName(), // Detta meddelande visas bara i logik, CellFactory hanterar visning
+                    true
+            );
+
+            // 2. Lägg till i listan (UI-uppdatering) PÅ RÄTT TRÅD
+            runOnFx(() -> messages.add(localFileMessage));
+
+            // 3. Skicka filen
             connection.sendFile(file, currentTopic.get());
-            fileToSend.set(null); // Rensa filbilagan efter skickning
+
+            // 4. Rensa filbilagan efter skickning
+            fileToSend.set(null);
         }
     }
-
-    /*
-    // Denna metod används inte längre i applikationslogiken och tas bort
-    public void sendFile(File file) {
-        if (file != null) {
-            try {
-                // Denna metod ska skicka filen och *inte* rensa fileToSend-propertyn,
-                // eftersom den främst används av tester för att simulera en skickning direkt.
-                connection.sendFile(file, currentTopic.get());
-            } catch (FileNotFoundException e) {
-                System.err.println("Fel: Filen hittades inte: " + file.getAbsolutePath());
-            }
-        }
-    }
-    */
-
 
     // Används av HelloController för att hämta filbilagan
     public ObjectProperty<File> fileToSendProperty() {
@@ -128,5 +145,10 @@ public class HelloModel {
 
             connection.connect(newTopic, this::receiveMessage);
         }
+    }
+
+    // KORRIGERAD: Denna metod måste ta en String för att matcha testet!
+    public void setMessageToSend(String message) {
+        this.messageToSend.set(message);
     }
 }

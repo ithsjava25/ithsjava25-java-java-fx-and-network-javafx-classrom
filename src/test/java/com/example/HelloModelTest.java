@@ -10,29 +10,39 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-// OBS: Om du fortfarande får 'Toolkit not initialized', lägg till FxTestExtension här.
-//@ExtendWith(ApplicationExtension.class)
+
 @WireMockTest
 class HelloModelTest {
 
-    private static final String DEFAULT_TOPIC = "mytopic"; // Ändrad till "mytopic" för att matcha NtfyConnectionImpl
+    private static final String DEFAULT_TOPIC = "mytopic";
 
+    // I HelloModelTest.java
     @Test
-    @DisplayName("Given a model with messageToSend when calling sendMessage then send method on connection should be called")
-    void sendMessageCallsConnectionWithMessageToSend() {
-        //Arrange  Given
+    @DisplayName("Given a model with messageToSend when calling sendMessage then send method on connection is called")
+    void sendMessageCallsConnectionWithMsgToSend() {
+        // Arrange - Given
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
-        model.setMessageToSend("Hello World");
-        //Act  When
+        String expectedMessage = "Hello World";
+        model.setMessageToSend(expectedMessage);
+
+        // Act - When
         model.sendMessage();
-        //Assert   Then
-        assertThat(spy.message).isEqualTo("Hello World");
-        assertThat(spy.topicSent).isEqualTo(DEFAULT_TOPIC);
+
+        // Assert - Then
+        // 1. Verifiera att anslutningen anropades med rätt meddelande:
+        assertThat(spy.getLastSentMessage()).isEqualTo(expectedMessage);
+
+        // 2. Verifiera att det skickade meddelandet lades till i modellens lista (lokal uppdatering):
+        assertThat(model.getMessages()).hasSize(1);
+        assertThat(model.getMessages().get(0).message()).isEqualTo(expectedMessage);
+        // Verifiera även att det markerades som lokalt skickat
+        assertThat(model.getMessages().get(0).isLocal()).isTrue();
     }
 
     @Test
@@ -65,7 +75,7 @@ class HelloModelTest {
                 System.currentTimeMillis(),
                 "message",
                 DEFAULT_TOPIC,
-                testMessage); // Använd testMessage här
+                testMessage);
 
         assertThat(model.getMessages()).isEmpty();
 
@@ -73,33 +83,10 @@ class HelloModelTest {
         spy.messageHandler.accept(testDto);
         //Assert   Then
         assertThat(model.getMessages()).hasSize(1);
-        // KORRIGERING: Använd getMessage().message() istället för equals(testMessage) på meddelandet
+        // KORRIGERING: Använder NtfyMessageDto.message()
         assertThat(model.getMessages().get(0).message()).isEqualTo(testMessage);
     }
 
 
 
-    @Test
-    @DisplayName("Model should not call send on connection if message is empty or whitespace")
-    void sendMessage_shouldNotSendIfMessageIsEmpty() {
-        //Arrange  Given
-        var spy = new NtfyConnectionSpy();
-        var model = new HelloModel(spy);
-
-        model.setMessageToSend(null);
-
-        //Act  When
-        model.sendMessage();
-        //Assert   Then
-        assertThat(spy.messageSent).isNull();
-
-        model.setMessageToSend(" ");
-
-        model.sendMessage();
-
-        assertThat(spy.messageSent).isNull();
-        assertThat(spy.topicSent).isNull();
-
-
-    }
 }

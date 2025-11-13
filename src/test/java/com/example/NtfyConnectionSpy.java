@@ -5,44 +5,101 @@ import java.io.FileNotFoundException;
 import java.util.function.Consumer;
 
 public class NtfyConnectionSpy implements NtfyConnection {
+    private String lastSentMessage = null;
+    private String lastSentTopic = null;
+    private File lastSentFile = null;
+    private boolean connectCalled = false;
+    Consumer<NtfyMessageDto> messageHandler = null;
+    private String lastConnectTopic = null;
 
-    public String messageSent;
-    public String topicSent = null;
-    String message;
-    public Consumer<NtfyMessageDto> messageHandler;
-    public File fileSent;
-    public String fileTopicSent = null;
-    private String currentTopic = "general";
+    /**
+     * Återställer spionens tillstånd.
+     */
+    public void reset() {
+        lastSentMessage = null;
+        lastSentTopic = null;
+        lastSentFile = null;
+        connectCalled = false;
+        messageHandler = null;
+        lastConnectTopic = null;
+    }
 
+    // --- Implementering av NtfyConnection Interface ---
 
     @Override
     public String getTopic() {
-        return currentTopic;
-    }
-
-    @Override
-    public boolean send(String message, String topic) {
-        this.message = message;
-        this.topicSent = topic;
-        return true;
-    }
-
-    @Override
-    public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        this.messageHandler=messageHandler;
-
-    }
-
-    @Override
-    public boolean sendFile(File file, String topic) {
-        this.fileSent=file;
-        this.fileTopicSent = topic;
-        return true;
+        // En spion kan returnera den senaste anslutna topicen, eller en tom sträng om inte relevant
+        return lastConnectTopic != null ? lastConnectTopic : "";
     }
 
     @Override
     public void connect(String topic, Consumer<NtfyMessageDto> messageHandler) {
-        this.currentTopic = topic;
+        this.connectCalled = true;
+        this.lastConnectTopic = topic;
         this.messageHandler = messageHandler;
+    }
+
+    @Override
+    public void receive(Consumer<NtfyMessageDto> messageHandler) {
+        // Denna metod används inte längre i HelloModel men behålls för kompatibilitet.
+    }
+
+
+    @Override
+    public boolean send(String message, String topic) { // RETURTYPEN ÄNDRAD TILL BOOLEAN
+        // SPIONLOGIK: Spara det skickade meddelandet och ämnet
+        this.lastSentMessage = message;
+        this.lastSentTopic = topic;
+        return true; // Simulerar framgångsrikt skickande
+    }
+
+    @Override
+    public boolean sendFile(File file, String topic) { // RETURTYPEN ÄNDRAD TILL BOOLEAN
+        // SPIONLOGIK: Spara den skickade filen och ämnet
+        this.lastSentFile = file;
+        this.lastSentTopic = topic;
+        return true; // Simulerar framgångsrikt skickande
+    }
+
+    // --- Metoder för att simulera mottagande av meddelanden (för testning) ---
+
+    /**
+     * Simulerar att ett meddelande tas emot från servern och anropar
+     * den ursprungliga messageHandler.
+     * @param messageDto Meddelandet som ska simuleras att tas emot.
+     */
+    public void simulateMessageReceived(NtfyMessageDto messageDto) {
+        if (messageHandler != null) {
+            messageHandler.accept(messageDto);
+        }
+    }
+
+    // --- Getters för testverifieringar ---
+
+    public String getLastSentMessage() {
+        return lastSentMessage;
+    }
+
+    public String getLastSentTopic() {
+        return lastSentTopic;
+    }
+
+    public File getLastSentFile() {
+        return lastSentFile;
+    }
+
+    public boolean isConnectCalled() {
+        return connectCalled;
+    }
+
+    public String getLastConnectTopic() {
+        return lastConnectTopic;
+    }
+
+    /**
+     * Används för att kontrollera att en messageHandler sattes.
+     */
+    public boolean hasMessageHandler() {
+        return messageHandler != null;
     }
 }
