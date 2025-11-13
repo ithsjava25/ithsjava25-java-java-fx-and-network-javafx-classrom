@@ -20,12 +20,12 @@
 
     <!-- Meddelandefält -->
     <bottom>
-        <VBox spacing="4" style="-fx-padding: 8;">
-            <Label fx:id="statusLabel" textFill="#888" style="-fx-font-size: 12;" />
-            <HBox spacing="8">
-                <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
-                <Button text="Skicka" onAction="#handleSend" />
-            </HBox>
-        </VBox>
+        <HBox spacing="5" style="-fx-padding: 10;">
+            <TextField fx:id="messageField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." />
+            <Button text="📎 Bild" onAction="#handleSelectImage" />
+            <Button text="Skicka" onAction="#handleSend" />
+            <Label fx:id="statusLabel" textFill="red" />
+        </HBox>
     </bottom>
+
 </BorderPane>

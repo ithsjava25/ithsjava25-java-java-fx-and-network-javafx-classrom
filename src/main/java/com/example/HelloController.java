@@ -6,31 +6,26 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+
+import java.io.File;
+import java.time.Instant;
+import java.time.ZoneId;
 
 public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
-    @FXML
-    private ListView<NtfyMessageDto> messageView;
-
-    @FXML
-    private Label statusLabel;
-
-    @FXML
-    private TextField messageField;
-
-    @FXML
-    private VBox chatBox;
-
-    @FXML
-    private ScrollPane chatScroll;
+    @FXML private ListView<NtfyMessageDto> messageView;
+    @FXML private Label statusLabel;
+    @FXML private TextField messageField;
+    @FXML private VBox chatBox;
+    @FXML private ScrollPane chatScroll;
 
     @FXML
     private void handleSend() {
@@ -41,20 +36,58 @@ public class HelloController {
         messageField.clear();
     }
 
-    /**
-     * Lägger till en meddelandebubbla i chatten.
-     * @param text innehållet i bubblan
-     * @param isSentByUser om det är användarens eget meddelande
-     */
+    // 🆕 Ny metod: välj och visa en bild
+    @FXML
+    private void handleSelectImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Välj en bild att skicka");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Bildfiler", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        // För Windows – öppna i Bilder-mappen
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "\\Pictures"));
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            addImageBubble(selectedFile, true);
+            // 💡 Här kan du senare lägga till kod för att faktiskt skicka bilden via ntfy
+            // (ex. konvertera till Base64 och skicka som text)
+        }
+    }
+
+    // 🆕 Ny metod: lägg till bildbubbla
+    private void addImageBubble(File imageFile, boolean isSentByUser) {
+        Image image = new Image(imageFile.toURI().toString());
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(200);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        imageView.getStyleClass().add("image-view");
+
+        Label timeLabel = new Label(
+                Instant.now().atZone(ZoneId.systemDefault()).toLocalTime().toString().substring(0, 5)
+        );
+        timeLabel.getStyleClass().add("timestamp");
+
+        VBox content = new VBox(imageView, timeLabel);
+        content.setAlignment(isSentByUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+        content.setSpacing(3);
+
+        HBox container = new HBox(content);
+        container.setPadding(new Insets(5));
+        container.setAlignment(isSentByUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+        chatBox.getChildren().add(container);
+    }
+
+    // ✅ uppdatera så att även tid visas på textbubblor
     private void addMessageBubble(String text, boolean isSentByUser, long timestamp) {
         if (text == null || text.isBlank()) return;
 
-        // Format för tid (ex: 14:32)
         String timeString = java.time.Instant.ofEpochSecond(timestamp)
                 .atZone(java.time.ZoneId.systemDefault())
-                .toLocalTime()
-                .toString()
-                .substring(0, 5);
+                .toLocalTime().toString().substring(0, 5);
 
         Label messageLabel = new Label(text);
         messageLabel.setWrapText(true);
@@ -63,7 +96,6 @@ public class HelloController {
 
         Label timeLabel = new Label(timeString);
         timeLabel.getStyleClass().add("timestamp");
-        timeLabel.setStyle("-fx-font-size: 10; -fx-text-fill: gray;");
 
         VBox bubbleBox = new VBox(messageLabel, timeLabel);
         bubbleBox.setAlignment(isSentByUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
@@ -75,20 +107,16 @@ public class HelloController {
         chatBox.getChildren().add(container);
     }
 
-
     @FXML
     private void initialize() {
-        // Hantera Enter-tangenten i textfältet
         if (messageField != null) {
             messageField.setOnAction(e -> handleSend());
         }
 
-        // Lyssna på inkommande meddelanden och uppdatera chatten
         model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) change -> {
             while (change.next()) {
                 if (change.wasAdded()) {
                     for (NtfyMessageDto msg : change.getAddedSubList()) {
-                        // Jämför topic eller clientId här om du vill särskilja egna/andras
                         boolean sentByUser = msg.topic().equals("MartinsTopic");
                         addMessageBubble(msg.message(), sentByUser, msg.time());
                     }
@@ -96,7 +124,6 @@ public class HelloController {
             }
         });
 
-        // Scrolla automatiskt till botten vid nytt meddelande
         chatBox.heightProperty().addListener((obs, oldVal, newVal) -> chatScroll.setVvalue(1.0));
     }
 
