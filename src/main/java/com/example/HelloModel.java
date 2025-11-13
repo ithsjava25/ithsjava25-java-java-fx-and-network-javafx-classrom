@@ -43,9 +43,18 @@ public class HelloModel {
     }
 
     public void sendMessage() {
-        connection.send(messageToSend.get());
+        String msg = messageToSend.get();
+        if (msg == null || msg.isBlank()) {
+            System.err.println("⚠️ Tomt meddelande, inget skickas.");
+            return;
+        }
 
+        boolean success = connection.send(msg);
+        if (!success) {
+            System.err.println("❌ Misslyckades att skicka meddelande: " + msg);
+        }
     }
+
 
     public void receiveMessage() {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));

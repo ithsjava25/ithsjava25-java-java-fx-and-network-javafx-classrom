@@ -26,8 +26,16 @@ public class HelloController {
         messageInput.textProperty().bindBidirectional(model.messageToSendProperty());
     }
 
-    public void sendMessage(ActionEvent actionEvent) {
-        model.sendMessage();
-        messageInput.clear();
+    @FXML
+    private void sendMessage(ActionEvent actionEvent) {
+        try {
+            model.sendMessage();
+            messageInput.clear();
+            messageLabel.setText("✅ Meddelande skickat!");
+        } catch (Exception e) {
+            messageLabel.setText("❌ Fel: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
 }

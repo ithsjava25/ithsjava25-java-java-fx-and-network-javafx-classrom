@@ -3,9 +3,11 @@ module hellofx {
     requires javafx.fxml;
     requires io.github.cdimascio.dotenv.java;
     requires java.net.http;
-    requires tools.jackson.databind;
     requires javafx.graphics;
 
-    opens com.example to javafx.fxml;
+    requires com.fasterxml.jackson.databind;
+
+    opens com.example to javafx.fxml, com.fasterxml.jackson.databind;
+
     exports com.example;
 }
