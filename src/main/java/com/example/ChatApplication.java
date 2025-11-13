@@ -6,14 +6,26 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+
 public class ChatApplication extends Application {
 
     @Override
-    public void start(Stage stage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ChatApplication.class.getResource("chat-view.fxml"));
-        Parent root = fxmlLoader.load();
-        Scene scene = new Scene(root, 640, 480);
-        stage.setTitle("Hello MVC");
+    public void start(Stage stage) throws IOException {
+
+        NtfyConnection ntfyService = new NtfyConnectionImpl();
+        ChatModel model = new ChatModel(ntfyService);
+
+        model.startReceiving();
+
+        FXMLLoader fxmlLoader = new FXMLLoader(
+                ChatApplication.class.getResource("chat-view.fxml"));
+
+        ChatController controller = new ChatController(model);
+        fxmlLoader.setController(controller);
+
+        Scene scene = new Scene(fxmlLoader.load(), 600, 400);
+        stage.setTitle("JavaFX Ntfy Chat App");
         stage.setScene(scene);
         stage.show();
     }
@@ -21,5 +33,4 @@ public class ChatApplication extends Application {
     public static void main(String[] args) {
         launch();
     }
-
 }
