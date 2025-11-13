@@ -69,6 +69,11 @@ public class HelloModel {
                 return;
             }
 
+            if (System.getProperty("java.awt.headless", "false").equals("true")) {
+                messages.add(message); // lägg direkt i listan
+                return;
+            }
+
             try {
                 if (Platform.isFxApplicationThread()) {
                     messages.add(message);
