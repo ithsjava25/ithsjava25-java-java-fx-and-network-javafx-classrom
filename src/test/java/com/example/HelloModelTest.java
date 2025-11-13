@@ -35,37 +35,44 @@ class HelloModelTest {
     }
 
     @Test
-    void receiveMessageFromFakeServer(WireMockRuntimeInfo wireMockRuntimeInfo) throws IOException {
+    void receiveMessageFromFakeServer(WireMockRuntimeInfo wireMockRuntimeInfo) throws IOException, InterruptedException {
         //Arrange
         var host = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
         var con = new NtfyConnectionImpl(host);
+
         String fakeMessage = """
                 {"id":"testID","time":1762935416, "event":"keepalive","topic":"catChat", "message":"Filtreras bort"}
-                {"id":"testID","time":1762935416, "event":"message","topic":"catChat", "message":"User: Hej"}""";
+                {"id":"testID","time":1762935416, "event":"message","topic":"catChat", "message":"User: Hej"}
+                """;
+
 
         //Simulerar en server
         stubFor(get(urlEqualTo("/catChat/json")).willReturn(aResponse()
                         .withStatus(200)
                 .withBody(fakeMessage)));
 
-        Consumer<NtfyMessageDto> fakeReceiver = Mockito.mock(Consumer.class);
-        //con.receive(fakeReceiver);
+//        Consumer<NtfyMessageDto> fakeReceiver = Mockito.mock(Consumer.class);
+//        //con.receive(fakeReceiver);
+//
+//        ArgumentCaptor<NtfyMessageDto> captor = ArgumentCaptor.forClass(NtfyMessageDto.class);
+//        Subscription subscription = con.receive(fakeReceiver);
 
-        ArgumentCaptor<NtfyMessageDto> captor = ArgumentCaptor.forClass(NtfyMessageDto.class);
-        Subscription subscription = con.receive(fakeReceiver);
-        //Act
+//        //Act
+
+        var model =new HelloModel(con);
+        model.receiveMessage();
+
+        Thread.sleep(50);
 
         Awaitility.await()
-                .atMost(Duration.ofSeconds(4)).untilAsserted(() -> {
-                Mockito.verify(fakeReceiver, Mockito.times(1))
-                        .accept(captor.capture());
+                .atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+                assertThat(model.getMessages()).hasSize(1);
                 });
 
         //Assert
-        String messageReceived = captor.getValue().message();
-        assertThat(messageReceived).isEqualTo("User: Hej");
+        assertThat(model.getMessages().getFirst().message()).isEqualTo("User: Hej");
 
-        subscription.close(); //Stänger anslutningen
+        model.stopSubscription(); //Stänger anslutningen
     }
 
     @Test
@@ -86,6 +93,7 @@ class HelloModelTest {
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
 
+        model.receiveMessage();
         var testText = new NtfyMessageDto("id1", 15465823L,"Message", "catChat", "Godmorgon");
         spy.simulateIncomingMessage(testText);
 

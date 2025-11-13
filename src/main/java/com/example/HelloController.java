@@ -48,9 +48,7 @@ public class HelloController {
         updateSendButtonState();
 
         //Lägger till en lyssnare för att uppdatera knappen vid inmatning av text
-        messageInput.textProperty().addListener((observable, oldValue, newValue) -> {
-            updateSendButtonState();
-        });
+        messageInput.textProperty().addListener((observable, oldValue, newValue) -> updateSendButtonState());
 
         //Om användaren trycker på Enter eller klickar med musen -> skicka meddelandet
         messageInput.setOnAction((event) -> sendMessageToModel());
@@ -105,7 +103,7 @@ public class HelloController {
         chatBox.setItems(model.getMessages());
         //Flyttar Platform.runlater till controller på grund av runtimeexeption när tester körs, även för en mer solid MVC
         model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) changes -> {
-            Platform.runLater(() -> chatBox.refresh());
+            chatBox.refresh();
         });
     }
 
@@ -123,8 +121,11 @@ public class HelloController {
         // Kollar om texten, efter att ha tagit bort ledande/efterföljande mellanslag, är tom.
         boolean isTextPresent = !messageInput.getText().trim().isEmpty();
 
+        //Nytt villkor för button för att ej kunna skicka meddelanden till servern om ej connectad
+        boolean isConnected = !disconnectFromServer.isDisabled();
+
         // Sätt disable till TRUE om det INTE finns text.
-        sendButton.setDisable(!isTextPresent);
+        sendButton.setDisable(!isTextPresent || !isConnected);
     }
 
     //Starta prenumeration via model och uppdaterar button
@@ -133,6 +134,7 @@ public class HelloController {
             model.receiveMessage();
             connectToServer.setDisable(true);
             disconnectFromServer.setDisable(false);
+            updateSendButtonState();
         }
     }
 
@@ -141,5 +143,6 @@ public class HelloController {
         model.stopSubscription();
         connectToServer.setDisable(false);
         disconnectFromServer.setDisable(true);
+        updateSendButtonState();
     }
 }

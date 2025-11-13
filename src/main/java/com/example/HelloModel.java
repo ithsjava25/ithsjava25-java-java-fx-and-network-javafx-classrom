@@ -28,13 +28,13 @@ public class HelloModel {
     //Innehåller meddelandet som ska skickas, kopplat till GUI via SimpleStringProperty
     private final StringProperty messageToSend = new SimpleStringProperty();
     //Fält för att kunna styra anslutningen
-    private final Subscription subscription;
+    private Subscription subscription = null;
 
     //Konstruktorn tar emot nätverkskoppling, antingen ett test via spy eller en riktig via impl
     public HelloModel(NtfyConnection connection) {
 
         this.connection = connection;
-        subscription = receiveMessage(); //subscription startar automatiskt när modellen skapas
+        //subscription = receiveMessage(); //subscription startar automatiskt när modellen skapas
     }
 
     //getter från private, används av controller för att koppla til ListView
@@ -65,8 +65,11 @@ public class HelloModel {
     //Startar en prenumeration på inkommande meddelnaden,
     //Returnerar ett Subscription-objekt så den kan stoppas
     public Subscription receiveMessage() {
+if(subscription != null && subscription.isOpen()) {
+    return this.subscription;
+}
+    return subscription = connection.receive(messages::add);
 
-        return connection.receive(messages::add);
 
     }
 
