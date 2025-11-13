@@ -21,6 +21,7 @@ public record NtfyMessageDto(
             String url,
             long size,
             String type,
-            int expires
+            int expires,
+            @JsonProperty("owner") String owner
     ) {}
 }

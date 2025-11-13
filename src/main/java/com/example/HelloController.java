@@ -35,8 +35,6 @@ public class HelloController {
         messageLabel.setText(model.getGreeting());
         messageView.setItems(model.getMessages());
         messageInput.textProperty().bindBidirectional(model.messageToSendProperty());
-
-        // Lägg till cell factory för att visa filinformation
         messageView.setCellFactory(lv -> new NtfyMessageListCell());
     }
 
@@ -53,7 +51,7 @@ public class HelloController {
     }
 
     @FXML
-    private void sendFile() {
+    private void sendFile(ActionEvent actionEvent) {
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Välj fil att skicka");
@@ -74,7 +72,7 @@ public class HelloController {
     }
 
     @FXML
-    private void sendFileFromUrl() {
+    private void sendFileFromUrl(ActionEvent actionEvent) {
         try {
             // Create TextInputDialog for URL entry
             TextInputDialog urlDialog = new TextInputDialog("https://example.com/file.jpg");
