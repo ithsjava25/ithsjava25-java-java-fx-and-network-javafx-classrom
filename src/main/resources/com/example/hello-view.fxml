@@ -3,11 +3,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
    <center>
-      <VBox alignment="CENTER">
-              <ListView fx:id="messageView" />
+      <VBox>
+         <children>
+                 <ListView fx:id="messageView" VBox.vgrow="ALWAYS" />
+         </children>
       </VBox>
    </center>
    <bottom>
@@ -16,9 +17,9 @@
            <Button alignment="BOTTOM_RIGHT" onAction="#sendMessage" text="Send" />
            <MenuButton mnemonicParsing="false" text="Menu">
                <items>
-                   <MenuItem fx:id="addTopic" mnemonicParsing="false" onAction="#changeTopic" onMenuValidation="#changeTopic" text="Change Topic" />
+                   <MenuItem fx:id="addTopic" mnemonicParsing="false" onAction="#changeTopic" text="Change Topic" />
                    <SeparatorMenuItem mnemonicParsing="false" />
-                   <MenuItem mnemonicParsing="false" text="Add Image" />
+                   <MenuItem mnemonicParsing="false" onAction="#sendFile" text="Add File" />
                </items>
            </MenuButton>
        </HBox>
