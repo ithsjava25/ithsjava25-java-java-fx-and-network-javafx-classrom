@@ -19,8 +19,13 @@ class HelloModelTest {
 
     @BeforeAll
     static void setupJavaFX() {
-        if (!Platform.isFxApplicationThread()) {
-            Platform.startup(() -> {});
+        try {
+            if (!Platform.isFxApplicationThread()) {
+                Platform.startup(() -> {});
+            }
+        } catch (UnsupportedOperationException e) {
+            System.out.println("Headless environment detected – skipping JavaFX startup");
+        } catch (IllegalStateException e) {
         }
     }
 
