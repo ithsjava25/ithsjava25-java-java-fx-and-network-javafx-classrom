@@ -36,12 +36,12 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .uri(URI.create(hostName + "/" + topic))
                 .build();
         try {
-            var reponse = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+            var response = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
             return true;
         } catch (IOException e) {
             System.out.println("Error sending message");
         } catch (InterruptedException e) {
-            System.out.println("Interruped sending message");
+            System.out.println("Interrupted sending message");
             Thread.currentThread().interrupt();
         }
         return false;
@@ -63,6 +63,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
                             try {
                                 return mapper.readValue(s, NtfyMessageDto.class);
                             } catch (Exception e) {
+                                System.err.println("Failed to parse message: " + e.getMessage());
                                 return null;
                             }
                         })
