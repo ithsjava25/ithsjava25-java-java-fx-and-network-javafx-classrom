@@ -205,15 +205,26 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     response.body().forEach(line -> {
                         try {
                             NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
+
                             if ("message".equals(msg.event())) {
-                                System.out.println("✅ Mottaget: " +
-                                        (msg.message() != null ? msg.message() : "(inget meddelande)"));
+                                String text = msg.message() != null ? msg.message() : "(inget meddelande)";
+                                System.out.println("✅ Mottaget: " + text);
+
+                                // Hantera bilagor
                                 if (msg.attachment() != null) {
-                                    System.out.println("📎 Bilaga: " + msg.attachment().name() +
-                                            " (" + msg.attachment().type() + ")");
+                                    NtfyMessageDto.Attachment att = msg.attachment();
+                                    String attName = att.name() != null ? att.name() : "unknown";
+                                    String attType = att.type() != null ? att.type() : "application/octet-stream";
+                                    String attUrl = att.url();
+
+                                    System.out.println("📎 Bilaga: " + attName + " (" + attType + ")");
+                                    System.out.println("🔗 URL: " + attUrl);
                                 }
+
+                                // Skicka vidare till controller / ListView
                                 messageHandler.accept(msg);
                             }
+
                         } catch (JsonProcessingException e) {
                             System.err.println("⚠️ JSON parsing error: " + e.getMessage());
                         }
