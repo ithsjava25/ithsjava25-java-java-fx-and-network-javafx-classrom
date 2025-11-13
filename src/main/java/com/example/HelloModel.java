@@ -68,13 +68,14 @@ public class HelloModel {
             if (message == null || message.message() == null || message.message().isBlank()) {
                 return;
             }
+
             try {
                 if (Platform.isFxApplicationThread()) {
                     messages.add(message);
                 } else {
                     Platform.runLater(() -> messages.add(message));
                 }
-            } catch (UnsupportedOperationException e) {
+            } catch (UnsupportedOperationException | IllegalStateException e) {
                 messages.add(message);
             }
         });
