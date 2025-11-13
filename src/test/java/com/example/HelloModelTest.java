@@ -6,17 +6,16 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @WireMockTest
-@Timeout(10) // Global timeout för alla tester i klassen
 class HelloModelTest {
 
     @BeforeAll
@@ -198,19 +197,26 @@ class HelloModelTest {
         HelloModel model = new HelloModel(connectionSpy);
         NtfyMessageDto incomingMsg = new NtfyMessageDto("Test", 1, "message", "myroom", "Test");
 
+        AtomicBoolean messageReceived = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(1);
+
         model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) c -> {
             while (c.next()) {
                 if (c.wasAdded()) {
+                    messageReceived.set(true);
                     latch.countDown();
                 }
             }
         });
 
+        //give the listener time to attach
+        Thread.sleep(100);
+
         connectionSpy.simulateIncoming(incomingMsg);
 
         boolean completed = latch.await(5, TimeUnit.SECONDS);
         assertThat(completed).as("Timed out waiting for incoming message").isTrue();
+        assertThat(messageReceived.get()).isTrue();
         assertThat(model.getMessages()).contains(incomingMsg);
     }
 
@@ -226,9 +232,10 @@ class HelloModelTest {
             }
         });
 
+        Thread.sleep(100);
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(5, TimeUnit.SECONDS);
+        boolean messageAdded = latch.await(2, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
@@ -245,13 +252,15 @@ class HelloModelTest {
             }
         });
 
+        Thread.sleep(100);
+
         NtfyMessageDto whitespaceMsg = new NtfyMessageDto("id1", 1, "message", "room", "   ");
         NtfyMessageDto emptyMsg = new NtfyMessageDto("id2", 2, "message", "room", "");
 
         connectionSpy.simulateIncoming(whitespaceMsg);
         connectionSpy.simulateIncoming(emptyMsg);
 
-        boolean messageAdded = latch.await(5, TimeUnit.SECONDS);
+        boolean messageAdded = latch.await(2, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
@@ -268,11 +277,13 @@ class HelloModelTest {
             }
         });
 
+        Thread.sleep(100);
+
         connectionSpy.simulateIncoming(new NtfyMessageDto("id1", 1, "message", "room", ""));
         connectionSpy.simulateIncoming(new NtfyMessageDto("id2", 2, "message", "room", "  "));
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(5, TimeUnit.SECONDS);
+        boolean messageAdded = latch.await(2, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }

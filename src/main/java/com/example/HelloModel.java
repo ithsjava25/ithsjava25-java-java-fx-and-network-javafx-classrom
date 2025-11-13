@@ -80,7 +80,7 @@ public class HelloModel {
             } else {
                 Platform.runLater(task);
             }
-        } catch (IllegalStateException notInitialized) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             task.run();
         }
     }
