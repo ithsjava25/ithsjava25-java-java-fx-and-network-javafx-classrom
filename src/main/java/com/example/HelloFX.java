@@ -10,7 +10,6 @@ import java.io.IOException;
 
 public class HelloFX extends Application {
 
-    // s
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("ChatView.fxml"));
