@@ -13,7 +13,10 @@ import javafx.collections.ObservableList;
 
 import java.io.File;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -54,32 +57,28 @@ public class HelloModel {
     }
 
     /**
-     * Sends the current text message to the Ntfy server via the connection.
-     * The message is added to the local list before sending.
+     * Sends the current text message asynchronously.
+     * The network call is moved off the FX thread. UI updates happen via runOnFx.
      */
     public void sendMessage() {
-        String message = messageToSend.get();
-        if (message != null && !message.trim().isEmpty()) {
-
-            // 1. Skapa den lokala DTO:n (med isLocal = true)
-            NtfyMessageDto localMessage = new NtfyMessageDto(
-                    UUID.randomUUID().toString(),
-                    System.currentTimeMillis() / 1000L,
-                    "message",
-                    currentTopic.get(),
-                    message.trim(),
-                    true // Markera som lokalt skickat
-            );
-
-            // 2. Lägg till i listan (UI-uppdatering) PÅ RÄTT TRÅD
-            runOnFx(() -> messages.add(localMessage));
-
-            // 3. Skicka meddelandet via anslutningen
-            connection.send(message, currentTopic.get());
-
-            // 4. Rensa meddelandefältet efter skickning
-            messageToSend.set("");
+        final String message = messageToSend.get();
+        if (message == null || message.trim().isEmpty()) {
+            System.err.println("Cannot send empty message.");
+            return;
         }
+
+        // 1. Markera meddelandet som lokalt skickat och lägg till i listan (UI-uppdatering)
+        final NtfyMessageDto localSentDto = new NtfyMessageDto(message, currentTopic.get(), "text", true);
+        runOnFx(() -> {
+            messages.add(localSentDto);
+            messageToSend.set(""); // Rensa inmatningsfältet
+        });
+
+        // 2. Utför nätverksanropet på en bakgrundstråd
+        CompletableFuture.runAsync(() -> {
+            // Nätverksanropet sker här i bakgrunden
+            connection.send(message, currentTopic.get());
+        });
     }
 
     /**
@@ -89,27 +88,19 @@ public class HelloModel {
      */
     public void sendFile() {
         File file = fileToSend.get();
-        if (file != null) {
+        final NtfyMessageDto localSentDto = new NtfyMessageDto(file.getName(), currentTopic.get(), "file", true);
+        runOnFx(() -> {
+            messages.add(localSentDto);
+            fileToSend.set(null); // Rensa filbilagan i UI
+        });
 
-            // 1. Skapa den lokala DTO:n för fil (ofta med tom message)
-            NtfyMessageDto localFileMessage = new NtfyMessageDto(
-                    UUID.randomUUID().toString(),
-                    System.currentTimeMillis() / 1000L,
-                    "file", // Använd "file" event om det är en fil
-                    currentTopic.get(),
-                    "Fil skickad: " + file.getName(), // Detta meddelande visas bara i logik, CellFactory hanterar visning
-                    true
-            );
+        // 2. Utför nätverksanropet på en bakgrundstråd
 
-            // 2. Lägg till i listan (UI-uppdatering) PÅ RÄTT TRÅD
-            runOnFx(() -> messages.add(localFileMessage));
-
-            // 3. Skicka filen
+        // 2. Utför nätverksanropet på en bakgrundstråd
+        CompletableFuture.runAsync(() -> {
+            // Nätverksanropet sker här i bakgrunden
             connection.sendFile(file, currentTopic.get());
-
-            // 4. Rensa filbilagan efter skickning
-            fileToSend.set(null);
-        }
+        });
     }
 
     /**
