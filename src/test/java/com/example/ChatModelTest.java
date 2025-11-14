@@ -1,13 +1,11 @@
 package com.example;
 
-
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.awaitility.Awaitility;
+import org.testfx.framework.junit5.ApplicationTest;
 import javafx.application.Platform;
 
 import java.time.Duration;
@@ -15,19 +13,8 @@ import java.time.Duration;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @WireMockTest
-class ChatModelTest {
-
-    @BeforeAll
-    static void initJavaFX() {
-        try {
-            Platform.startup(() -> {});
-            Platform.setImplicitExit(false);
-        } catch (IllegalStateException e) {
-        }
-    }
-
+class ChatModelTest extends ApplicationTest {
 
     @Test
     void sendMessageCallsConnectionWithMessagesToSend() {
@@ -76,11 +63,11 @@ class ChatModelTest {
                 .atMost(Duration.ofSeconds(4))
                 .pollInterval(Duration.ofMillis(100))
                 .untilAsserted(() -> {
-                    assertThat(model.getMessages()).isNotEmpty();
-
-                    assertThat(model.getMessages().getLast().content()).isEqualTo(expectedMessage);
-
-                    assertThat(model.getMessages().getLast().timestamp()).isEqualTo(expectedTimestamp);
+                    Platform.runLater(() -> {
+                        assertThat(model.getMessages()).isNotEmpty();
+                        assertThat(model.getMessages().getLast().content()).isEqualTo(expectedMessage);
+                        assertThat(model.getMessages().getLast().timestamp()).isEqualTo(expectedTimestamp);
+                    });
                 });
     }
 }
