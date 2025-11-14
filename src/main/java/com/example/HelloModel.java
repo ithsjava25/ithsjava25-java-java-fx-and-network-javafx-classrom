@@ -44,6 +44,9 @@ public class HelloModel {
 
     public void receiveMessages() {
         connection.receive(msg -> Platform.runLater(() -> {
+            // Filtrera bort system-event
+            if (!"message".equals(msg.event())) return;
+
             messages.add(msg);
             if (msg.hasAttachment()) {
                 try {
@@ -54,6 +57,7 @@ public class HelloModel {
             }
         }));
     }
+
 
     private void saveAttachmentAutomatically(NtfyMessageDto item) throws IOException {
         if (item.getAttachmentUrl() == null) return;

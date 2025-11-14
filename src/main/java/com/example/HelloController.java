@@ -8,6 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
@@ -35,11 +36,13 @@ public class HelloController {
         try {
             messageView.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent;");
             messageView.setItems(model.getMessages());
+
             messageView.setCellFactory(lv -> new ListCell<>() {
                 @Override
                 protected void updateItem(NtfyMessageDto item, boolean empty) {
                     try {
                         super.updateItem(item, empty);
+
                         if (empty || item == null) {
                             setText(null);
                             setGraphic(null);
@@ -50,12 +53,27 @@ public class HelloController {
                         HBox cellBox = new HBox(5);
                         cellBox.setMaxWidth(Double.MAX_VALUE);
                         Region spacer = new Region();
-                        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+                        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                        String displayText = (item.hasAttachment() ? item.getAttachmentName() : item.message());
-                        if (displayText == null) displayText = "(Inget meddelande)";
+                        // Hantera text
+                        String displayText;
+                        if (item.hasAttachment()) {
+                            displayText = item.getAttachmentName();
+                        } else if (item.message() != null && !item.message().isBlank()) {
+                            displayText = item.message();
+                        } else {
+                            displayText = null;
+                        }
 
-                        Label text = new Label(displayText);
+                        Label text = new Label();
+                        if (displayText != null) {
+                            text.setText(displayText);
+                        } else if (isIncoming) {
+                            text.setText("(Inget meddelande)");
+                        } else {
+                            text.setText(""); // tom text för skickade meddelanden
+                        }
+
                         text.setWrapText(true);
                         text.setMaxWidth(400);
                         text.setStyle(
@@ -65,6 +83,7 @@ public class HelloController {
                                         "-fx-background-radius: 10;"
                         );
 
+                        // Hantera ikon
                         ImageView iconView = null;
                         if (item.hasAttachment()) {
                             iconView = createIconForAttachment(item);
@@ -83,10 +102,12 @@ public class HelloController {
                         wrapper.setMaxWidth(Double.MAX_VALUE);
                         wrapper.setAlignment(isIncoming ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
                         setGraphic(wrapper);
+
                     } catch (Exception e) {
                         System.err.println("❌ Fel i cell-factory: " + e.getMessage());
                         setText("(Fel vid visning)");
                         setGraphic(null);
+                        e.printStackTrace();
                     }
                 }
             });
@@ -131,13 +152,13 @@ public class HelloController {
             iconView.setFitHeight(24);
 
             String type = item.getAttachmentContentType();
-            if (type != null && type.startsWith("image/")) {
-                File file = new File("downloads", item.getAttachmentName());
+            File file = new File("downloads", item.getAttachmentName());
 
-                // Visa "image.png" som ikon alltid
+            if (type != null && type.startsWith("image/")) {
+                // Alltid visa image.png som ikon
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
 
-                // Klicka på ikonen för att öppna bilden i större fönster
+                // Klickbar bild för att öppna i nytt fönster
                 if (file.exists()) {
                     iconView.setOnMouseClicked(e -> {
                         ImageView fullImage = new ImageView(new Image(file.toURI().toString()));
@@ -170,7 +191,6 @@ public class HelloController {
 
         return iconView;
     }
-
 
     @FXML
     private void attachFile() {
