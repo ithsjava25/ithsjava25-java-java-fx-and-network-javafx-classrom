@@ -15,12 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WireMockTest
 public class HelloModelTest {
 
-    // Init JavaFX Toolkit once
-    @BeforeAll
-    static void initFx() {
-        FxTestHelper.initToolkit();
-    }
-
     // ---------------------------------------------------------------
     // 1. Enkel enhetstest – modell logik med spy
     // ---------------------------------------------------------------
@@ -59,7 +53,7 @@ public class HelloModelTest {
     @DisplayName("sendMessage sends POST request to WireMock server")
     void sendMessageToWireMock(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-        WireMock.stubFor(post("/MartinsTopic").willReturn(ok()));
+        WireMock.stubFor(post("/" + HelloModel.DEFAULT_TOPIC).willReturn(ok()));
 
         var con = new NtfyConnectionImpl("http://localhost:" + wireMockRuntimeInfo.getHttpPort());
         var model = new HelloModel(con);
@@ -67,7 +61,7 @@ public class HelloModelTest {
         model.setMessageToSend("Hello WireMock");
         model.sendMessage(model.messageToSendProperty().get());
 
-        verify(postRequestedFor(urlEqualTo("/MartinsTopic"))
+        verify(postRequestedFor(urlEqualTo("/" + HelloModel.DEFAULT_TOPIC))
                 .withRequestBody(matching("Hello WireMock")));
     }
 

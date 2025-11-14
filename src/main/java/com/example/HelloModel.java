@@ -20,6 +20,7 @@ public class HelloModel {
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final StringProperty messageToSend = new SimpleStringProperty();
     private final String clientId = UUID.randomUUID().toString();
+    public static final String DEFAULT_TOPIC = "MartinsTopic";
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
@@ -53,7 +54,7 @@ public class HelloModel {
                 UUID.randomUUID().toString(),
                 System.currentTimeMillis() / 1000,
                 "message",
-                "MartinsTopic",
+                DEFAULT_TOPIC,
                 messageText,
                 null,
                 null
@@ -68,7 +69,7 @@ public class HelloModel {
             addMessageSafely(new NtfyMessageDto(UUID.randomUUID().toString(),
                     System.currentTimeMillis() / 1000,
                     "message",
-                    "MartinsTopic",
+                    DEFAULT_TOPIC,
                     null,
                     null,
                     imageUrl));
@@ -101,16 +102,11 @@ public class HelloModel {
     }
 
     private void addMessageSafely(NtfyMessageDto msg) {
-        if (!Platform.isFxApplicationThread()) {
-            try {
-                messages.add(msg);
-                return;
-            } catch (IllegalStateException e) {
-                messages.add(msg);
-                return;
-            }
+        if (Platform.isFxApplicationThread()) {
+            messages.add(msg);
+        } else {
+            Platform.runLater(() -> messages.add(msg));
         }
-        messages.add(msg);
     }
 
     protected String uploadToLocalServer(File imageFile) throws IOException {

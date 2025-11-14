@@ -34,7 +34,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
     public void send(String jsonMessage) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(hostName + "/MartinsTopic"))
+                    .uri(URI.create(hostName + "/" + HelloModel.DEFAULT_TOPIC))
                     .POST(HttpRequest.BodyPublishers.ofString(jsonMessage))
                     .header("Content-Type", "application/json")
                     .build();
@@ -51,7 +51,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
     public boolean sendImage(File imageFile, String clientId) {
         try {
             String boundary = "----JavaFXChatBoundary";
-            URL url = new URL(hostName + "/MartinsTopic");
+            URL url = new URL(hostName + "/" + HelloModel.DEFAULT_TOPIC);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");

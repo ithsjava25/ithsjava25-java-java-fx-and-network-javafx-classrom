@@ -65,7 +65,7 @@ public class HelloController {
             while (change.next()) {
                 if (change.wasAdded()) {
                     for (NtfyMessageDto msg : change.getAddedSubList()) {
-                        boolean sentByUser = msg.topic().equals("MartinsTopic");
+                        boolean sentByUser = msg.topic().equals(HelloModel.DEFAULT_TOPIC);
 
                         if (msg.imageUrl() != null) {
                             addImageBubbleFromUrl(msg.imageUrl(), sentByUser);

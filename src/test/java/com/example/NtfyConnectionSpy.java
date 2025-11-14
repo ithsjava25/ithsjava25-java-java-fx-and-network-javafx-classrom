@@ -46,7 +46,7 @@ public class NtfyConnectionSpy implements NtfyConnection {
                     "test-id",
                     System.currentTimeMillis(),
                     "message",
-                    "MartinsTopic",
+                    HelloModel.DEFAULT_TOPIC,
                     json.contains("\"message\"") ? json.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1") : null,
                     null,
                     json.contains("\"imageUrl\"") ? json.replaceAll(".*\"imageUrl\":\"([^\"]+)\".*", "$1") : null
