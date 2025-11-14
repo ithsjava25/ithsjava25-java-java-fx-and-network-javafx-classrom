@@ -54,9 +54,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     try {
                         NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
                         if ("message".equals(msg.event())) handler.accept(msg);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    } catch (Exception e) { e.printStackTrace(); }
                 }))
                 .exceptionally(t -> { t.printStackTrace(); return null; });
     }
@@ -64,13 +62,10 @@ public class NtfyConnectionImpl implements NtfyConnection {
     @Override
     public boolean sendFile(File file) {
         if (file == null || !file.exists()) return false;
-
         try {
             byte[] data = Files.readAllBytes(file.toPath());
             String contentType = Files.probeContentType(file.toPath());
             if (contentType == null) contentType = "application/octet-stream";
-            if (file.getName().endsWith(".png")) contentType = "image/png";
-            else if (file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg")) contentType = "image/jpeg";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(hostName + "/" + topic))

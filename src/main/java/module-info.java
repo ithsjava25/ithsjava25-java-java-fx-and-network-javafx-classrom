@@ -7,6 +7,7 @@ module hellofx {
     requires java.desktop;
 
     requires com.fasterxml.jackson.databind;
+    requires javafx.swing;
 
     opens com.example to javafx.fxml, com.fasterxml.jackson.databind;
 
