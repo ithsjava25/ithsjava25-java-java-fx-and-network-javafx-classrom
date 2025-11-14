@@ -4,24 +4,16 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="10" style="-fx-background-color: GRAY;"
-      xmlns="http://javafx.com/javafx/17.0.12"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.HelloController">
+<VBox spacing="10" style="-fx-background-color: GRAY;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
 
     <padding>
         <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
 
-    <TextArea fx:id="chatArea" editable="false" prefHeight="400" />
+    <TextArea fx:id="chatArea" editable="false" wrapText="true" prefHeight="400" />
 
     <HBox spacing="5">
-        <TextArea fx:id="inputField"
-                  promptText="Skriv meddelande..."
-                  prefRowCount="2"
-                  wrapText="true"
-                  style="-fx-background-color: WHITE;"
-                  HBox.hgrow="ALWAYS"/>
-        <Button fx:id="sendButton" text="Skicka" />
+        <TextArea fx:id="inputField" prefRowCount="2" promptText="Skriv meddelande..." style="-fx-background-color: WHITE;" wrapText="true" HBox.hgrow="ALWAYS" />
+        <Button fx:id="sendButton" prefHeight="53.0" prefWidth="49.0" text="Skicka" />
     </HBox>
 </VBox>

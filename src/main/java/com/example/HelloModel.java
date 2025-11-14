@@ -1,10 +1,13 @@
 package com.example;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Objects;
 
 /**
  * Model layer: encapsulates application data and business logic.
@@ -14,50 +17,52 @@ public class HelloModel {
      * Returns a greeting based on the current Java and JavaFX versions.
      */
 
-    private final String topic = "javafx-demo";
-    private final String baseUrl;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final NtfyConnection connection;
+    private final StringProperty messageToSend = new SimpleStringProperty();
+    private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
 
-    public interface MessageListener {
-        void onMessage(String message);
-    }
-
+    //Konstuktor för prod
     public HelloModel() {
-    this.baseUrl = System.getenv().getOrDefault("NTFY_URL", "https://ntfy.sh");
+        this.connection = new NtfyConnectionImpl();
+        receiveMessage();
     }
 
-    public void sendMessage(String message) throws IOException {
-        URL url = new URL (baseUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setDoOutput(true);
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-
-        String json = String.format("{\"topic\":\"%s\",\"message\":\"%s\"}",topic, message);
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(json.getBytes());
-        }
-
-        conn.getResponseCode();
-        conn.disconnect();
-    }
-    public void startListening (MessageListener listener) {
-        executor.submit(()->{
-            try {
-                URL url = new URL (baseUrl + "/" + topic + "/json");
-                BufferedReader rader = new BufferedReader(new InputStreamReader(url.openStream()));
-
-                String line;
-                while ((line = rader.readLine()) != null) {
-                    if (line.contains("\"nessage\"")) {
-                    String msg = line.replaceAll(".*\"message\":\"(.*?)\".*", "$1");
-                    listener.onMessage(msg);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+    //Konstuktor för test
+    public HelloModel(NtfyConnection connection) {
+        this.connection = connection;
+        receiveMessage();
     }
 
+    public ObservableList<NtfyMessageDto> getMessages() {
+        return messages;
+    }
+
+    public String getMessageToSend() {
+        return messageToSend.get();
+    }
+
+    public StringProperty messageToSendProperty() {
+        return messageToSend;
+    }
+
+    public void setMessageToSend(String message) {
+        messageToSend.set(message);
+    }
+
+    public void sendMessage() {
+       connection.send(messageToSend.get());
+    }
+
+    public void receiveMessage() {
+        connection.receive(m-> Platform.runLater(() -> messages.add (m)));
+    }
 }
+
+
+
+
+
+
+
+
+
