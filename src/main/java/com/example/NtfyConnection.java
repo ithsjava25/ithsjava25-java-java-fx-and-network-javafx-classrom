@@ -2,10 +2,11 @@ package com.example;
 
 import java.util.function.Consumer;
 
-public interface NtfyConnection {
+interface NtfyConnection {
+        void send(String message, Consumer<Boolean> callback);
+        void receive(Consumer<NtfyMessageDto> handler);
+    }
 
-    public boolean send(String message);
+    //public boolean send(String message);
 
-    public void receive(Consumer<NtfyMessageDto> messageHandler);
-
-}
+    //public void receive(Consumer<NtfyMessageDto> messageHandler);

@@ -3,23 +3,21 @@ package com.example;
 import java.util.function.Consumer;
 
 public class NtfyConnectionSpy implements NtfyConnection {
-    String message;
-    private Consumer<NtfyMessageDto> messageHandler;
+    public String message;
+    private Consumer<NtfyMessageDto> handler;
 
     @Override
-    public boolean send(String message) {
+    public void send(String message, Consumer<Boolean> callback) {
         this.message = message;
-        return true;
+        new Thread(() -> callback.accept(true)).start();
     }
 
     @Override
-    public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        this.messageHandler = messageHandler;
+    public void receive(Consumer<NtfyMessageDto> h) {
+        this.handler = h;
     }
 
     public void simulateIncoming(NtfyMessageDto msg) {
-        if (messageHandler != null) {
-            messageHandler.accept(msg);
-        }
+        if (handler != null) handler.accept(msg);
     }
 }

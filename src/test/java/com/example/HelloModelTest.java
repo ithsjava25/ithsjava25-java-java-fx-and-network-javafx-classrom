@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -19,12 +20,17 @@ class HelloModelTest {
 
     @BeforeAll
     static void setupJavaFX() {
-        if (!Platform.isFxApplicationThread()) {
-            Platform.startup(() -> {});
+        try {
+            if (!Platform.isFxApplicationThread()) {
+                Platform.startup(() -> {
+                });
+            }
+        } catch (IllegalStateException | UnsupportedOperationException e) {
+            System.out.println("Headless environment detected – skipping JavaFX startup");
         }
     }
 
-    //successful send tests
+    // successful send tests
     @Test
     void shouldSendMessageThroughConnection() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -34,7 +40,8 @@ class HelloModelTest {
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
 
-        assertThat(latch.await(500, TimeUnit.MILLISECONDS)).isTrue();
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for message send").isTrue();
         assertThat(connectionSpy.message).isEqualTo("Hello World");
     }
 
@@ -58,13 +65,14 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(1, TimeUnit.SECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for consecutive sends").isTrue();
         assertThat(results[0]).isTrue();
         assertThat(results[1]).isTrue();
         assertThat(connectionSpy.message).isEqualTo("Second");
     }
 
-    //invalid send tests
+    // invalid send tests
     @Test
     void shouldRejectBlankMessages() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -82,7 +90,8 @@ class HelloModelTest {
                 latch.countDown();
             });
 
-            latch.await(500, TimeUnit.MILLISECONDS);
+            boolean completed = latch.await(5, TimeUnit.SECONDS);
+            assertThat(completed).as("Timed out waiting for blank message rejection").isTrue();
             assertThat(wasSuccessful[0]).isFalse();
             assertThat(connectionSpy.message).isNull();
         }
@@ -102,7 +111,8 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for empty text rejection").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(connectionSpy.message).isNull();
     }
@@ -121,18 +131,19 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for null message rejection").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(connectionSpy.message).isNull();
     }
 
-    //error handling tests
+    // error handling tests
     @Test
     void shouldReturnFailureWhenConnectionFails() throws InterruptedException {
         NtfyConnection failingConn = new NtfyConnection() {
             @Override
-            public boolean send(String message) {
-                return false;
+            public void send(String message, Consumer<Boolean> callback) {
+                callback.accept(false);
             }
             @Override
             public void receive(Consumer<NtfyMessageDto> messageHandler) { }
@@ -148,7 +159,8 @@ class HelloModelTest {
             latch.countDown();
         });
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for connection failure").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
         assertThat(model.getMessageToSend()).isEqualTo("Fail this message");
     }
@@ -157,11 +169,13 @@ class HelloModelTest {
     void shouldHandleExceptionsDuringSend() throws InterruptedException {
         NtfyConnection throwingConn = new NtfyConnection() {
             @Override
-            public boolean send(String message) {
+            public void send(String message, Consumer<Boolean> callback) {
                 throw new RuntimeException("Simulated crash");
             }
+
             @Override
-            public void receive(Consumer<NtfyMessageDto> messageHandler) { }
+            public void receive(Consumer<NtfyMessageDto> messageHandler) {
+            }
         };
         HelloModel model = new HelloModel(throwingConn);
         model.setMessageToSend("Crash this");
@@ -169,41 +183,52 @@ class HelloModelTest {
         CountDownLatch latch = new CountDownLatch(1);
         boolean[] wasSuccessful = new boolean[1];
 
+        //wrappa i try-catch för att fånga exception från connection
         try {
             model.sendMessageAsync(success -> {
                 wasSuccessful[0] = success;
                 latch.countDown();
             });
-        } catch (Exception ex) {
+        } catch (Exception e) {
             wasSuccessful[0] = false;
             latch.countDown();
         }
 
-        latch.await(500, TimeUnit.MILLISECONDS);
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for exception handling").isTrue();
         assertThat(wasSuccessful[0]).isFalse();
     }
 
-    //receiving messages tests
+    // receiving messages tests
     @Test
     void shouldAddIncomingMessageToList() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
         HelloModel model = new HelloModel(connectionSpy);
         NtfyMessageDto incomingMsg = new NtfyMessageDto("Test", 1, "message", "myroom", "Test");
 
+        AtomicBoolean messageReceived = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(1);
+
         model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) c -> {
             while (c.next()) {
                 if (c.wasAdded()) {
+                    messageReceived.set(true);
                     latch.countDown();
                 }
             }
         });
 
+        //give the listener time to attach
+        Thread.sleep(100);
+
         connectionSpy.simulateIncoming(incomingMsg);
 
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for incoming message").isTrue();
+        assertThat(messageReceived.get()).isTrue();
         assertThat(model.getMessages()).contains(incomingMsg);
     }
+
     @Test
     void shouldDiscardNullIncomingMessage() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -216,12 +241,14 @@ class HelloModelTest {
             }
         });
 
+        Thread.sleep(100);
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        boolean messageAdded = latch.await(2, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+
     @Test
     void shouldIgnoreMessagesWithBlankContent() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -234,16 +261,19 @@ class HelloModelTest {
             }
         });
 
+        Thread.sleep(100);
+
         NtfyMessageDto whitespaceMsg = new NtfyMessageDto("id1", 1, "message", "room", "   ");
         NtfyMessageDto emptyMsg = new NtfyMessageDto("id2", 2, "message", "room", "");
 
         connectionSpy.simulateIncoming(whitespaceMsg);
         connectionSpy.simulateIncoming(emptyMsg);
 
-        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        boolean messageAdded = latch.await(2, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+
     @Test
     void shouldRejectAllInvalidIncomingMessages() throws InterruptedException {
         NtfyConnectionSpy connectionSpy = new NtfyConnectionSpy();
@@ -256,27 +286,35 @@ class HelloModelTest {
             }
         });
 
+        Thread.sleep(100);
+
         connectionSpy.simulateIncoming(new NtfyMessageDto("id1", 1, "message", "room", ""));
         connectionSpy.simulateIncoming(new NtfyMessageDto("id2", 2, "message", "room", "  "));
         connectionSpy.simulateIncoming(null);
 
-        boolean messageAdded = latch.await(500, TimeUnit.MILLISECONDS);
+        boolean messageAdded = latch.await(2, TimeUnit.SECONDS);
         assertThat(messageAdded).isFalse();
         assertThat(model.getMessages()).isEmpty();
     }
+
     //integration test
     @Test
     void shouldCommunicateWithMockedServer(WireMockRuntimeInfo wmInfo) throws InterruptedException {
+        stubFor(post("/mytopic").willReturn(ok()));
+        stubFor(get("/mytopic/json").willReturn(ok().withBody("")));
+
         NtfyConnectionImpl connection = new NtfyConnectionImpl("http://localhost:" + wmInfo.getHttpPort());
         HelloModel model = new HelloModel(connection);
-        model.setMessageToSend("Hello World");
 
-        stubFor(post("/mytopic").willReturn(ok()));
+        Thread.sleep(100);
+
+        model.setMessageToSend("Hello World");
 
         CountDownLatch latch = new CountDownLatch(1);
         model.sendMessageAsync(success -> latch.countDown());
 
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
+        assertThat(completed).as("Timed out waiting for server communication").isTrue();
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching("Hello World")));
     }

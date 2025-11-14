@@ -1,21 +1,56 @@
 package com.example;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.util.function.Consumer;
 
+import static com.example.FxUtils.runOnFx;
+
 public class HelloModel {
 
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private final StringProperty messageToSend = new SimpleStringProperty();
+    private final StringProperty messageToSend = new SimpleStringProperty("");
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessage();
+        startReceiving();
+    }
+
+    private void startReceiving() {
+        connection.receive(incoming -> {
+            if (!isValidMessage(incoming)) {
+                return;
+            }
+            runOnFx(() -> messages.add(incoming));
+        });
+    }
+
+    private boolean isValidMessage(NtfyMessageDto message) {
+        return message != null
+                && message.message() != null
+                && !message.message().isBlank();
+    }
+
+    public void sendMessageAsync(Consumer<Boolean> callback) {
+        String msg = messageToSend.get();
+        if (msg == null || msg.isBlank()) {
+            callback.accept(false);
+            return;
+        }
+
+        connection.send(msg, success -> {
+            if (success) {
+                runOnFx(() -> {
+                    if (msg.equals(messageToSend.get())) {
+                        messageToSend.set("");
+                    }
+                });
+            }
+            callback.accept(success);
+        });
     }
 
     public ObservableList<NtfyMessageDto> getMessages() {
@@ -30,45 +65,11 @@ public class HelloModel {
         return messageToSend;
     }
 
-    public void setMessageToSend(String message) {
-        messageToSend.set(message);
+    public void setMessageToSend(String value) {
+        messageToSend.set(value);
     }
 
     public String getGreeting() {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        return "Welcome to ChatApp, made in JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
-    }
-
-    public void sendMessage() {
-        String msg = messageToSend.get();
-        if (msg == null || msg.isBlank()) {
-            return;
-        }
-        connection.send(msg);
-    }
-
-    public void sendMessageAsync(Consumer<Boolean> callback) {
-        String msg = messageToSend.get();
-        if (msg == null || msg.isBlank()) {
-            callback.accept(false);
-            return;
-        }
-
-        try {
-            boolean success = connection.send(msg);
-            callback.accept(success);
-        } catch (Exception e) {
-            callback.accept(false);
-        }
-    }
-
-    private void receiveMessage() {
-        connection.receive(message -> {
-            if (message == null || message.message() == null || message.message().isBlank()) {
-                return;
-            }
-            Platform.runLater(() -> messages.add(message));
-        });
+        return "Welcome to ChatApp";
     }
 }
