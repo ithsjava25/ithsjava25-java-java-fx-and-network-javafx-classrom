@@ -7,11 +7,22 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+
 public class HelloFX extends Application {
     private NtfyConnectionImpl connection;
 
     @Override
     public void start(Stage stage) throws Exception {
+
+        new Thread(() -> {
+            try {
+                    new ImageServer(8081);
+                }   catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
         connection = new NtfyConnectionImpl();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Parent root = fxmlLoader.load();
@@ -25,11 +36,8 @@ public class HelloFX extends Application {
                 connection.stopReceiving(); // 🛑 stoppar lyssnartråden
             }
         });
-
     }
-
     public static void main(String[] args) {
         launch();
     }
-
 }

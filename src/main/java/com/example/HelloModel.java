@@ -7,7 +7,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class HelloModel {
 
@@ -16,12 +22,9 @@ public class HelloModel {
     private final StringProperty messageToSend = new SimpleStringProperty();
     private final String clientId = UUID.randomUUID().toString();
 
-    // För att undvika att visa eget bildmeddelande
-    private long lastSentImageTime = 0;
-
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessages(); // ✅ Startar mottagning direkt
+        receiveMessages();
     }
 
     public String getClientId() {
@@ -32,10 +35,6 @@ public class HelloModel {
         return messages;
     }
 
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
     public StringProperty messageToSendProperty() {
         return messageToSend;
     }
@@ -44,90 +43,89 @@ public class HelloModel {
         this.messageToSend.set(message);
     }
 
-    // 🟢 Skicka textmeddelande
+    // skickar text till ntfy
     public void sendMessage(String messageText) {
         if (messageText == null || messageText.isBlank()) return;
 
-        // Skicka JSON till ntfy
-        String jsonPayload = String.format("{\"clientId\":\"%s\",\"message\":\"%s\"}", clientId, messageText);
-        connection.send(jsonPayload);
-
-        // Lägg till direkt i GUI:t
-        addMessageSafely(new NtfyMessageDto(
-                UUID.randomUUID().toString(),
-                System.currentTimeMillis() / 1000,
-                "message",
-                "MartinsTopic",
-                messageText
-        ));
+        // Skicka ren text
+        connection.send(messageText);
     }
 
-    // 🟢 Skicka bild
+    // Skickar bild till lokal server och postar Markdown-länk till ntfy
     public boolean sendImage(File imageFile) {
-        lastSentImageTime = System.currentTimeMillis(); // 👈 Kom ihåg när vi skickade bilden
-        return connection.sendImage(imageFile, clientId);
+        try {
+            String imageUrl = uploadToLocalServer(imageFile);
+
+            // Skickar Markdown-länk med filnamn som titel
+            String markdownMessage = String.format(
+                    "Bild: %s\n![Bild](%s)",
+                    imageFile.getName(),
+                    imageUrl
+            );
+            connection.send(markdownMessage);
+
+            // Lägg till i GUI: endast bilden, ingen text
+            addMessageSafely(new NtfyMessageDto(
+                    UUID.randomUUID().toString(),
+                    System.currentTimeMillis() / 1000,
+                    "message",
+                    "MartinsTopic",
+                    null,
+                    null,
+                    imageUrl
+            ));
+
+            return true;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    // 🟢 Mottagning
+    // mottagning av meddelanden
     private void receiveMessages() {
         connection.receive(dto -> {
-            try {
-                String raw = dto.message();
+            if (dto.message() == null || dto.message().isBlank()) return;
 
-                // 🔹 Bildmeddelande från ntfy
-                if (raw != null && raw.contains("You received a file:")) {
-                    long now = System.currentTimeMillis();
-
-                    // Om det är mycket nära i tid efter vi skickat → ignorera
-                    if (now - lastSentImageTime < 3000) {
-                        System.out.println("🟡 Ignorerar eget bildmeddelande (inom 3 sekunder)");
-                        return;
-                    }
-
-                    String fileName = raw.replaceAll(".*file: ([^\\\"]+).*", "$1").trim();
-                    addMessageSafely(new NtfyMessageDto(
-                            dto.id(), dto.time(), dto.event(), dto.topic(),
-                            "[📷 Bild mottagen: " + fileName + "]"
-                    ));
-                    return;
-                }
-
-                // 🔹 Textmeddelanden med clientId
-                if (raw != null && raw.contains("{\"clientId\":")) {
-                    String receivedClientId = raw.replaceAll(".*\"clientId\":\"([^\"]+)\".*", "$1");
-
-                    if (receivedClientId.equals(clientId)) {
-                        System.out.println("🟡 Ignorerar eget textmeddelande");
-                        return;
-                    }
-
-                    String text = raw.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1");
-                    addMessageSafely(new NtfyMessageDto(
-                            dto.id(), dto.time(), dto.event(), dto.topic(), text
-                    ));
-                    return;
-                }
-
-                // 🔹 Allt annat (t.ex. systemhändelser)
-                addMessageSafely(dto);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                addMessageSafely(dto);
+            // ignorera egna meddelanden
+            if (dto.message().contains("\"clientId\":\"" + clientId + "\"")) {
+                return;
             }
+
+            // Markdown-bild
+            if (dto.message().startsWith("![Bild](") || dto.message().contains("\n![Bild](")) {
+                String url = dto.message().replaceAll(".*!\\[Bild\\]\\(([^)]+)\\).*", "$1");
+                addMessageSafely(new NtfyMessageDto(dto.id(), dto.time(), dto.event(), dto.topic(), null, null, url));
+                return;
+            }
+
+            // Textmeddelande
+            addMessageSafely(dto);
         });
     }
 
-    // 🟢 Lägg till meddelande på rätt tråd
     private void addMessageSafely(NtfyMessageDto msg) {
         if (Platform.isFxApplicationThread()) {
             messages.add(msg);
         } else {
-            try {
-                Platform.runLater(() -> messages.add(msg));
-            } catch (IllegalStateException e) {
-                messages.add(msg);
-            }
+            Platform.runLater(() -> messages.add(msg));
         }
+    }
+
+    // laddar upp fil till lokal server och returnerar URL
+    private String uploadToLocalServer(File imageFile) throws IOException {
+        URL url = new URL("http://localhost:8081/upload");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+
+        try (OutputStream os = conn.getOutputStream()) {
+            Files.copy(imageFile.toPath(), os);
+        }
+
+        String imageUrl = new String(conn.getInputStream().readAllBytes());
+        conn.disconnect();
+        return imageUrl;
     }
 }
