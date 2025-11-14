@@ -44,23 +44,31 @@ public class HelloModel {
     }
 
     public void saveAttachment(NtfyMessageDto item) {
+        if (item == null || !item.hasAttachment()) return;
+
         FileChooser chooser = new FileChooser();
         chooser.setInitialFileName(item.getAttachmentName());
-        File dest = chooser.showSaveDialog(null);
-        if (dest != null) {
+        File destination = chooser.showSaveDialog(null); // Du kan sätta Stage om du vill
+
+        if (destination != null) {
             new Thread(() -> {
                 try (InputStream in = new URL(item.getAttachmentUrl()).openStream();
-                     FileOutputStream out = new FileOutputStream(dest)) {
-                    byte[] buf = new byte[8192];
-                    int r;
-                    while ((r = in.read(buf)) != -1) out.write(buf, 0, r);
-                    Platform.runLater(() -> showInfo("Fil sparad: " + dest.getAbsolutePath()));
+                     FileOutputStream out = new FileOutputStream(destination)) {
+
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+
+                    Platform.runLater(() -> showInfo("Filen sparad: " + destination.getAbsolutePath()));
                 } catch (Exception e) {
                     Platform.runLater(() -> showError("Fel vid nedladdning: " + e.getMessage()));
                 }
             }).start();
         }
     }
+
 
     private void showError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

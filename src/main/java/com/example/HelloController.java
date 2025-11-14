@@ -29,7 +29,11 @@ public class HelloController {
             @Override
             protected void updateItem(NtfyMessageDto item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); setGraphic(null); return; }
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
 
                 HBox hbox = new HBox(5);
 
@@ -42,29 +46,34 @@ public class HelloController {
 
                 if (item.hasAttachment()) {
                     String type = item.getAttachmentContentType();
+
                     if (type != null && type.startsWith("image/")) {
-                        iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
-                        Image img = model.loadImageFromUrl(item, 300, 300); // större bild
+                        Image img = model.loadImageFromUrl(item, 300, 300);
                         if (img != null) {
                             ImageView imgView = new ImageView(img);
                             imgView.setPreserveRatio(true);
                             imgView.setFitWidth(300);
-                            imgView.setOnMouseClicked(e -> model.saveAttachment(item));
+                            imgView.setOnMouseClicked(e -> model.saveAttachment(item)); // Klickbar bild
                             hbox.getChildren().add(imgView);
                         }
-                    } else if (type != null && type.equals("application/pdf")) {
+                        iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
+                    } else if ("application/pdf".equals(type)) {
                         iconView.setImage(new Image(getClass().getResourceAsStream("/icons/pdf.png")));
+                        iconView.setOnMouseClicked(e -> model.saveAttachment(item));
+                    } else if ("application/zip".equals(type)) {
+                        iconView.setImage(new Image(getClass().getResourceAsStream("/icons/zip.png")));
+                        iconView.setOnMouseClicked(e -> model.saveAttachment(item));
                     } else {
                         iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
+                        iconView.setOnMouseClicked(e -> model.saveAttachment(item));
                     }
                 } else {
                     iconView.setImage(new Image(getClass().getResourceAsStream("/icons/messages.png")));
                 }
-
                 hbox.getChildren().addAll(iconView, time, text);
                 setGraphic(hbox);
             }
-        });
+            });
     }
 
     @FXML
