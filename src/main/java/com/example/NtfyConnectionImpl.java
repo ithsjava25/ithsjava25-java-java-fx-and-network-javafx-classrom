@@ -53,11 +53,16 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .thenAccept(resp -> resp.body().forEach(line -> {
                     try {
                         NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
-                        if ("message".equals(msg.event())) handler.accept(msg);
-                    } catch (Exception e) { e.printStackTrace(); }
+                        if ("message".equals(msg.event()) || "file".equals(msg.event()) || msg.hasAttachment()) {
+                            handler.accept(msg);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }))
                 .exceptionally(t -> { t.printStackTrace(); return null; });
     }
+
 
     @Override
     public boolean sendFile(File file) {
