@@ -1,0 +1,196 @@
+/* ===== Huvudcontainer - RuneScape Classic ===== */
+.chat-container {
+    -fx-background-color: linear-gradient(to bottom, #2d2416, #1a1510);
+    -fx-padding: 20;
+    -fx-spacing: 16;
+    -fx-font-family: "Arial", sans-serif;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 3;
+}
+
+/* ===== Header ===== */
+.chat-title {
+    -fx-text-fill: #ffff00;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 2, 0, 1, 1);
+}
+
+/* ===== Current room ===== */
+.topic-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #00ffff;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 1, 0, 1, 1);
+}
+
+/* ===== Room changer ===== */
+.topic-container {
+    -fx-background-color: #3e3426;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 2;
+    -fx-padding: 8 14;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-spacing: 10;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+.topic-input-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: normal;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 1, 0, 1, 1);
+}
+
+.topic-input {
+    -fx-background-color: #1a1510;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 2;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 6 12;
+    -fx-font-size: 13px;
+    -fx-font-family: "Arial", sans-serif;
+}
+
+.topic-input:focused {
+    -fx-border-color: #c4a57b;
+    -fx-border-width: 2;
+}
+
+.topic-button {
+    -fx-background-color: linear-gradient(to bottom, #6b5d4f, #4a3f33);
+    -fx-text-fill: #ffff00;
+    -fx-background-radius: 3;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 2;
+    -fx-padding: 8 20;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 2, 0, 1, 1);
+}
+
+.topic-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #8b7355, #6b5d4f);
+    -fx-text-fill: #00ff00;
+    -fx-border-color: #c4a57b;
+}
+
+.topic-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* ===== ListView styling ===== */
+.message-list {
+    -fx-background-color: #000000;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 3;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.message-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 6 12;
+}
+
+.message-list .list-cell:selected {
+    -fx-background-color: transparent;
+}
+
+/* ===== Chat bubbles ===== */
+.chat-bubble {
+    -fx-background-radius: 3;
+    -fx-padding: 8 14;
+    -fx-wrap-text: true;
+    -fx-max-width: 280px;
+    -fx-font-family: "Arial", sans-serif;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.7), 2, 0, 1, 1);
+}
+
+.chat-bubble-sent {
+    -fx-background-color: #1a4d1a;
+    -fx-text-fill: #00ff00;
+    -fx-background-radius: 3;
+    -fx-border-color: #2d7a2d;
+    -fx-border-width: 1;
+    -fx-font-weight: normal;
+}
+
+.chat-bubble-received {
+    -fx-background-color: #1a1a4d;
+    -fx-text-fill: #00ffff;
+    -fx-background-radius: 3;
+    -fx-border-color: #2d2d7a;
+    -fx-border-width: 1;
+    -fx-font-weight: normal;
+}
+
+/* ===== Input area ===== */
+.input-container {
+    -fx-alignment: CENTER;
+    -fx-spacing: 12;
+}
+
+.message-input {
+    -fx-background-color: #000000;
+    -fx-text-fill: #00ff00;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 2;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 12 18;
+    -fx-font-size: 13px;
+    -fx-font-family: "Arial", sans-serif;
+}
+
+.message-input:focused {
+    -fx-border-color: #c4a57b;
+    -fx-border-width: 3;
+}
+
+/* ===== Send button ===== */
+.send-button {
+    -fx-background-color: linear-gradient(to bottom, #6b5d4f, #4a3f33);
+    -fx-text-fill: #ffff00;
+    -fx-background-radius: 3;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 2;
+    -fx-padding: 14 30;
+    -fx-font-weight: bold;
+    -fx-font-size: 15;
+    -fx-font-family: "Arial", sans-serif;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 3, 0, 1, 1);
+}
+
+.send-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #8b7355, #6b5d4f);
+    -fx-text-fill: #00ff00;
+    -fx-border-color: #c4a57b;
+}
+
+.send-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* ===== Scrollbar styling ===== */
+.list-view > .scroll-bar:vertical {
+    -fx-background-color: #2d2416;
+}
+
+.list-view > .scroll-bar:vertical .thumb {
+    -fx-background-color: #6b5d4f;
+    -fx-background-radius: 2;
+    -fx-border-color: #8b7355;
+    -fx-border-width: 1;
+}
+
+.list-view > .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #7d6b5a;
+    -fx-border-color: #c4a57b;
+}
