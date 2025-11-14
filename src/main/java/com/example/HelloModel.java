@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -111,17 +112,27 @@ public class HelloModel {
 
     protected String uploadToLocalServer(File imageFile) throws IOException {
         URL url = new URL("http://localhost:8081/upload");
-        HttpURLConnection conn = (HttpURLConnection)
-                url.openConnection();
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
+
         try (OutputStream os = conn.getOutputStream()) {
             Files.copy(imageFile.toPath(), os);
         }
-        String imageUrl = new String(conn.getInputStream().readAllBytes());
-        conn.disconnect();
-        return imageUrl;
 
+        int status = conn.getResponseCode();
+        if (status < 200 || status >= 300) {
+            conn.disconnect();
+            throw new IOException("Upload failed with HTTP status: " + status);
+        }
+
+        try (InputStream in = conn.getInputStream()) {
+            String imageUrl = new String(in.readAllBytes());
+            return imageUrl;
+        } finally {
+            conn.disconnect();
+        }
     }
+
 
 }
