@@ -1,30 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.HelloController"
-      alignment="CENTER"
-      spacing="10">
+<VBox spacing="12" styleClass="chat-container" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
 
-    <!-- Padding -->
+    <!-- Padding för hela VBox -->
     <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
+        <Insets bottom="16" left="16" right="16" top="16" />
     </padding>
+    <HBox prefHeight="100.0" prefWidth="200.0">
+        <children>
 
-    <!-- Greeting label -->
-    <Label fx:id="messageLabel" text="Hello, JavaFX!" />
+            <!-- Header -->
+            <Label fx:id="messageLabel" styleClass="chat-title" text="Welcome to YadaChat!" />
+        </children>
+    </HBox>
 
-    <!-- List of messages -->
-    <ListView fx:id="messageView" VBox.vgrow="ALWAYS" prefHeight="300" prefWidth="400" />
+    <Separator />
 
-    <!-- Input area + send button -->
-    <HBox spacing="10" alignment="CENTER">
-        <TextArea fx:id="messageInput" prefHeight="50" prefWidth="300" wrapText="true"/>
-        <Button text="Send message" onAction="#sendMessage" />
+    <!-- Message List -->
+    <ListView fx:id="messageView" prefHeight="350" prefWidth="500" styleClass="message-list" VBox.vgrow="ALWAYS" />
+
+    <!-- Current room + room changer packeterat -->
+    <HBox alignment="CENTER_RIGHT" spacing="20">
+         <!-- Current room -->
+         <Label fx:id="topicLabel" styleClass="topic-label" text="Room: mytopic">
+             <padding>
+                 <Insets bottom="0" left="0" right="0" top="0" />
+             </padding>
+         </Label>
+
+        <!-- Room changer -->
+        <HBox alignment="CENTER_RIGHT" spacing="8" styleClass="topic-container">
+            <Label styleClass="topic-input-label" text="Change room:" />
+            <TextField fx:id="topicInput" prefWidth="180" promptText="Enter room name" styleClass="topic-input" />
+            <Button fx:id="changeTopicButton" onAction="#changeTopic" styleClass="topic-button" text="Join Room" />
+        </HBox>
+    </HBox>
+
+    <!-- Input Area centrerad -->
+    <HBox alignment="CENTER" spacing="10" styleClass="input-container">
+        <TextArea fx:id="messageInput" prefHeight="50" prefWidth="380" promptText="Type a message..." styleClass="message-input" wrapText="true" />
+        <Button fx:id="sendButton" onAction="#sendMessage" styleClass="send-button" text="Send" />
     </HBox>
 
 </VBox>

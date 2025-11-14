@@ -1,12 +1,24 @@
 package com.example;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-interface NtfyConnection {
-        void send(String message, Consumer<Boolean> callback);
-        void receive(Consumer<NtfyMessageDto> handler);
+public interface NtfyConnection {
+
+    void send(String message, Consumer<Boolean> callback);
+
+    void receive(Consumer<NtfyMessageDto> messageHandler);
+
+    default String getCurrentTopic() {
+        return "mytopic";
     }
 
-    //public boolean send(String message);
+    default void setCurrentTopic(String topic) {
 
-    //public void receive(Consumer<NtfyMessageDto> messageHandler);
+    }
+
+    default String getUserId() {
+        return "unknown";
+    }
+}

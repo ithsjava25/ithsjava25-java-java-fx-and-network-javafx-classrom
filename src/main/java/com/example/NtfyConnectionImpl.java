@@ -7,81 +7,85 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
 
-    private final HttpClient http;
+    private final HttpClient http = HttpClient.newHttpClient();
     private final String hostName;
+    private final String userId;
+    private String currentTopic;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
-        this.http = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
+        this.hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+        this.userId = Objects.requireNonNull(dotenv.get("USER_ID"), "USER_ID");
+        this.currentTopic = dotenv.get("DEFAULT_TOPIC", "mytopic");
     }
 
     public NtfyConnectionImpl(String hostName) {
         this.hostName = hostName;
-        this.http = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
+        this.userId = "testuser";
+        this.currentTopic = "mytopic";
+    }
+
+    public NtfyConnectionImpl(String hostName, String userId, String topic) {
+        this.hostName = hostName;
+        this.userId = userId;
+        this.currentTopic = topic;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getCurrentTopic() {
+        return currentTopic;
+    }
+
+    public void setCurrentTopic(String topic) {
+        this.currentTopic = topic;
     }
 
     @Override
     public void send(String message, Consumer<Boolean> callback) {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
-                .uri(URI.create(hostName + "/mytopic"))
                 .header("Cache", "no")
-                .timeout(Duration.ofSeconds(10))  //request timeout
+                .header("X-User-Id", userId)
+                .uri(URI.create(hostName + "/" + currentTopic))
                 .build();
 
-        http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                .thenAccept(response -> {
-                    boolean success = response.statusCode() >= 200 && response.statusCode() < 300;
-                    callback.accept(success);
+        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+                .thenApply(response -> response.statusCode() / 100 == 2)
+                .exceptionally(ex -> {
+                    System.out.println("Error sending message: " + ex.getMessage());
+                    return false;
                 })
-                .exceptionally(throwable -> {
-                    System.err.println("Error sending message: " + throwable.getMessage());
-                    callback.accept(false);
-                    return null;
-                });
+                .thenAccept(callback);
     }
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
-                .uri(URI.create(hostName + "/mytopic/json"))
-                .timeout(Duration.ofSeconds(30))  //timeout för receive
+                .uri(URI.create(hostName + "/" + currentTopic + "/json"))
                 .build();
 
-        http.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> {
-                    try {
-                        response.body()
-                                .map(line -> {
-                                    try {
-                                        return mapper.readValue(line, NtfyMessageDto.class);
-                                    } catch (Exception e) {
-                                        System.err.println("Failed to parse message: " + line);
-                                        return null;
-                                    }
-                                })
-                                .filter(Objects::nonNull)
-                                .forEach(messageHandler);
-                    } catch (Exception e) {
-                        System.err.println("Stream processing error: " + e.getMessage());
-                    }
-                })
-                .exceptionally(ex -> {
-                    System.err.println("Error receiving messages: " + ex.getMessage());
-                    return null;
-                });
+        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
+                .thenAccept(response -> response.body()
+                        .map(s -> {
+                            try {
+                                return mapper.readValue(s, NtfyMessageDto.class);
+                            } catch (Exception e) {
+                                System.out.println("Failed to parse message: " + e.getMessage());
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .peek(System.out::println)
+                        .forEach(messageHandler));
     }
 }
