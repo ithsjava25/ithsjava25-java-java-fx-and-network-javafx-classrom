@@ -33,7 +33,6 @@ public class HelloController {
     private void initialize() {
         messageView.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent;");
         messageView.setItems(model.getMessages());
-
         messageView.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(NtfyMessageDto item, boolean empty) {
@@ -43,6 +42,7 @@ public class HelloController {
                     setGraphic(null);
                     return;
                 }
+
                 boolean isIncoming = !myTopic.equals(item.topic());
                 HBox cellBox = new HBox(5);
                 cellBox.setMaxWidth(Double.MAX_VALUE);
@@ -104,17 +104,20 @@ public class HelloController {
         ImageView iconView = new ImageView();
         iconView.setFitWidth(24);
         iconView.setFitHeight(24);
+
         try {
             if (type != null && type.startsWith("image/")) {
-                // Ladda själva bilden för chatten
-                Image img = model.loadImageFromUrl(item, 100, 100);
-                if (img != null) {
+                // Ladda bilden från den sparade filen i "downloads"-mappen
+                File file = new File("downloads", item.getAttachmentName());
+                if (file.exists()) {
+                    Image img = new Image(file.toURI().toString(), 100, 100, true, true);
                     iconView.setImage(img);
                     iconView.setPreserveRatio(true);
                     iconView.setFitWidth(100);
                     iconView.setFitHeight(100);
                 } else {
-                    return null;
+                    // Om filen inte finns, visa en generisk bildikon
+                    iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
                 }
             } else if ("application/pdf".equals(type)) {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/pdf.png")));
@@ -125,14 +128,12 @@ public class HelloController {
             }
         } catch (Exception e) {
             messageLabel.setText("Fel vid ikonskapande: " + e.getMessage());
-            if (!type.startsWith("image/")) {
-                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
-            } else {
-                return null;
-            }
+            iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
         }
+
         return iconView;
     }
+
 
     @FXML
     private void attachFile() {
