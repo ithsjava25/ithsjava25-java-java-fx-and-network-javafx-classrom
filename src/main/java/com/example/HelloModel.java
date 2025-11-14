@@ -74,7 +74,6 @@ public class HelloModel {
         // 2. Utför nätverksanropet på en bakgrundstråd
         CompletableFuture.runAsync(() -> {
             // Nätverksanropet sker här i bakgrunden
-            connection.send(message, currentTopic.get());
             try {
                  connection.send(message, currentTopic.get());
             } catch (Exception e) {
@@ -105,7 +104,6 @@ public class HelloModel {
         // 2. Utför nätverksanropet på en bakgrundstråd
         CompletableFuture.runAsync(() -> {
             // Nätverksanropet sker här i bakgrunden
-            connection.sendFile(file, currentTopic.get());
             try {
                 connection.sendFile(file, currentTopic.get());
             } catch( Exception e){

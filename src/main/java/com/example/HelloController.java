@@ -150,7 +150,7 @@ public class HelloController {
                 // Hämta meddelandet eller visa filstatus om meddelandet är tomt
                 String displayMessage = item.message() != null && !item.message().trim().isEmpty()
                         ? item.message()
-                        : (item.event().equals("file") ? "[File Uploaded]" : "");
+                        : ("file".equals(item.event())) ? item.topic() + " Uploaded" : "";
 
                 // Lägg till prefix för att visa om det är skickat lokalt
                 String prefix = item.isLocal() ? "(Sent) " : "";
@@ -191,7 +191,15 @@ public class HelloController {
     @FXML
     protected void attachFile() {
         // Hämta scenen från en av kontrollerna
-        Stage stage = (Stage) (chatListView.getScene().getWindow());
+
+        if (attachFile == null || attachFile.getScene() == null || attachFile.getScene().getWindow() == null) {
+            System.err.println("Cannot open file chooser: UI not ready.");
+            return;
+            }
+        Stage stage = (Stage) attachFile.getScene().getWindow();
+
+
+
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Choose file to attach");
