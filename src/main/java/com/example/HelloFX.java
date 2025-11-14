@@ -21,7 +21,7 @@ public class HelloFX extends Application {
         ctrl.setPrimaryStage(stage);
 
         Scene scene = new Scene(root, 700, 600);
-        stage.setTitle("NTFY Chat");
+        stage.setTitle("Binary Chat");
         stage.setScene(scene);
         stage.show();
 
