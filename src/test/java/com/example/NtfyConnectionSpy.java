@@ -42,9 +42,11 @@ public class NtfyConnectionSpy implements NtfyConnection {
      */
     public void simulateIncomingMessage(String json) {
         if (messageHandler != null) {
+            long now = System.currentTimeMillis() / 1000;
+
             NtfyMessageDto dto = new NtfyMessageDto(
                     "test-id",
-                    System.currentTimeMillis(),
+                    now,
                     "message",
                     HelloModel.DEFAULT_TOPIC,
                     json.contains("\"message\"") ? json.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1") : null,

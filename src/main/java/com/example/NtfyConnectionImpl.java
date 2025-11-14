@@ -58,21 +58,31 @@ public class NtfyConnectionImpl implements NtfyConnection {
             conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
             conn.setRequestProperty("X-Client-Id", clientId);
 
+            // JSON-del
+            var json = mapper.writeValueAsString(
+                    new java.util.LinkedHashMap<String,Object>() {{
+                        put("clientId", clientId);
+                        put("type", "image");
+                        put("fileName", imageFile.getName());
+                    }}
+            );
+
             try (OutputStream output = conn.getOutputStream();
                  PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true)) {
 
-                // textdel med JSON
                 writer.append("--").append(boundary).append("\r\n");
                 writer.append("Content-Disposition: form-data; name=\"message\"\r\n\r\n");
-                writer.append("{\"clientId\":\"").append(clientId).append("\",\"type\":\"image\",\"fileName\":\"")
-                        .append(imageFile.getName()).append("\"}\r\n");
+                writer.append(json).append("\r\n");
                 writer.flush();
 
-                // bildfil
+                // Bildfil
+                String contentType = Files.probeContentType(imageFile.toPath());
+                if (contentType == null) contentType = "application/octet-stream";
+
                 writer.append("--").append(boundary).append("\r\n");
                 writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
                         .append(imageFile.getName()).append("\"\r\n");
-                writer.append("Content-Type: ").append(Files.probeContentType(imageFile.toPath())).append("\r\n\r\n");
+                writer.append("Content-Type: ").append(contentType).append("\r\n\r\n");
                 writer.flush();
 
                 Files.copy(imageFile.toPath(), output);
@@ -90,6 +100,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
             return false;
         }
     }
+
 
 
     @Override

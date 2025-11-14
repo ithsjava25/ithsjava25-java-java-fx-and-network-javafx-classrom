@@ -83,24 +83,40 @@ public class HelloModel {
 
     private void receiveMessages() {
         connection.receive(dto -> {
-            if (dto.message() == null || dto.message().isBlank()) return;
-            if (dto.message().contains("\"clientId\":\"" + clientId + "\"")) {
+            String msg = dto.message();
+            if (msg == null || msg.isBlank()) return;
+
+            // Ignorera egna meddelanden
+            if (msg.contains("\"clientId\":\"" + clientId + "\"")) {
                 return;
             }
-            if (dto.message().startsWith("![Bild](") || dto.message().contains("\n![Bild](")) {
-                String url = dto.message().replaceAll(".*!\\[Bild\\]\\(([^)]+)\\).*", "$1");
-                addMessageSafely(new NtfyMessageDto(dto.id(),
-                        dto.time(),
-                        dto.event(),
-                        dto.topic(),
-                        null,
-                        null,
-                        url));
-                return;
+
+            // Identifiera Markdown-bild via enkel substring-sökning
+            int marker = msg.indexOf("![Bild](");
+            if (marker != -1) {
+                int open = msg.indexOf('(', marker);
+                int close = msg.indexOf(')', open + 1);
+
+                if (open != -1 && close != -1) {
+                    String url = msg.substring(open + 1, close);
+                    addMessageSafely(new NtfyMessageDto(
+                            dto.id(),
+                            dto.time(),
+                            dto.event(),
+                            dto.topic(),
+                            null,
+                            null,
+                            url
+                    ));
+                    return;
+                }
             }
+
+            // Ren text
             addMessageSafely(dto);
         });
     }
+
 
     private void addMessageSafely(NtfyMessageDto msg) {
         if (Platform.isFxApplicationThread()) {
@@ -122,17 +138,16 @@ public class HelloModel {
 
         int status = conn.getResponseCode();
         if (status < 200 || status >= 300) {
-            conn.disconnect();
-            throw new IOException("Upload failed with HTTP status: " + status);
+            throw new IOException("Upload failed with status " + status);
         }
 
         try (InputStream in = conn.getInputStream()) {
-            String imageUrl = new String(in.readAllBytes());
-            return imageUrl;
+            return new String(in.readAllBytes());
         } finally {
             conn.disconnect();
         }
     }
+
 
 
 }
