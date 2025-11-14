@@ -24,10 +24,9 @@ public class HelloController {
 
     @FXML
     private void initialize() {
-        // Bind greeting label
         messageLabel.setText(model.getGreeting());
 
-        // Bind ListView to model messages
+
         messageView.setItems(model.getMessages());
     }
 
@@ -35,11 +34,11 @@ public class HelloController {
     private void sendMessage(ActionEvent event) {
         String text = inputMessage.getText();
 
-        // Modellens API kräver setMessageToSend() + sendMessage()
+
         model.setMessageToSend(text);
         model.sendMessage();
 
-        // Rensa input-fältet (matchar även testförväntningarna)
+
         inputMessage.clear();
     }
 
