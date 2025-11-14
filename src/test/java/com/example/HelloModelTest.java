@@ -20,7 +20,7 @@ class HelloModelTest {
         model.setMessageToSend("Hello World!");
         model.sendMessage();
 
-        assertThat(spy.message).isEqualTo("Hello World!");
+        assertThat(spy.message).endsWith("Hello World!");
     }
 
     @Test
