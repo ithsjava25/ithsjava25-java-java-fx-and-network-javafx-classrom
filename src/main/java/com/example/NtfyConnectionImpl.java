@@ -102,19 +102,28 @@ public class NtfyConnectionImpl implements NtfyConnection {
                             .GET()
                             .build();
 
-                    client.send(request, HttpResponse.BodyHandlers.ofLines())
-                            .body()
-                            .forEach(line -> {
-                                try {
-                                    NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
-                                    if ("message".equals(msg.event())) {
-                                        messageHandler.accept(msg);
-                                    }
-                                } catch (Exception ignored) {}
-                            });
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    String body = response.body();
+
+                    // Dela på nya rader (SSE)
+                    for (String line : body.split("\\R")) {
+                        line = line.trim();
+                        if (line.isEmpty()) continue;
+
+                        // Ta bort "data:" prefix om det finns
+                        if (line.startsWith("data:")) {
+                            line = line.substring(5).trim();
+                        }
+
+                        try {
+                            NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
+                            if ("message".equals(msg.event())) {
+                                messageHandler.accept(msg);
+                            }
+                        } catch (Exception ignored) {}
+                    }
 
                     Thread.sleep(1000);
-
                 } catch (IOException | InterruptedException e) {
                     if (!running) break;
                     try { Thread.sleep(2000); } catch (InterruptedException ex) { break; }
@@ -126,6 +135,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
         thread.start();
         this.receiverThread = thread;
     }
+
 
     private volatile boolean running = true;
     private Thread receiverThread;
