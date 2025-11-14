@@ -1,15 +1,63 @@
 package com.example;
 
-/**
- * Model layer: encapsulates application data and business logic.
- */
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 public class HelloModel {
-    /**
-     * Returns a greeting based on the current Java and JavaFX versions.
-     */
+
+    private final NtfyConnection connection;
+    private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
+
+    private String messageToSend = "";
+
+    public HelloModel(NtfyConnection connection) {
+        this.connection = connection;
+
+        messages.add(new NtfyMessageDto("init", 0, "message", "mytopic", "Initial message"));
+
+        receiveMessages();
+    }
+
+    public ObservableList<NtfyMessageDto> getMessages() {
+        return messages;
+    }
+
+    public String getMessageToSend() {
+        return messageToSend;
+    }
+
+    public void setMessageToSend(String messageToSend) {
+        this.messageToSend = messageToSend;
+    }
+
+    public void sendMessage() {
+        if (messageToSend != null && !messageToSend.isBlank()) {
+            connection.send(messageToSend);
+        }
+        messageToSend = "";
+    }
+
+    public void sendFile(File file) {
+        try {
+            byte[] data = Files.readAllBytes(file.toPath());
+            connection.sendFile(file.getName(), data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void receiveMessages() {
+        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+    }
+
     public String getGreeting() {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        return "Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
+        return "Hello, JavaFX!";
     }
 }
+
+

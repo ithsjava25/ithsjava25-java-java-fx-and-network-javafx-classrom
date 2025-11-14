@@ -1,22 +1,55 @@
 package com.example;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 
-/**
- * Controller layer: mediates between the view (FXML) and the model.
- */
+import java.io.File;
+
 public class HelloController {
 
-    private final HelloModel model = new HelloModel();
+    private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
     @FXML
     private Label messageLabel;
 
     @FXML
+    private ListView<NtfyMessageDto> messageView;
+
+    @FXML
+    private TextField inputMessage;
+
+    @FXML
     private void initialize() {
-        if (messageLabel != null) {
-            messageLabel.setText(model.getGreeting());
+        messageLabel.setText(model.getGreeting());
+
+
+        messageView.setItems(model.getMessages());
+    }
+
+    @FXML
+    private void sendMessage(ActionEvent event) {
+        String text = inputMessage.getText();
+
+
+        model.setMessageToSend(text);
+        model.sendMessage();
+
+
+        inputMessage.clear();
+    }
+
+    @FXML
+    private void attachFile(ActionEvent event) {
+        FileChooser chooser = new FileChooser();
+        File file = chooser.showOpenDialog(messageView.getScene().getWindow());
+        if (file != null) {
+            model.sendFile(file);
         }
     }
 }
+
+
