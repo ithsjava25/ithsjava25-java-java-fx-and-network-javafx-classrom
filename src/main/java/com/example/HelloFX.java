@@ -17,7 +17,7 @@ public class HelloFX extends Application {
         // Skapa en enda NtfyConnection-instans
         connection = new NtfyConnectionImpl();
 
-        // Starta ImageServer på separat tråd
+        // Starta ImageServer på separat daemon-tråd
         Thread serverThread = new Thread(() -> {
             try {
                 imageServer = new ImageServer(8081);
@@ -25,7 +25,7 @@ public class HelloFX extends Application {
                 e.printStackTrace();
             }
         });
-        serverThread.setDaemon(true); // avslutas automatiskt vid app-stopp
+        serverThread.setDaemon(true);
         serverThread.start();
 
         // Ladda FXML
@@ -40,25 +40,29 @@ public class HelloFX extends Application {
         stage.setScene(scene);
         stage.show();
 
-        // Säkerställ stängning av server och connection vid fönsterstängning
+        // Säkerställ att connection och server stoppas vid stängning
         stage.setOnCloseRequest(event -> {
             System.out.println("🛑 Application closing...");
 
-            if (connection != null) {
-                connection.stopReceiving();
-                System.out.println("🔌 NtfyConnection stopped");
-            }
-
-            if (imageServer != null) {
-                imageServer.stop();
-            }
-
-            // Vänta på server-trådens avslut (valfritt)
             try {
-                serverThread.join(500); // max 0.5 sekunder
-            } catch (InterruptedException e) {
+                if (connection != null) {
+                    connection.stopReceiving();
+                    System.out.println("🔌 NtfyConnection stopped");
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            try {
+                if (imageServer != null) {
+                    imageServer.stop();
+                    System.out.println("🛑 Image server stopped");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Ingen need att joina daemon-tråden; den avslutas automatiskt
         });
     }
 
