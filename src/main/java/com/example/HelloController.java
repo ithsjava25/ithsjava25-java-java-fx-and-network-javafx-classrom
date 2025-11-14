@@ -168,7 +168,6 @@ public class HelloController {
         File dest = chooser.showSaveDialog(stage);
         if (dest == null) return;
 
-        // Ladda ner filen i separat tråd
         new Thread(() -> {
             try (InputStream in = new URL(item.getAttachmentUrl()).openStream();
                  OutputStream out = new FileOutputStream(dest)) {

@@ -79,23 +79,6 @@ public class HelloModel {
     }
 
     /**
-     * Sparar en bilaga manuellt via FileChooser.
-     */
-    public void saveAttachment(NtfyMessageDto item, Stage stage) throws IOException {
-        if (item == null || !item.hasAttachment()) return;
-        if (item.getAttachmentUrl() == null) throw new IOException("Ingen URL för bilagan");
-
-        FileChooser chooser = new FileChooser();
-        chooser.setInitialFileName(item.getAttachmentName());
-        File dest = chooser.showSaveDialog(stage);
-        if (dest == null) return;
-
-        downloadFile(item.getAttachmentUrl(), dest);
-
-        Platform.runLater(() -> showInfo("Filen sparad: " + dest.getAbsolutePath()));
-    }
-
-    /**
      * Sparar automatiskt inkommande bilagor i "downloads"-mappen.
      */
     private void saveAttachmentAutomatically(NtfyMessageDto item) throws IOException {
