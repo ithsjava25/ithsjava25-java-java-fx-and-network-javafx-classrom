@@ -11,8 +11,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.*;
-import java.net.URL;
+import java.io.File;
 
 public class HelloController {
 
@@ -107,7 +106,6 @@ public class HelloController {
 
         try {
             if (type != null && type.startsWith("image/")) {
-                // Ladda bilden från den sparade filen i "downloads"-mappen
                 File file = new File("downloads", item.getAttachmentName());
                 if (file.exists()) {
                     Image img = new Image(file.toURI().toString(), 100, 100, true, true);
@@ -116,7 +114,6 @@ public class HelloController {
                     iconView.setFitWidth(100);
                     iconView.setFitHeight(100);
                 } else {
-                    // Om filen inte finns, visa en generisk bildikon
                     iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
                 }
             } else if ("application/pdf".equals(type)) {
@@ -133,7 +130,6 @@ public class HelloController {
 
         return iconView;
     }
-
 
     @FXML
     private void attachFile() {
