@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
@@ -33,14 +32,15 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
     @Override
     public boolean send (String message) {
-        HttpRequest httpRequest = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(message))
-                .uri(URI.create(hostName + "/mytopic"))
-                .header("Cache-Control", "no-cache")
-                .build();
         try {
-            http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+            HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(hostName + "/mytopic"))
+            .POST(HttpRequest.BodyPublishers.ofString(message))
+            .build();
+
+            http.send(request, HttpResponse.BodyHandlers.discarding());
             return true;
+
         } catch (IOException | InterruptedException e) {
             System.out.println("Error sending message!");
             return false;
@@ -48,23 +48,22 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
-    public void receive (Consumer<NtfyMessageDto> messageHandler) {
+    public void receive (Consumer<NtfyMessageDto> handler) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .GET()
                 .uri(URI.create(hostName + "/mytopic/json"))
+                .GET()
                 .build();
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
-                        .map(s -> {
+                        .map(line -> {
                             try {
-                                return mapper.readValue(s, NtfyMessageDto.class);
+                                return mapper.readValue(line, NtfyMessageDto.class);
                             } catch (JsonProcessingException e) {
-                                throw new RuntimeException(e);
+                                return null;
                             }
                         })
-                        .filter(message -> message.event().equals("message"))
-                        .peek(System.out::println)
-                        .forEach(messageHandler));
+                        .filter(msg -> msg != null && msg.event().equals("message"))
+                        .forEach(handler));
     }
 }

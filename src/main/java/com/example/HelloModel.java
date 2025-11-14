@@ -6,6 +6,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.io.*;
+import java.util.UUID;
 
 /**
  * Model layer: encapsulates application data and business logic.
@@ -16,9 +17,9 @@ public class HelloModel {
      */
 
     private final NtfyConnection connection;
-    private final StringProperty messageToSend = new SimpleStringProperty();
+    private final StringProperty messageToSend = new SimpleStringProperty("");
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private String lastSentMessage;
+    private final String clientId = UUID.randomUUID().toString();
 
     //Konstuktor för prod
     public HelloModel() {
@@ -36,29 +37,29 @@ public class HelloModel {
         return messages;
     }
 
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
-    public StringProperty messageToSendProperty() {
-        return messageToSend;
-    }
-
     public void setMessageToSend(String message) {
         messageToSend.set(message);
     }
 
     public void sendMessage() {
-        lastSentMessage = messageToSend.get();
-        connection.send(lastSentMessage);
+        String text = messageToSend.get().trim();
+        if (text.isEmpty()) return;
+
+        String payload = clientId + "::" + text;
+        connection.send(payload);
+
+        messageToSend.set("");
     }
 
     public void receiveMessage() {
-        connection.receive(m -> {
-            if (m.message().equals(lastSentMessage)) {
+        connection.receive(msg -> {
+            String incoming = msg.message();
+
+            if (incoming.startsWith(clientId + "::")) {
                 return;
             }
-            Platform.runLater(() -> messages.add(m));
+
+            Platform.runLater(() -> messages.add(msg));
         });
     }
 }
