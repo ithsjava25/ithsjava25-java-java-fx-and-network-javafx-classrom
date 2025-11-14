@@ -3,28 +3,23 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<VBox stylesheets="@../../css/style.css" prefHeight="500.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.HelloController">
+<VBox prefHeight="500.0" prefWidth="300.0" stylesheets="@../../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
 
-    <Label fx:id="messageLabel" text="Hello, JavaFX!"/>
-    <BorderPane VBox.vgrow="ALWAYS" >
-<center>
-        <ListView  fx:id="messageView" >
-            <padding>
-                <Insets bottom="1.0" left="1.0" right="1.0" top="1.0"/>
-            </padding>
-        </ListView>
-</center>
-
+    <Label fx:id="messageLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="Infinity" text="Hello, JavaFX!" VBox.vgrow="NEVER" />
+    <BorderPane VBox.vgrow="ALWAYS">
+        <center>
+            <ListView fx:id="messageView">
+                <padding>
+                    <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                </padding>
+            </ListView>
+        </center>
     </BorderPane>
-    <SplitPane dividerPositions="0.7"  VBox.vgrow="NEVER">
-        <items>
-            <TextArea fx:id="chatArea" wrapText="true" maxHeight="-Infinity" prefHeight="100.0" prefRowCount="3"/>
 
-            <Button fx:id="chatButton" text="send message" onAction="#sendMessage" />
-        </items>
-    </SplitPane>
+    <HBox VBox.vgrow="NEVER" alignment="CENTER_LEFT"> <padding> <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" /></padding>
+        <TextArea fx:id="chatArea" opacity="0.8" prefRowCount="3" wrapText="true" HBox.hgrow="ALWAYS" />
+        <Button fx:id="chatButton" maxWidth="-Infinity" minWidth="-Infinity" onAction="#sendMessage" text="Send Message" />
+    </HBox>
 
 </VBox>

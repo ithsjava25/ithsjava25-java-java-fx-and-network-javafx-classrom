@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.Callback;
 
-import java.io.IOException;
 
 /**
  * Controller layer: mediates between the view (FXML) and the model.
@@ -13,10 +12,9 @@ import java.io.IOException;
 public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
-    public ListView<NtfyMessageDto> messageView;
 
     @FXML
-    private TextArea myTextArea;
+    private ListView<NtfyMessageDto> messageView;
 
     @FXML
     private TextArea chatArea;
@@ -32,10 +30,12 @@ public class HelloController {
         if (messageLabel != null) {
             messageLabel.setText(model.getGreeting());
         }
-       messageView.setItems(model.getMessages());
-       messageView.setCellFactory(showOnlyMessages());
-
+        messageView.setItems(model.getMessages());
+        messageView.setCellFactory(showOnlyMessages());
     }
+
+
+
 
     private static Callback<ListView<NtfyMessageDto>, ListCell<NtfyMessageDto>> showOnlyMessages() {
         return List -> new ListCell<>() {

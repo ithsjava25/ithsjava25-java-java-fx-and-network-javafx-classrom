@@ -4,9 +4,6 @@ package com.example;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import javafx.application.Platform;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.awaitility.Awaitility;
@@ -50,29 +47,8 @@ class HelloModelTest {
                 .withRequestBody(matching("Hello World")));
     }
 
-    // Test för att se att vi får meddelanden tillbaka. receiveMessage?
     @Test
-    void checkReceivedMessagesAfterSendingAMessageToServer() throws InterruptedException {
-        //Arrange
-        var conImp = new NtfyConnectionImpl();
-        var model = new HelloModel(conImp);
-        model.setMessageToSend("Hello World");
-        //Act - When
-
-        model.sendMessage().join();
-
-        //Assert
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .pollInterval(Duration.ofMillis(100))
-                .untilAsserted(() -> {
-                    assertThat(model.getMessages()).isNotEmpty();
-                    assertThat(model.getMessages().getLast().message()).contains("Hello World");
-                });
-    }
-
-    @Test
-    void checkReceivedMessagesAfterSendingAMessageToAFakeServer(WireMockRuntimeInfo wmRunTimeInfo) throws InterruptedException {
+    void checkReceivedMessagesAfterSendingAMessageToAFakeServer(WireMockRuntimeInfo wmRunTimeInfo) {
         // Arrange
         var conImp = new NtfyConnectionImpl("http://localhost:" + wmRunTimeInfo.getHttpPort());
 
