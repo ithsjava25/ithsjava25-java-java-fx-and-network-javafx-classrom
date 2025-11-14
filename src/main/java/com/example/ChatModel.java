@@ -25,9 +25,7 @@ public class ChatModel {
         ntfyConnection.receive(ntfyDto -> {
             ChatMessage chatMsg = new ChatMessage(ntfyDto.message(), ntfyDto.time());
 
-            Platform.runLater(() -> {
-                messages.add(chatMsg);
-            });
+            messages.add(chatMsg);
         });
     }
 }

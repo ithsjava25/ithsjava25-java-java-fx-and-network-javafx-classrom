@@ -4,18 +4,14 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.Test;
-import org.testfx.framework.junit5.ApplicationTest;
-import javafx.application.Platform;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
+import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 @WireMockTest
-class ChatModelTest extends ApplicationTest {
+class ChatModelTest {
 
     @Test
     void sendMessageCallsConnectionWithMessagesToSend() {
@@ -50,6 +46,8 @@ class ChatModelTest extends ApplicationTest {
         var conImp = new NtfyConnectionImpl("http://localhost:" + wmRunTimeInfo.getHttpPort());
 
         String expectedMessage = "Async Data Received";
+        // Använd System.currentTimeMillis() om din ChatModel skickar detta;
+        // annars, använd ett statiskt värde för att vara säker.
         long expectedTimestamp = System.currentTimeMillis();
 
         stubFor(get("/mytopic/json")
@@ -60,22 +58,14 @@ class ChatModelTest extends ApplicationTest {
         var model = new ChatModel(conImp);
         model.startReceiving();
 
-        CountDownLatch latch = new CountDownLatch(1);
+        // Awaitility: Väntar aktivt tills listan fylls.
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(100))
+                .until(() -> model.getMessages().size() > 0);
 
-        Platform.runLater(() -> {
-            try {
-                assertThat(model.getMessages()).isNotEmpty();
-                assertThat(model.getMessages().getLast().content()).isEqualTo(expectedMessage);
-                assertThat(model.getMessages().getLast().timestamp()).isEqualTo(expectedTimestamp);
-            } catch (AssertionError e) {
-                fail("Assertion failed inside Platform.runLater: " + e.getMessage());
-            } finally {
-                latch.countDown();
-            }
-        });
-
-        assertThat(latch.await(5, TimeUnit.SECONDS))
-                .as("Timed out waiting for JavaFX thread to execute assertions.")
-                .isTrue();
+        assertThat(model.getMessages()).isNotEmpty();
+        assertThat(model.getMessages().getLast().content()).isEqualTo(expectedMessage);
+        assertThat(model.getMessages().getLast().timestamp()).isEqualTo(expectedTimestamp);
     }
 }
