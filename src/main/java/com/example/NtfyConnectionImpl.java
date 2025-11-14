@@ -3,12 +3,11 @@ package com.example;
 import io.github.cdimascio.dotenv.Dotenv;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
@@ -40,13 +39,13 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
-    public boolean send(String message) {
+    public CompletableFuture<Void> send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+        return http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(response -> {
                     if (response.statusCode() >= 200 && response.statusCode() < 300) {
                         System.out.println("Message sent successfully.");
@@ -58,8 +57,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     System.err.println("Network issue: " + e.getMessage());
                     return null;
                 });
-
-        return true;
     }
 
     @Override
@@ -71,9 +68,15 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> response.body()
-                        .map(s ->
-                                mapper.readValue(s, NtfyMessageDto.class))
-                        .filter(message -> message.event().equals("message"))
+                        .map(s -> {
+                            try {
+                                return mapper.readValue(s, NtfyMessageDto.class);
+                            } catch (Exception e) {
+                                System.err.println("Failed to parse message: " + e.getMessage());
+                                return null;
+                            }
+                        })
+                        .filter(messageDto -> messageDto != null && messageDto.event().equals("message"))
                         .peek(System.out::println)
                         .forEach(messageHandler));
     }

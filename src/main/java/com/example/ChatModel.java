@@ -16,16 +16,14 @@ public class ChatModel {
     public ObservableList<ChatMessage> getMessages() {
         return messages;
     }
+
     public void sendMessage(String text) {
         ntfyConnection.send(text);
     }
+
     public void startReceiving() {
-
         ntfyConnection.receive(ntfyDto -> {
-
-
             ChatMessage chatMsg = new ChatMessage(ntfyDto.message(), ntfyDto.time());
-
 
             Platform.runLater(() -> {
                 messages.add(chatMsg);
@@ -33,6 +31,3 @@ public class ChatModel {
         });
     }
 }
-
-
-

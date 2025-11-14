@@ -1,34 +1,28 @@
 package com.example;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionSpy implements NtfyConnection {
 
+    String message;
+    private Consumer<NtfyMessageDto> messageHandler;
 
-    public String sentMessage = null;
-
-
-    public Consumer<NtfyMessageDto> receivedHandler = null;
 
     @Override
-    public boolean send(String message) {
-        this.sentMessage = message; // Fångar meddelandet
-        return true;
+    public CompletableFuture<Void> send(String message) {
+        this.message = message;
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        this.receivedHandler = messageHandler; // Fångar hanteringsfunktionen
+        this.messageHandler = messageHandler;
     }
 
 
-    public void simulateMessageArrival(String message, long timestamp) {
-        if (receivedHandler != null) {
-            // Skapa ett fejkat DTO och skicka det till den fångade hanteraren (Consumer)
-            NtfyMessageDto fakeDto = new NtfyMessageDto(
-                    "fake-id", timestamp, "message", "mytopic", message
-            );
-            receivedHandler.accept(fakeDto);
-        }
+    public void simulateIncomingMessage(NtfyMessageDto messageDto){
+        if (messageHandler != null)
+            messageHandler.accept(messageDto);
     }
 }
