@@ -41,7 +41,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
     @Override
     public boolean send(String message) {
-        // Endast RAW log
+
         System.out.println("📤 RAW SENT: " + message);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -77,7 +77,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     resp.body().forEach(line -> {
                         if (line.isBlank()) return;
 
-                        // Endast RAW log
                         System.out.println("📥 RAW RECEIVED: " + line);
 
                         try {
@@ -94,6 +93,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 });
     }
 
+
     @Override
     public boolean sendFile(File file) {
         if (file == null || !file.exists()) {
@@ -106,7 +106,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
             String type = Files.probeContentType(file.toPath());
             if (type == null) type = "application/octet-stream";
 
-            // Endast RAW log
             System.out.println("📤 RAW SENT (FILE): " + file.getName() +
                     " (" + data.length + " bytes)");
 
