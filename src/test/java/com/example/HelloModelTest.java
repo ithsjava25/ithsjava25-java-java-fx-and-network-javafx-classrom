@@ -3,6 +3,7 @@ package com.example;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @WireMockTest
 public class HelloModelTest {
+
+    @BeforeAll
+    static void initFx() {
+        // Initialize JavaFX Toolkit for testing
+        Platform.startup(() -> {});
+    }
+
 
     // ---------------------------------------------------------------
     // 1. Enkel enhetstest – modell logik med spy

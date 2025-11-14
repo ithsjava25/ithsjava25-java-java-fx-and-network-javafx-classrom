@@ -1,16 +1,16 @@
 package com.example;
 
 import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpExchange;
-import java.io.*;
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.nio.file.*;
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 public class ImageServer {
 
     private final int port;
     private final Path imageDir;
+    private HttpServer server; // ✅ Flytta HttpServer till instansfält
 
     public ImageServer(int port) throws IOException {
         this.port = port;
@@ -20,9 +20,9 @@ public class ImageServer {
     }
 
     private void startServer() throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        server = HttpServer.create(new InetSocketAddress(port), 0); // ✅ Tilldela instansfältet
 
-        // 🟢 Hantera bilduppladdning
+        // Hantera bilduppladdning
         server.createContext("/upload", exchange -> {
             if ("POST".equals(exchange.getRequestMethod())) {
                 String filename = UUID.randomUUID() + ".jpg";
@@ -37,7 +37,7 @@ public class ImageServer {
             exchange.close();
         });
 
-        // 🟢 Visa uppladdade bilder
+        // Visa uppladdade bilder
         server.createContext("/images", exchange -> {
             Path filePath = imageDir.resolve(exchange.getRequestURI().getPath().replace("/images/", ""));
             if (Files.exists(filePath)) {
@@ -53,5 +53,11 @@ public class ImageServer {
         server.start();
         System.out.println("🖼️ Image server running at http://localhost:" + port);
     }
-}
 
+    public void stop() {
+        if (server != null) {
+            server.stop(0);
+            System.out.println("🛑 Image server stopped");
+        }
+    }
+}

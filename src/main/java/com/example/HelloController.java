@@ -13,6 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.File;
 import java.time.Instant;
@@ -20,32 +21,68 @@ import java.time.ZoneId;
 
 public class HelloController {
 
-    private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
+    private HelloModel model;
 
     @FXML private TextField messageField;
     @FXML private VBox chatBox;
     @FXML private ScrollPane chatScroll;
     @FXML private Label statusLabel;
 
+    // Används av HelloFX för injection
+    public void setModel(HelloModel model) {
+        this.model = model;
+        attachListeners();
+    }
+
+    private void attachListeners() {
+        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) change -> {
+            Platform.runLater(() -> {
+                while (change.next()) {
+                    if (change.wasAdded()) {
+                        for (NtfyMessageDto msg : change.getAddedSubList()) {
+                            boolean sentByUser = msg.topic().equals(HelloModel.DEFAULT_TOPIC);
+                            if (msg.imageUrl() != null) {
+                                addImageBubbleFromUrl(msg.imageUrl(), sentByUser);
+                            } else if (msg.message() != null) {
+                                addMessageBubble(msg.message(), sentByUser, msg.time());
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    @FXML
+    private void initialize() {
+        if (messageField != null) {
+            messageField.setOnAction(e -> handleSend());
+        }
+
+        chatBox.heightProperty().addListener((obs, oldVal, newVal) -> chatScroll.setVvalue(1.0));
+    }
+
     @FXML
     private void handleSend() {
+        if (model == null) return;
         String message = messageField.getText().trim();
-        if (message.isEmpty()) return;
-
-        model.sendMessage(message);
-        messageField.clear();
+        if (!message.isEmpty()) {
+            model.sendMessage(message);
+            messageField.clear();
+        }
     }
 
     @FXML
     private void handleSendImage() {
+        if (model == null) return;
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Välj en bild att skicka");
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Bildfiler", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
 
-        // Get owner window for proper dialog behavior
-        var window = messageField.getScene() != null ? messageField.getScene().getWindow() : null;
+        Window window = messageField.getScene() != null ? messageField.getScene().getWindow() : null;
         File imageFile = fileChooser.showOpenDialog(window);
 
         if (imageFile != null) {
@@ -54,32 +91,6 @@ public class HelloController {
                 showStatus("Misslyckades att skicka bilden: " + imageFile.getName());
             }
         }
-    }
-
-
-    @FXML
-    private void initialize() {
-        if (messageField != null) {
-            messageField.setOnAction(e -> handleSend());
-        }
-
-        model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) change -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    for (NtfyMessageDto msg : change.getAddedSubList()) {
-                        boolean sentByUser = msg.topic().equals(HelloModel.DEFAULT_TOPIC);
-
-                        if (msg.imageUrl() != null) {
-                            addImageBubbleFromUrl(msg.imageUrl(), sentByUser);
-                        } else if (msg.message() != null) {
-                            addMessageBubble(msg.message(), sentByUser, msg.time());
-                        }
-                    }
-                }
-            }
-        });
-
-        chatBox.heightProperty().addListener((obs, oldVal, newVal) -> chatScroll.setVvalue(1.0));
     }
 
     private void addMessageBubble(String text, boolean isSentByUser, long timestamp) {
