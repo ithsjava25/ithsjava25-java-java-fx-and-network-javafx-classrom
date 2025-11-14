@@ -35,6 +35,7 @@ class HelloModelTest {
 
         //Verify call made to server
         verify(postRequestedFor(urlEqualTo("/mytopic"))
-                .withRequestBody(matching("Hello World")));
+                .withRequestBody(matchingJsonPath("$.message", equalTo("Hello World"))));
+
     }
 }
