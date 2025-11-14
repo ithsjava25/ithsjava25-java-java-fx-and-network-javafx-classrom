@@ -1,39 +1,51 @@
 package com.example;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class NtfyConnectionSpy implements NtfyConnection {
 
-    private String lastMessage;
-    private String lastFileName;
-    private byte[] lastFileData;
+
+    public String message;            // senaste textmeddelandet
+    public String fileName;           // senaste filnamnet
+    public byte[] fileData;           // senaste fildatat
+
+    // För att kunna simulera "receive"
+    private final List<Consumer<NtfyMessageDto>> receivers = new ArrayList<>();
 
     @Override
     public boolean send(String message) {
-        this.lastMessage = message;
+        this.message = message;
         return true;
     }
 
     @Override
-    public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        // tom, används inte i detta test
-    }
-
     public void sendFile(String fileName, byte[] data) {
-        this.lastFileName = fileName;
-        this.lastFileData = data;
+        this.fileName = fileName;
+        this.fileData = data;
     }
 
-    // Getters för tester
-    public String getLastMessage() {
-        return lastMessage;
+    @Override
+    public void receive(Consumer<NtfyMessageDto> handler) {
+        // Spara callback för senare användning
+        receivers.add(handler);
     }
 
-    public String getLastFileName() {
-        return lastFileName;
+    /**
+     * Hjälpmetod för test: trigga ett fejk-meddelande
+     */
+    public void simulateIncomingMessage(NtfyMessageDto dto) {
+        receivers.forEach(handler -> handler.accept(dto));
     }
 
-    public byte[] getLastFileData() {
-        return lastFileData;
+    /**
+     * Reset mellan tester (om du vill)
+     */
+    public void reset() {
+        message = null;
+        fileName = null;
+        fileData = null;
+        receivers.clear();
     }
 }

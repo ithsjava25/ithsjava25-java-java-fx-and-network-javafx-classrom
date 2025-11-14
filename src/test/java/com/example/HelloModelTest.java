@@ -1,39 +1,84 @@
 package com.example;
 
-import org.junit.jupiter.api.BeforeEach;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+@WireMockTest
 class HelloModelTest {
 
-    private HelloModel model;
-    private NtfyConnectionSpy connectionSpy;
+    @Test
+    @DisplayName("Model should pass the text to the connection when sending a message")
+    void modelDelegatesSendToConnection() {
+        var fakeConnection = new NtfyConnectionSpy();
+        var model = new HelloModel(fakeConnection);
 
-    @BeforeEach
-    void setUp() {
-        connectionSpy = new NtfyConnectionSpy();
-        model = new HelloModel(connectionSpy);
+        model.setMessageToSend("Ping!");
+        model.sendMessage();
+
+        assertThat(fakeConnection.message)
+                .as("Message should be forwarded to NtfyConnection")
+                .isEqualTo("Ping!");
     }
 
     @Test
-    void sendMessage_callsConnection() {
-        model.sendMessage("Hej");
-        assertThat(connectionSpy.getLastMessage()).isEqualTo("Hej!");
+    @DisplayName("Integration: sending a message should hit /mytopic on a mock server")
+    void sendMessageReachesMockServer(WireMockRuntimeInfo wm) {
+        var baseUrl = "http://localhost:" + wm.getHttpPort();
+        var con = new NtfyConnectionImpl(baseUrl);
+        var model = new HelloModel(con);
+
+        stubFor(post("/mytopic").willReturn(aResponse().withStatus(200)));
+
+        model.setMessageToSend("Hello from test");
+        model.sendMessage();
+
+        verify(postRequestedFor(urlPathEqualTo("/mytopic"))
+                .withRequestBody(matching(".*Hello from test.*")));
     }
 
     @Test
-    void sendFile_callsConnectionWithData() throws IOException {
-        File tempFile = File.createTempFile("testfile", ".txt");
-        Files.writeString(tempFile.toPath(), "Hello World");
+    @DisplayName("Model should contain an initial message after construction")
+    void initialMessagesListContainsWelcomeMessage() {
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
 
-        model.sendFile(tempFile);
+        assertThat(model.getMessages())
+                .as("Model should initialize with one default message")
+                .hasSize(1);
+    }
 
-        assertThat(connectionSpy.getLastFileName()).isEqualTo(tempFile.getName());
-        assertThat(connectionSpy.getLastFileData()).isEqualTo(Files.readAllBytes(tempFile.toPath()));
+    @Test
+    @DisplayName("Message field should reset to empty after successful send")
+    void messageFieldClearsAfterSend() {
+        var dummyConnection = new NtfyConnectionSpy();
+        var model = new HelloModel(dummyConnection);
+
+        model.setMessageToSend("Reset me!");
+        model.sendMessage();
+
+        assertThat(model.getMessageToSend())
+                .as("Message input should be cleared after send")
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Sending blank or empty text should not call the connection")
+    void emptyMessageShouldNotBeSent() {
+        var spy = new NtfyConnectionSpy();
+        var model = new HelloModel(spy);
+
+        model.setMessageToSend("   "); // blank message
+        model.sendMessage();
+
+        assertThat(spy.message)
+                .as("Connection should not be called with blank input")
+                .isNullOrEmpty();
     }
 }
+

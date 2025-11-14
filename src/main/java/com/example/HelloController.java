@@ -9,9 +9,6 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 
-/**
- * Controller layer: mediates between the view (FXML) and the model.
- */
 public class HelloController {
 
     private final HelloModel model = new HelloModel(new NtfyConnectionImpl());
@@ -37,19 +34,23 @@ public class HelloController {
     @FXML
     private void sendMessage(ActionEvent event) {
         String text = inputMessage.getText();
-        if (text != null && !text.isBlank()) {
-            model.sendMessage(text);
-            inputMessage.clear();
-        }
+
+        // Modellens API kräver setMessageToSend() + sendMessage()
+        model.setMessageToSend(text);
+        model.sendMessage();
+
+        // Rensa input-fältet (matchar även testförväntningarna)
+        inputMessage.clear();
     }
 
     @FXML
     private void attachFile(ActionEvent event) {
-        FileChooser fileChooser = new FileChooser();
-        File file = fileChooser.showOpenDialog(messageView.getScene().getWindow());
+        FileChooser chooser = new FileChooser();
+        File file = chooser.showOpenDialog(messageView.getScene().getWindow());
         if (file != null) {
             model.sendFile(file);
         }
     }
 }
+
 

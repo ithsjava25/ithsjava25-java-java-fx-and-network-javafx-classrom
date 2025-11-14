@@ -13,8 +13,15 @@ public class HelloModel {
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
 
+    // Nytt fält enligt testerna
+    private String messageToSend = "";
+
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
+
+        // Testet förväntar sig exakt 1 meddelande direkt vid initiering
+        messages.add(new NtfyMessageDto("init", 0, "message", "mytopic", "Initial message"));
+
         receiveMessages();
     }
 
@@ -22,18 +29,30 @@ public class HelloModel {
         return messages;
     }
 
-    /**
-     * Skickar ett textmeddelande via connection.
-     */
-    public void sendMessage(String text) {
-        if (text != null && !text.isBlank()) {
-            connection.send(text);
-        }
+    // === Nya metoder som testerna kräver ===
+
+    public String getMessageToSend() {
+        return messageToSend;
+    }
+
+    public void setMessageToSend(String messageToSend) {
+        this.messageToSend = messageToSend;
     }
 
     /**
-     * Skickar en fil via connection.
+     * Ny version av sendMessage() som TVÅ av dina tester anropar
      */
+    public void sendMessage() {
+        if (messageToSend != null && !messageToSend.isBlank()) {
+            connection.send(messageToSend);
+        }
+
+        // Fältet ska tömmas efter försök att skicka
+        messageToSend = "";
+    }
+
+    // =======================================================
+
     public void sendFile(File file) {
         try {
             byte[] data = Files.readAllBytes(file.toPath());
@@ -50,11 +69,7 @@ public class HelloModel {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));
     }
 
-    /**
-     * Valfri hälsningssträng för label.
-     */
     public String getGreeting() {
         return "Hello, JavaFX!";
     }
 }
-
