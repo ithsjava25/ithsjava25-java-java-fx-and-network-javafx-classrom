@@ -1,9 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.HelloController">
+
+    <!-- Titel högst upp -->
+    <top>
+        <Label text="Java Chat" BorderPane.alignment="CENTER" styleClass="app-title"/>
+    </top>
+
+    <!-- Chattområde -->
+    <center>
+        <TextArea fx:id="chatArea"
+                  editable="false"
+                  wrapText="true"
+                  prefHeight="400"
+                  prefWidth="600"
+                  styleClass="chat-area"/>
+    </center>
+
+    <!-- Inputfält och knappar längst ner -->
+    <bottom>
+        <HBox spacing="10" styleClass="input-bar">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <TextField fx:id="inputField" HBox.hgrow="ALWAYS" promptText="Skriv ett meddelande..." styleClass="chat-input"/>
+            <Button text="Attach File" onAction="#onAttachFileClick" styleClass="attach-btn"/>
+            <Button text="Send" onAction="#onSendButtonClick" styleClass="send-btn"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
