@@ -15,7 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ChatModelTest {
     static {
         try {
-            javafx.application.Platform.startup(() -> {});
+            javafx.application.Platform.startup(() -> {
+            });
         } catch (IllegalStateException e) {
 
         }
