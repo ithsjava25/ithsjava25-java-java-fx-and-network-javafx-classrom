@@ -1,0 +1,80 @@
+/* Global root styling */
+.root {
+    -fx-background-color: linear-gradient(to bottom, #e6f2ff, #cce0ff); /* mjuk ljusblå gradient */
+    -fx-border-color: #ffffff;
+    -fx-border-width: 4;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-font-family: "Segoe UI Emoji", "Segoe UI", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* Titel högst upp */
+.app-title {
+    -fx-text-fill: #003366; /* mörkblå text */
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-padding: 16;
+    -fx-alignment: center;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 0 0 12 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 6,0,0,2);
+}
+
+/* Chat-området */
+.chat-area {
+    -fx-control-inner-background: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #99ccff;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-font-size: 14px;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.1), 4,0,0,2);
+}
+
+/* Inputfält */
+.chat-input {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #99ccff;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+    -fx-font-size: 14px;
+}
+
+/* Input-bar längst ner */
+.input-bar {
+    -fx-background-color: #f0f8ff;
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+}
+
+/* Skicka-knappen */
+.send-btn {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+.send-btn:hover {
+    -fx-background-color: #003366; /* mörkblå vid hover */
+}
+
+/* Attach File-knappen */
+.attach-btn {
+    -fx-background-color: #50c9c3;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+.attach-btn:hover {
+    -fx-background-color: #3aa7a0; /* mörkare turkos vid hover */
+}
