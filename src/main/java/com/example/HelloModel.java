@@ -6,19 +6,20 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.File;
+
 /**
  * Model layer: encapsulates application data and business logic.
  */
 public class HelloModel {
 
     private final NtfyConnection connection;
-
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final StringProperty messageToSend = new SimpleStringProperty();
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessage();
+        startReceivingMessages();
     }
 
     public ObservableList<NtfyMessageDto> getMessages() {
@@ -43,15 +44,40 @@ public class HelloModel {
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
-        return "Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
+        return "Welcome to JavaFX Chat App " + javafxVersion + ", running on Java " + javaVersion + ".";
     }
 
-    public void sendMessage() {
-        connection.send(messageToSend.get());
-
+    public boolean sendMessage() {
+        String message = getMessageToSend();
+        if (message == null || message.trim().isEmpty()) {
+            return false;
+        }
+        return connection.send(message.trim());
     }
 
-    public void receiveMessage() {
-        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+    public boolean sendFile(File file) {
+        if (file == null || !file.exists()) {
+            return false;
+        }
+        return connection.sendFile(file);
+    }
+
+    private void startReceivingMessages() {
+        connection.receive(this::addMessageToUI);
+    }
+
+    private void addMessageToUI(NtfyMessageDto message) {
+        // Check if we're on JavaFX application thread, if not use Platform.runLater
+        if (Platform.isFxApplicationThread()) {
+            messages.add(message);
+        } else {
+            Platform.runLater(() -> messages.add(message));
+        }
+    }
+
+    // Test helper method - package private for testing
+    void addTestMessage(NtfyMessageDto message) {
+        // Direct add for testing (bypasses Platform.runLater)
+        messages.add(message);
     }
 }

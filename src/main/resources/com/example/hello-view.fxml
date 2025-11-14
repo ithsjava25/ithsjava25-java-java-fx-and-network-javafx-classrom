@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ListView?>
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    <Button text="Send message" onAction="#sendMessage"/>
-    <ListView fx:id="messageView"/>
+<?import javafx.scene.control.TextField?>
+<?import javafx.geometry.Insets?>
+
+<VBox alignment="CENTER" spacing="10" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+    <padding>
+        <Insets bottom="10" left="10" right="10" top="10"/>
+    </padding>
+
+    <Label fx:id="messageLabel" text="JavaFX Chat App" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+
+    <ListView fx:id="messageView" VBox.vgrow="ALWAYS" prefHeight="300"/>
+
+    <TextField fx:id="messageInput" promptText="Type your message here" VBox.vgrow="NEVER"/>
+
+    <VBox spacing="5">
+        <Button text="Send Message" onAction="#sendMessage" defaultButton="true"/>
+        <Button text="Attach Local File" onAction="#attachFile"/>
+    </VBox>
 </VBox>
