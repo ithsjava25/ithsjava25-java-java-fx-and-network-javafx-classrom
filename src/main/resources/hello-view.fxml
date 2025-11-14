@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.HelloController" spacing="10" alignment="CENTER" prefWidth="700" prefHeight="600">
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.example.HelloController">
 
-    <Label fx:id="messageLabel" text="Chatt-status"/>
+    <VBox spacing="10" alignment="CENTER" prefWidth="700" prefHeight="600">
+        <Label fx:id="messageLabel" text="Chatt-status"/>
+        <ListView fx:id="messageView" prefHeight="450" prefWidth="680"/>
+        <HBox spacing="5" alignment="CENTER">
+            <TextField fx:id="inputField" promptText="Skriv meddelande..." HBox.hgrow="ALWAYS"/>
+            <Button text="Send" onAction="#onSend"/>
+            <Button text="Attach" onAction="#attachFile"/>
+        </HBox>
+    </VBox>
 
-    <ListView fx:id="messageView" prefHeight="450" prefWidth="680"/>
-
-    <HBox spacing="5" alignment="CENTER">
-        <TextField fx:id="inputField" promptText="Skriv meddelande..." HBox.hgrow="ALWAYS"/>
-        <Button text="Send" onAction="#onSend"/>
-        <Button text="Attach" onAction="#attachFile"/>
-    </HBox>
-</VBox>
+</StackPane>

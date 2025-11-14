@@ -17,22 +17,10 @@ public record NtfyMessageDto(
         String title,
         @JsonProperty("attachment") Attachment attachment
 ) {
-    public boolean hasAttachment() {
-        return attachment != null;
-    }
-
-    public String getAttachmentUrl() {
-        return attachment != null ? attachment.url() : null;
-    }
-
-    public String getAttachmentName() {
-        return attachment != null ? attachment.name() : null;
-    }
-
-    public String getAttachmentContentType() {
-        return attachment != null ? attachment.type() : null;
-    }
-
+    public boolean hasAttachment() { return attachment != null; }
+    public String getAttachmentUrl() { return attachment != null ? attachment.url() : null; }
+    public String getAttachmentName() { return attachment != null ? attachment.name() : null; }
+    public String getAttachmentContentType() { return attachment != null ? attachment.type() : null; }
     public String getFormattedTime() {
         return Instant.ofEpochSecond(time)
                 .atZone(ZoneId.systemDefault())
