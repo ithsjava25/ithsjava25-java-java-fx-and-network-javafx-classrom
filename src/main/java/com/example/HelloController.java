@@ -15,7 +15,9 @@ import java.io.File;
  */
 public class HelloController {
 
-    private final HelloModel model = new HelloModel(null);
+    private final NtfyConnection connection = new NtfyConnectionImpl();
+    private final HelloModel model = new HelloModel(connection);
+
     public ListView<Object> messageView;
 
     @FXML
@@ -28,7 +30,7 @@ public class HelloController {
 
     @FXML
     private void initialize() {
-        topic.textProperty().bind(model.topicProperty());
+        topic.textProperty().bind(connection.topicProperty());
         messageView.setItems(model.getFormatedMessages());
         model.receiveMessage();
     }
@@ -39,7 +41,7 @@ public class HelloController {
      */
     public void sendMessage(ActionEvent actionEvent) {
         if(attachment != null) {
-            model.sendFile(attachment);
+            connection.sendFile(attachment);
             attachment = null;
         }
         else{

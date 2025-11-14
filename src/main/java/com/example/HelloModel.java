@@ -1,7 +1,6 @@
 package com.example;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
@@ -39,19 +38,6 @@ public class HelloModel {
     public ObservableList<NtfyMessage> getMessageHistory() {
         return messageHistory;
     }
-
-    public String getTopic() {
-        return topic.get();
-    }
-
-    public SimpleStringProperty topicProperty() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic.set(topic);
-    }
-
 
     /**
      * Sends a string as message
@@ -113,6 +99,35 @@ public class HelloModel {
      * If a value is entered and the add button pressed, change the topic per the input
      */
     public void changeTopic() {
+        Dialog dialog = new Dialog();
+        dialog.setTitle("Add Topic");
 
+        ButtonType addTopicButton = new ButtonType("Add Topic", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addTopicButton, ButtonType.CANCEL);
+
+        TextField newTopic = new TextField();
+        newTopic.setPromptText("Topic");
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+
+        gridPane.add(newTopic, 0, 0);
+
+        dialog.getDialogPane().setContent(gridPane);
+
+        Platform.runLater(() -> newTopic.requestFocus());
+
+        dialog.setResultConverter(pressedButton -> {
+            if (pressedButton == addTopicButton) {
+                if(!newTopic.getText().isBlank()){
+                    connection.setTopic(newTopic.getText().trim());
+                    receiveMessage();
+                }
+            }
+            return null;
+        });
+
+        dialog.show();
     }
 }
