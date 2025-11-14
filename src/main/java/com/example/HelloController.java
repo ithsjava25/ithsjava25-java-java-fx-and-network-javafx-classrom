@@ -44,16 +44,18 @@ public class HelloController {
                 new FileChooser.ExtensionFilter("Bildfiler", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
 
-        File imageFile = fileChooser.showOpenDialog(null);
+        // Get owner window for proper dialog behavior
+        var window = messageField.getScene() != null ? messageField.getScene().getWindow() : null;
+        File imageFile = fileChooser.showOpenDialog(window);
+
         if (imageFile != null) {
             boolean success = model.sendImage(imageFile);
-            if (success) {
-                // GUI-uppdatering hanteras av modellen via imageUrl
-            } else {
+            if (!success) {
                 showStatus("Misslyckades att skicka bilden: " + imageFile.getName());
             }
         }
     }
+
 
     @FXML
     private void initialize() {
