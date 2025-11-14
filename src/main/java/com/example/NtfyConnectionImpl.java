@@ -15,6 +15,11 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+
+/**
+ * Implementation of NtfyConnection using Java's built-in HttpClient for both sending messages and subscribing to a topic.
+ * Manages the HTTP connection logic for text messages, file uploads.
+ */
 public class NtfyConnectionImpl implements NtfyConnection {
 
     private final HttpClient http = HttpClient.newHttpClient();
@@ -34,7 +39,10 @@ public class NtfyConnectionImpl implements NtfyConnection {
         this.hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
     }
 
-
+    /**
+     * Creates a new connection implementation.
+     * hostName The base URL of the Ntfy server.
+     */
     public NtfyConnectionImpl(String hostName) {
         this.hostName = hostName;
     }
@@ -44,6 +52,11 @@ public class NtfyConnectionImpl implements NtfyConnection {
         return currentTopic;
     }
 
+
+    /**
+     * Establishes a connection to the Ntfy topic to receive messages in real-time.
+     * This method runs asynchronously in a dedicated thread.
+     */
     @Override
     public void connect(String newTopic, Consumer<NtfyMessageDto> messageHandler) {
 
@@ -82,7 +95,9 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
 
     /**
-     * Skickar ett textmeddelande SYNKRONT (nödvändigt för integrationstester).
+     * Sends a text message to the specified Ntfy topic.
+     * @param message The text content of the message.
+     * @param topic The Ntfy topic to send the message to.
      */
     @Override
     public boolean send(String message, String topic) {

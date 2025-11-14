@@ -1,35 +1,60 @@
 package com.example;
 
 import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
+
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.text.TextFlow;
+
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Arrays;
 
+
+
+/**
+ * Controller layer: Manages the user interface and mediates communication between the View (FXML) and the Model (HelloModel).
+ * Handles user interactions such as sending messages, attaching files, and displaying chat content.
+ */
 public class HelloController {
 
-    // Uppdaterad för att använda den externa Ntfy-servern: https://ntfy.fungover.org
-    // Topicen "mytopic" läggs till automatiskt av modellen.
-    private final HelloModel model = new HelloModel(new NtfyConnectionImpl("https://ntfy.fungover.org"));
 
+    private static final String HOST_NAME = System.getenv("HOST_NAME");
+
+
+
+
+
+    /**
+     * The model instance that holds application data and business logic.
+     * Initializes connection to the specified Ntfy server.
+     */
+    private final HelloModel model = new HelloModel(new NtfyConnectionImpl(HOST_NAME));
+
+
+    /**
+     * The ListView component displaying the list of chat messages.
+     */
     @FXML
     public ListView<NtfyMessageDto> chatListView;
+
+    /**
+     * The label displaying the current fixed topic being used.
+     */
     @FXML
     public Label topicLabel;
 
+    /**
+     * The label indicating the name of the file currently attached for sending.
+     */
     @FXML
     public Label attachedFileLabel;
 
+
+    /**
+     * The button used to send the message or the attached file.
+     */
     @FXML
     private Button sendButton;
 
@@ -39,6 +64,11 @@ public class HelloController {
     @FXML
     private Button attachFile;
 
+
+    /**
+     * Initializes the controller. This method is called automatically by the FXML loader.
+     * It sets up bindings between the view components and the model and configures the chat list view.
+     */
     @FXML
     private void initialize() {
         if (sendButton != null) {
@@ -95,8 +125,8 @@ public class HelloController {
     }
 
     /**
-     * En mycket enkel ListCell som enbart visar texten utan anpassad layout (bubblor/färger)
-     * men hanterar att visa "[File Uploaded]" när meddelandetexten är tom.
+     * A simple custom ListCell implementation for the chatListView.
+     * It displays the message text or a placeholder for file uploads, and indicates if the message was sent locally.
      */
     private static class SimpleMessageCell extends ListCell<NtfyMessageDto> {
 
@@ -126,6 +156,11 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Handles the action of the send button.
+     * If a file is attached, it calls the model to send the file; otherwise, it calls the model to send the text message.
+     */
     @FXML
     protected void sendMessage() {
         if (model.fileToSendProperty().get() != null) {
@@ -141,6 +176,10 @@ public class HelloController {
         }
     }
 
+    /**
+     * Handles the action of the attach file button.
+     * Opens a FileChooser dialog and sets the selected file in the model.
+     */
     @FXML
     protected void attachFile() {
         // Hämta scenen från en av kontrollerna

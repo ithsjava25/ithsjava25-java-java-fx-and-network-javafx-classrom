@@ -1,33 +1,24 @@
 package com.example;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.cdimascio.dotenv.Dotenv;
+
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
+
 import javafx.collections.ObservableList;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+
 
 /**
  * Model layer: encapsulates application data and business logic.
+ * Manages the current message, topic, list of received messages, and connection to Ntfy.
  */
 public class HelloModel {
     private final NtfyConnection connection;
@@ -36,11 +27,18 @@ public class HelloModel {
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final ObjectProperty<File> fileToSend = new SimpleObjectProperty<>(null); // Ny egenskap för filbilaga
 
+    /**
+     * Initializes the model and establishes connection to the specified Ntfy server.
+     * @param connection The Ntfy connection implementation to use (e.g., NtfyConnectionImpl or a Spy).
+     */
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
         connection.connect(currentTopic.get(), this::receiveMessage);
     }
-
+    /**
+     * Returns a standard greeting string.
+     * @return The greeting string.
+     */
     public String getGreeting() {
         return "Skicka meddelande";
     }
@@ -51,12 +49,14 @@ public class HelloModel {
             if (Platform.isFxApplicationThread()) task.run();
             else Platform.runLater(task);
         } catch (IllegalStateException notInitialized) {
-            // JavaFX toolkit not initialized (e.g., unit tests or CI without graphics): run inline
             task.run();
         }
     }
 
-
+    /**
+     * Sends the current text message to the Ntfy server via the connection.
+     * The message is added to the local list before sending.
+     */
     public void sendMessage() {
         String message = messageToSend.get();
         if (message != null && !message.trim().isEmpty()) {
@@ -82,7 +82,11 @@ public class HelloModel {
         }
     }
 
-    // Argumentlös metod, som controlleren använder för att skicka den bifogade filen
+    /**
+     * Sends the currently attached file to the Ntfy server.
+     * The file's name and a temporary message are added to the local list before sending.
+     * The file attachment is cleared after sending.
+     */
     public void sendFile() {
         File file = fileToSend.get();
         if (file != null) {
@@ -108,46 +112,61 @@ public class HelloModel {
         }
     }
 
-    // Används av HelloController för att hämta filbilagan
+    /**
+     * Property for the file currently attached to be sent.
+     * @return The ObjectProperty containing the File object, or null if no file is attached.
+     */
     public ObjectProperty<File> fileToSendProperty() {
         return fileToSend;
     }
 
-    // Används av HelloController för att ställa in filbilagan
+    /**
+     * Sets the file to be sent with the next message.
+     * @param file The file to attach. Set to null to clear the attachment.
+     */
     public void setFileToSend(File file) {
         this.fileToSend.set(file);
     }
 
+
+    /**
+     * Handles an incoming message from the Ntfy connection and adds it to the message list on the FX thread.
+     * @param message The received NtfyMessageDto.
+     */
     private void receiveMessage(NtfyMessageDto message) {
-        // ANVÄNDER runOnFx FÖR ATT SÄKRA ATT UPPDATERINGEN SKER PÅ RÄTT TRÅD (eller direkt i testmiljö)
+
         runOnFx(() -> messages.add(message));
     }
 
+    /**
+     * Returns the observable list of messages received and sent.
+     * @return The ObservableList of NtfyMessageDto objects.
+     */
     public ObservableList<NtfyMessageDto> getMessages() {
         return messages;
     }
 
+    /**
+     * Property for the message currently being composed to send.
+     * @return The StringProperty holding the message content.
+     */
     public StringProperty messageToSendProperty() {
         return messageToSend;
     }
 
+    /**
+     * Property for the current Ntfy topic being subscribed to.
+     * @return The StringProperty holding the current topic name.
+     */
     public StringProperty currentTopicProperty() {
         return currentTopic;
     }
 
-    public void reconnectToTopic(String newTopic) {
-        if (!currentTopic.get().equals(newTopic)) {
-            // connection.disconnect(currentTopic.get()); // Förutsätter att disconnect implementeras i NtfyConnection
-            currentTopic.set(newTopic);
 
-            // Säkerställ att rensningen sker på FX-tråden om vi kör i en FX-miljö
-            runOnFx(messages::clear);
-
-            connection.connect(newTopic, this::receiveMessage);
-        }
-    }
-
-    // KORRIGERAD: Denna metod måste ta en String för att matcha testet!
+    /**
+     * Sets the message content to send. Used by the controller for bidirectional binding.
+     * @param message The new message content.
+     */
     public void setMessageToSend(String message) {
         this.messageToSend.set(message);
     }

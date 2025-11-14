@@ -41,12 +41,12 @@ public class NtfyConnectionSpy implements NtfyConnection {
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        // Denna metod används inte längre i HelloModel men behålls för kompatibilitet.
+
     }
 
 
     @Override
-    public boolean send(String message, String topic) { // RETURTYPEN ÄNDRAD TILL BOOLEAN
+    public boolean send(String message, String topic) {
         // SPIONLOGIK: Spara det skickade meddelandet och ämnet
         this.lastSentMessage = message;
         this.lastSentTopic = topic;
@@ -74,7 +74,7 @@ public class NtfyConnectionSpy implements NtfyConnection {
         }
     }
 
-    // --- Getters för testverifieringar ---
+    // --- Getters för testverifieringar Topic behålls för flexibilitet att skapa fler chattrum---
 
     public String getLastSentMessage() {
         return lastSentMessage;
