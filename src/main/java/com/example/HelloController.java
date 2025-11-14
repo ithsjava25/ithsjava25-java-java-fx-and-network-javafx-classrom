@@ -83,37 +83,6 @@ public class HelloController {
         });
     }
 
-    private ImageView createIconForAttachment(NtfyMessageDto item) {
-        ImageView iconView = new ImageView();
-        iconView.setFitWidth(24);
-        iconView.setFitHeight(24);
-        String type = item.getAttachmentContentType();
-
-        try {
-            if (type != null && type.startsWith("image/")) {
-                Image img = model.loadImageFromUrl(item, 100, 100);
-                if (img != null) {
-                    ImageView imgView = new ImageView(img);
-                    imgView.setPreserveRatio(true);
-                    imgView.setFitWidth(100);
-                    return imgView;
-                }
-                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
-            } else if ("application/pdf".equals(type)) {
-                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/pdf.png")));
-            } else if ("application/zip".equals(type)) {
-                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/zip.png")));
-            } else {
-                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
-            }
-
-        } catch (Exception e) {
-            messageLabel.setText("Fel vid ikonskapande: " + e.getMessage());
-        }
-
-        return iconView;
-    }
-
     @FXML
     private void onSend() {
         sendMessage();
@@ -128,7 +97,6 @@ public class HelloController {
                 selectedFile = null;
                 return;
             }
-
             String text = inputField.getText().trim();
             if (!text.isEmpty()) {
                 model.sendMessage(text);
@@ -140,6 +108,41 @@ public class HelloController {
         }
     }
 
+    private ImageView createIconForAttachment(NtfyMessageDto item) {
+        String type = item.getAttachmentContentType();
+        ImageView iconView = new ImageView();
+        iconView.setFitWidth(24);
+        iconView.setFitHeight(24);
+        try {
+            if (type != null && type.startsWith("image/")) {
+                // Ladda själva bilden för chatten
+                Image img = model.loadImageFromUrl(item, 100, 100);
+                if (img != null) {
+                    iconView.setImage(img);
+                    iconView.setPreserveRatio(true);
+                    iconView.setFitWidth(100);
+                    iconView.setFitHeight(100);
+                } else {
+                    return null;
+                }
+            } else if ("application/pdf".equals(type)) {
+                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/pdf.png")));
+            } else if ("application/zip".equals(type)) {
+                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/zip.png")));
+            } else {
+                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
+            }
+        } catch (Exception e) {
+            messageLabel.setText("Fel vid ikonskapande: " + e.getMessage());
+            if (!type.startsWith("image/")) {
+                iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
+            } else {
+                return null;
+            }
+        }
+        return iconView;
+    }
+
     @FXML
     private void attachFile() {
         FileChooser chooser = new FileChooser();
@@ -147,4 +150,3 @@ public class HelloController {
         if (selectedFile != null) messageLabel.setText("Vald fil: " + selectedFile.getName());
     }
 }
-
