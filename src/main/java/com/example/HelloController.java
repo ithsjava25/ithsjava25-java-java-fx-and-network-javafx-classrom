@@ -43,14 +43,11 @@ public class HelloController {
                     setGraphic(null);
                     return;
                 }
-
                 boolean isIncoming = !myTopic.equals(item.topic());
                 HBox cellBox = new HBox(5);
                 cellBox.setMaxWidth(Double.MAX_VALUE);
-
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
                 Label text = new Label(item.hasAttachment() ? item.getAttachmentName() : item.message());
                 text.setWrapText(true);
                 text.setMaxWidth(400);
@@ -60,12 +57,10 @@ public class HelloController {
                                 "-fx-padding: 8;" +
                                 "-fx-background-radius: 10;"
                 );
-
                 ImageView iconView = null;
                 if (item.hasAttachment()) {
                     iconView = createIconForAttachment(item);
                 }
-
                 if (isIncoming) {
                     if (iconView != null) cellBox.getChildren().add(iconView);
                     cellBox.getChildren().add(text);
@@ -74,7 +69,6 @@ public class HelloController {
                     cellBox.getChildren().add(text);
                     if (iconView != null) cellBox.getChildren().add(iconView);
                 }
-
                 HBox wrapper = new HBox(cellBox);
                 wrapper.setMaxWidth(Double.MAX_VALUE);
                 wrapper.setAlignment(isIncoming ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
@@ -83,10 +77,7 @@ public class HelloController {
         });
     }
 
-    @FXML
-    private void onSend() {
-        sendMessage();
-    }
+    @FXML private void onSend() { sendMessage(); }
 
     @FXML
     private void sendMessage() {
