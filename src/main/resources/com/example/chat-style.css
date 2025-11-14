@@ -7,33 +7,58 @@
     -fx-background-color: #AEE6AA;
     -fx-text-fill: #000000;
     -fx-background-radius: 16 16 0 16;
-    -fx-font-size: 14;
-    -fx-padding: 10;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
     -fx-border-color: #98D59B;
-    -fx-border-width: 1;
+    -fx-border-width: 1px;
     -fx-border-radius: 16 16 0 16;
 }
-.image-view {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);
-    -fx-background-radius: 10;
-}
-
 
 .received-message {
     -fx-background-color: #FFFFFF;
     -fx-text-fill: #000000;
     -fx-background-radius: 16 16 16 0;
-    -fx-font-size: 14;
-    -fx-padding: 10;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
     -fx-border-color: #E0E0E0;
-    -fx-border-width: 1;
+    -fx-border-width: 1px;
     -fx-border-radius: 16 16 16 0;
 }
 
 .text-field {
-    -fx-background-radius: 10;
+    -fx-background-radius: 10px;
+    -fx-padding: 5px;
 }
 
 .button {
-    -fx-background-radius: 10;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+}
+
+
+.image-view {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 5px;
+}
+
+.hbox {
+    -fx-spacing: 5px;
+}
+
+.vbox {
+    -fx-spacing: 3px;
+}
+
+.timestamp {
+    -fx-font-size: 10px;
+    -fx-text-fill: #888888;
+    -fx-padding: 0 5 0 5;
 }
