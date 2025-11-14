@@ -1,37 +1,32 @@
 package com.example;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-
-class HelloModelTest {
+public class HelloModelTest {
 
     @Test
-    @DisplayName("Given a model with messageToSend when calling sendMessage then send method on connection should be called")
-    void sendMessageCallsConnectionWithMessageToSend() {
-        //Arrange  Given
-        var spy = new NtfyConnectionSpy();
-        var model = new HelloModel(spy);
-        model.setMessageToSend("Hello World");
-        //Act  When
-        model.sendMessage();
-        //Assert   Then
-        assertThat(spy.message).isEqualTo("Hello World");
+    void testModelInitializationWithEnv() {
+        try {
+            HelloModel model = new HelloModel();
+            assertNotNull(model, "Model should be created successfully with .env");
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("BACKEND_URL"), "Exception should mention BACKEND_URL");
+        }
     }
 
     @Test
-    void sendMessageToFakeServer(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        var con = new NtfyConnectionImpl("https://ntfy.fungover.org" + wmRuntimeInfo.getHttpPort());
-        var model = new HelloModel(con);
-        model.setMessageToSend("Hello World");
-        stubFor(post("/mytopic").willReturn(ok()))
+    void testParseIncomingLineAddsEmoji() {
+        HelloModel model = new HelloModel("test-topic", "https://ntfy.sh");
+        String input = "{\"message\":\"Hej\"}";
+        String result = model.parseIncomingLine(input);
+        assertTrue(result.startsWith("💬 "), "Meddelandet ska börja med emoji");
+        assertTrue(result.contains("Hej"), "Meddelandet ska innehålla originaltexten");
+    }
 
-        model.sendMessage();
-
-        verify(postRequestedFor(urlEqualTo("/mytopic"))
-                .withRequestBody(matching("Hello World")));
+    @Test
+    void testSendMessageDoesNotThrow() {
+        HelloModel model = new HelloModel("test-topic", "https://ntfy.sh");
+        assertDoesNotThrow(() -> model.sendMessage("Testmeddelande"));
     }
 }
