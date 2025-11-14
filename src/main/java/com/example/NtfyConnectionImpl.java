@@ -19,7 +19,12 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+        String host = dotenv.get("HOST_NAME");
+
+        if (host == null || host.isEmpty()) {
+            throw new IllegalStateException("HOST_NAME has to be defined");
+        }
+        this.hostName = host;
     }
 
     public NtfyConnectionImpl(String hostName) {

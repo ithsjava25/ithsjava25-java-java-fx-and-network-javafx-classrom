@@ -4,6 +4,7 @@ import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
 
 /**
  * Controller layer: mediates between the view (FXML) and the model.
@@ -33,15 +34,9 @@ public class HelloController {
         sendButton.setOnAction(e -> sendMessage());
 
         inputField.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case ENTER -> {
-                    if (event.isShiftDown()) {
-                        inputField.appendText("\n");
-                    } else {
-                        sendMessage();
-                        event.consume();
-                    }
-                }
+            if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
+                sendMessage();
+                event.consume();
             }
         });
     }

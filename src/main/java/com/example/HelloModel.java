@@ -18,6 +18,7 @@ public class HelloModel {
     private final NtfyConnection connection;
     private final StringProperty messageToSend = new SimpleStringProperty();
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
+    private String lastSentMessage;
 
     //Konstuktor för prod
     public HelloModel() {
@@ -48,11 +49,17 @@ public class HelloModel {
     }
 
     public void sendMessage() {
-       connection.send(messageToSend.get());
+        lastSentMessage = messageToSend.get();
+        connection.send(lastSentMessage);
     }
 
     public void receiveMessage() {
-        connection.receive(m-> Platform.runLater(() -> messages.add (m)));
+        connection.receive(m -> {
+            if (m.message().equals(lastSentMessage)) {
+                return;
+            }
+            Platform.runLater(() -> messages.add(m));
+        });
     }
 }
 
