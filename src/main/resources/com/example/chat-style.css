@@ -1,0 +1,46 @@
+
+.root {
+    -bg-light: #e5e5e5;
+    -text-color: #363636;
+    -primary: #4c76c2;
+    -secondary: #a8c64b;
+    -neutral: #747474;
+    -accent: #5e6ec7;
+    -radius-box: 20px;
+}
+
+.root {
+    -fx-background-color: -bg-light;
+    -fx-font-family: "Arial";
+}
+
+#messageListView {
+    -fx-background-color: -neutral;
+    -fx-border-color: -primary;
+    -fx-border-width: 2px;
+    -fx-border-radius: -radius-box;
+    -fx-padding: 10px;
+    -fx-background-radius: -radius-box;
+}
+
+#inputTextField {
+    -fx-background-color: white;
+    -fx-text-fill: -text-color;
+    -fx-border-color: -primary;
+    -fx-border-width: 1px;
+    -fx-border-radius: -radius-box;
+    -fx-background-radius: -radius-box;
+    -fx-padding: 8px 15px;
+}
+
+.button {
+    -fx-font-size: 14px;
+    -fx-background-radius: -radius-box;
+    -fx-background-color: -primary;
+    -fx-text-fill: white;
+    -fx-padding: 8px 15px;
+}
+
+.button:hover {
+    -fx-background-color: derive(-primary, 20%);
+}

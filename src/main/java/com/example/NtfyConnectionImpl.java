@@ -30,7 +30,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
     public boolean send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
-                .header("Cache", "no")
+                //.header("Cache", "no")
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
         try {
