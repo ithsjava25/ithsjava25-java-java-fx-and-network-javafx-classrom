@@ -15,7 +15,7 @@ import java.io.File;
  */
 public class HelloController {
 
-    private final HelloModel model = new HelloModel();
+    private final HelloModel model = new HelloModel(null);
     public ListView<Object> messageView;
 
     @FXML
