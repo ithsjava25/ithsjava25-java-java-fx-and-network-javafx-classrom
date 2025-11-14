@@ -73,7 +73,7 @@ class HelloModelTest {
         var spy = new NtfyConnectionSpy();
         var model = new HelloModel(spy);
 
-        model.setMessageToSend("   "); // blank message
+        model.setMessageToSend("   ");
         model.sendMessage();
 
         assertThat(spy.message)

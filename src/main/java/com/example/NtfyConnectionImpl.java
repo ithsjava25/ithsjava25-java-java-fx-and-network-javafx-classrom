@@ -1,7 +1,7 @@
 package com.example;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -33,18 +33,14 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .header("Cache", "no")
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
+
         try {
-            //Todo: handle long blocking send requests to not freeze the JavaFX thread
-            //1. Use thread send message?
-            //2. Use async?
-            var reponse = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+            http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
             return true;
-        } catch (IOException e) {
-            System.out.println("Error sending message");
-        } catch (InterruptedException e) {
-            System.out.println("Interruped sending message");
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     @Override
@@ -54,29 +50,52 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .uri(URI.create(hostName + "/mytopic/json"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> response.body()
-                        .map(s ->
-                                mapper.readValue(s, NtfyMessageDto.class))
-                        .filter(message -> message.event().equals("message"))
-                        .peek(System.out::println)
-                        .forEach(messageHandler));
+        try {
+            http.send(httpRequest, HttpResponse.BodyHandlers.ofLines())
+                    .body()
+                    .map(s -> {
+                        try {
+                            return mapper.readValue(s, NtfyMessageDto.class);
+                        } catch (IOException e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .filter(message -> "message".equals(message.event()))
+                    .forEach(messageHandler);
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-        @Override
-        public void sendFile(String filename, byte[] data) {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(data))
-                    .header("Content-Type", "application/octet-stream")
-                    .header("Title", filename)  // ntfy stöder Title-header
-                    .uri(URI.create(hostName + "/mytopic"))
-                    .build();
-            try {
-                http.send(request, HttpResponse.BodyHandlers.discarding());
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+    @Override
+    public void sendFile(String filename, byte[] data) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .POST(HttpRequest.BodyPublishers.ofByteArray(data))
+                .header("Content-Type", "application/octet-stream")
+                .header("Title", filename)
+                .uri(URI.create(hostName + "/mytopic"))
+                .build();
 
+        try {
+            http.send(request, HttpResponse.BodyHandlers.discarding());
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
         }
+    }
 
+    public void sendAsync(String message) {
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .POST(HttpRequest.BodyPublishers.ofString(message))
+                .header("Cache", "no")
+                .uri(URI.create(hostName + "/mytopic"))
+                .build();
+
+        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+                .thenAccept(response -> System.out.println("Message sent async"))
+                .exceptionally(e -> { e.printStackTrace(); return null; });
     }
 }
+
+

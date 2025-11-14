@@ -11,7 +11,7 @@ public class ManyParameters {
     static void main() {
         ManyParametersBuilder builder = new ManyParametersBuilder();
         builder
-                .setComputerName("localhost")   //Fluent API
+                .setComputerName("localhost")
                 .setTimeout(10)
                 .setSize(0)
                 .createManyParameters();

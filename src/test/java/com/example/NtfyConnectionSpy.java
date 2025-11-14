@@ -7,11 +7,11 @@ import java.util.function.Consumer;
 public class NtfyConnectionSpy implements NtfyConnection {
 
 
-    public String message;            // senaste textmeddelandet
-    public String fileName;           // senaste filnamnet
-    public byte[] fileData;           // senaste fildatat
+    public String message;
+    public String fileName;
+    public byte[] fileData;
 
-    // För att kunna simulera "receive"
+
     private final List<Consumer<NtfyMessageDto>> receivers = new ArrayList<>();
 
     @Override
@@ -28,7 +28,6 @@ public class NtfyConnectionSpy implements NtfyConnection {
 
     @Override
     public void receive(Consumer<NtfyMessageDto> handler) {
-        // Spara callback för senare användning
         receivers.add(handler);
     }
 
