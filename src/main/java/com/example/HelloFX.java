@@ -14,10 +14,9 @@ public class HelloFX extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Skapa en enda NtfyConnection-instans
+
         connection = new NtfyConnectionImpl();
 
-        // Starta ImageServer på separat daemon-tråd
         Thread serverThread = new Thread(() -> {
             try {
                 imageServer = new ImageServer(8081);
@@ -28,11 +27,9 @@ public class HelloFX extends Application {
         serverThread.setDaemon(true);
         serverThread.start();
 
-        // Ladda FXML
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
 
-        // Hämta controller och injicera connection
         HelloController controller = fxmlLoader.getController();
         controller.setConnection(connection);
 
@@ -40,7 +37,6 @@ public class HelloFX extends Application {
         stage.setScene(scene);
         stage.show();
 
-        // Säkerställ att connection och server stoppas vid stängning
         stage.setOnCloseRequest(event -> {
             System.out.println("🛑 Application closing...");
 
@@ -62,7 +58,6 @@ public class HelloFX extends Application {
                 e.printStackTrace();
             }
 
-            // Ingen need att joina daemon-tråden; den avslutas automatiskt
         });
     }
 

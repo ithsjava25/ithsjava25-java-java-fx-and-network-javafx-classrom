@@ -58,7 +58,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
             conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
             conn.setRequestProperty("X-Client-Id", clientId);
 
-            // JSON-del
             var json = mapper.writeValueAsString(
                     new java.util.LinkedHashMap<String,Object>() {{
                         put("clientId", clientId);
@@ -75,7 +74,6 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 writer.append(json).append("\r\n");
                 writer.flush();
 
-                // Bildfil
                 String contentType = Files.probeContentType(imageFile.toPath());
                 if (contentType == null) contentType = "application/octet-stream";
 
@@ -116,12 +114,10 @@ public class NtfyConnectionImpl implements NtfyConnection {
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                     String body = response.body();
 
-                    // Dela på nya rader (SSE)
                     for (String line : body.split("\\R")) {
                         line = line.trim();
                         if (line.isEmpty()) continue;
 
-                        // Ta bort "data:" prefix om det finns
                         if (line.startsWith("data:")) {
                             line = line.substring(5).trim();
                         }

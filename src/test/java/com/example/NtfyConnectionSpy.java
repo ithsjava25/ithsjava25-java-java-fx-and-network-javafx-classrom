@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.function.Consumer;
 
 /**
- * Test-dubbel för HelloModel.
- * Tar emot och skickar meddelanden utan riktig HTTP.
+ * Test-double for HelloModel.
+ * Sends and receive messages without actual HTTP.
  */
 public class NtfyConnectionSpy implements NtfyConnection {
 
@@ -38,7 +38,7 @@ public class NtfyConnectionSpy implements NtfyConnection {
     public void stopReceiving() { }
 
     /**
-     * Simulerar ett inkommande JSON-meddelande.
+     * Simulates an incoming JSON-message.
      */
     public void simulateIncomingMessage(String json) {
         if (messageHandler != null) {
