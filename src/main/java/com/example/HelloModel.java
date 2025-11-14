@@ -5,12 +5,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.Objects;
 
 public class HelloModel {
@@ -48,13 +45,9 @@ public class HelloModel {
         }
     }
 
-    /**
-     * Tar emot meddelanden och sparar bilagor automatiskt i "downloads"-mappen.
-     */
     public void receiveMessages() {
         connection.receive(msg -> Platform.runLater(() -> {
             messages.add(msg);
-
             if (msg.hasAttachment()) {
                 try {
                     saveAttachmentAutomatically(msg);
@@ -65,9 +58,6 @@ public class HelloModel {
         }));
     }
 
-    /**
-     * Laddar en bild från URL.
-     */
     public Image loadImageFromUrl(NtfyMessageDto item, int width, int height) {
         if (item.getAttachmentUrl() == null) return null;
         try (InputStream in = new URL(item.getAttachmentUrl()).openStream()) {
@@ -78,9 +68,6 @@ public class HelloModel {
         }
     }
 
-    /**
-     * Sparar automatiskt inkommande bilagor i "downloads"-mappen.
-     */
     private void saveAttachmentAutomatically(NtfyMessageDto item) throws IOException {
         if (item.getAttachmentUrl() == null) return;
 
@@ -89,13 +76,8 @@ public class HelloModel {
 
         File dest = new File(downloads, item.getAttachmentName());
         downloadFile(item.getAttachmentUrl(), dest);
-
-        Platform.runLater(() -> showInfo("Bilaga sparad automatiskt: " + dest.getAbsolutePath()));
     }
 
-    /**
-     * Hjälpmetod som laddar ner en fil från URL till destination.
-     */
     private void downloadFile(String urlString, File dest) throws IOException {
         try (InputStream in = new URL(urlString).openStream();
              OutputStream out = new FileOutputStream(dest)) {

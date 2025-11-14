@@ -16,12 +16,9 @@ import java.net.URL;
 
 public class HelloController {
 
-    @FXML
-    private ListView<NtfyMessageDto> messageView;
-    @FXML
-    private TextField inputField;
-    @FXML
-    private Label messageLabel;
+    @FXML private ListView<NtfyMessageDto> messageView;
+    @FXML private TextField inputField;
+    @FXML private Label messageLabel;
 
     private final HelloModel model = new HelloModel();
     private Stage primaryStage;
@@ -34,7 +31,6 @@ public class HelloController {
 
     @FXML
     private void initialize() {
-        // Transparent ListView
         messageView.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent;");
         messageView.setItems(model.getMessages());
 
@@ -104,17 +100,16 @@ public class HelloController {
                     return imgView;
                 }
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
-                iconView.setOnMouseClicked(e -> saveAttachment(item, primaryStage));
             } else if ("application/pdf".equals(type)) {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/pdf.png")));
-                iconView.setOnMouseClicked(e -> saveAttachment(item, primaryStage));
             } else if ("application/zip".equals(type)) {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/zip.png")));
-                iconView.setOnMouseClicked(e -> saveAttachment(item, primaryStage));
             } else {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
-                iconView.setOnMouseClicked(e -> saveAttachment(item, primaryStage));
             }
+
+            iconView.setOnMouseClicked(e -> saveAttachment(item, primaryStage));
+
         } catch (Exception e) {
             messageLabel.setText("Fel vid ikonskapande: " + e.getMessage());
         }
@@ -156,21 +151,30 @@ public class HelloController {
     }
 
     public void saveAttachment(NtfyMessageDto item, Stage stage) {
-        if (item == null || !item.hasAttachment()) return;
-
-        if (item.getAttachmentUrl() == null) {
-            messageLabel.setText("Ingen URL för filen");
+        if (item == null || !item.hasAttachment() || item.getAttachmentUrl() == null) {
+            messageLabel.setText("Ingen fil att spara");
             return;
         }
 
+        String suggestedName = item.getAttachmentName();
+        String extension = "";
+        int dotIndex = suggestedName.lastIndexOf('.');
+        if (dotIndex != -1) extension = suggestedName.substring(dotIndex);
+
         FileChooser chooser = new FileChooser();
-        chooser.setInitialFileName(item.getAttachmentName());
+        chooser.setInitialFileName(suggestedName);
         File dest = chooser.showSaveDialog(stage);
         if (dest == null) return;
 
+        File finalDest = dest;
+        if (!dest.getName().toLowerCase().endsWith(extension.toLowerCase())) {
+            finalDest = new File(dest.getAbsolutePath() + extension);
+        }
+
+        File downloadDest = finalDest;
         new Thread(() -> {
             try (InputStream in = new URL(item.getAttachmentUrl()).openStream();
-                 OutputStream out = new FileOutputStream(dest)) {
+                 OutputStream out = new FileOutputStream(downloadDest)) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead;
@@ -178,10 +182,11 @@ public class HelloController {
                     out.write(buffer, 0, bytesRead);
                 }
 
-                Platform.runLater(() -> messageLabel.setText("Filen sparad: " + dest.getAbsolutePath()));
+                Platform.runLater(() -> messageLabel.setText("Filen sparad: " + downloadDest.getAbsolutePath()));
             } catch (IOException e) {
                 Platform.runLater(() -> messageLabel.setText("Fel vid sparning: " + e.getMessage()));
             }
         }).start();
     }
 }
+
