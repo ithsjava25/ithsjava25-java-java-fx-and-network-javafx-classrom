@@ -1,4 +1,4 @@
-module hellofx {
+module chatapp {
     requires javafx.controls;
     requires javafx.fxml;
     requires com.fasterxml.jackson.annotation;

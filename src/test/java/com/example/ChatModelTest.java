@@ -3,7 +3,6 @@ package com.example;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -24,7 +23,6 @@ class ChatModelTest {
 
 
     @Test
-    @DisplayName("När sendMessage anropas, ska rätt meddelande skickas till anslutningen")
     void sendMessage_callsConnectionWithCorrectMessage() {
 
         var spy = new NtfyConnectionSpy();
@@ -41,7 +39,7 @@ class ChatModelTest {
 
 
     @Test
-    @DisplayName("När ett meddelande tas emot via anslutningen, ska det läggas till i Modelns lista")
+
     void receiveMessage_addsToObservableList() throws Exception {
 
         var spy = new NtfyConnectionSpy();
@@ -65,18 +63,16 @@ class ChatModelTest {
     }
 
     @Test
-    @DisplayName("sendMessage ska skicka en POST-förfrågan till WireMock-servern med rätt body")
-    void sendMessageToFakeServer_viaNtfyConnectionImpl(WireMockRuntimeInfo wmRuntimeInfo) {
+    void sendMessageToFakeServer_viaNtfyConnectionImpl(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
         var con = new NtfyConnectionImpl("http://localhost:" + wmRuntimeInfo.getHttpPort());
         var model = new ChatModel(con);
         String messageToSend = "Test Body Content";
 
-
         stubFor(post("/mytopic").willReturn(ok()));
-
 
         model.sendMessage(messageToSend);
 
+        Thread.sleep(500);
 
         verify(postRequestedFor(urlEqualTo("/mytopic"))
                 .withRequestBody(matching(messageToSend)));

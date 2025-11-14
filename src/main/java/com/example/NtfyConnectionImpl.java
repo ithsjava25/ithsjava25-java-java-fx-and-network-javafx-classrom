@@ -18,8 +18,21 @@ public class NtfyConnectionImpl implements NtfyConnection {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public NtfyConnectionImpl() {
-        Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+        String loadedHostName = null;
+        try {
+            Dotenv dotenv = Dotenv.load();
+            loadedHostName = dotenv.get("HOST_NAME");
+        } catch (Exception e) {
+            System.err.println("WARNING: Could not load .env file for HOST_NAME. Using fallback.");
+        }
+
+        this.hostName = (loadedHostName != null)
+                ? loadedHostName
+                : "http://localhost:8080";
+
+        if (this.hostName.equals("http://localhost:8080")) {
+            System.out.println("DEBUG: NtfyConnectionImpl running in test/fallback mode.");
+        }
     }
 
     public NtfyConnectionImpl(String hostName) {
@@ -30,21 +43,23 @@ public class NtfyConnectionImpl implements NtfyConnection {
     public boolean send(String message) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
-                //.header("Cache", "no")
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
-        try {
-            //Todo: handle long blocking send requests to not freeze the JavaFX thread
-            //1. Use thread send message?
-            //2. Use async?
-            var reponse = http.send(httpRequest, HttpResponse.BodyHandlers.discarding());
-            return true;
-        } catch (IOException e) {
-            System.out.println("Error sending message");
-        } catch (InterruptedException e) {
-            System.out.println("Interruped sending message");
-        }
-        return false;
+
+        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+                .thenAccept(response -> {
+                    if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                        System.out.println("Message sent successfully.");
+                    } else {
+                        System.err.println("Error while sending: " + response.statusCode());
+                    }
+                })
+                .exceptionally(e -> {
+                    System.err.println("Network issue: " + e.getMessage());
+                    return null;
+                });
+
+        return true;
     }
 
     @Override
