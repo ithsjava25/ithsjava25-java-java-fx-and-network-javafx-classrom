@@ -17,32 +17,48 @@ public class HelloFX extends Application {
         // Skapa en enda NtfyConnection-instans
         connection = new NtfyConnectionImpl();
 
-        // Starta ImageServer på separat tråd och spara referensen
-        new Thread(() -> {
+        // Starta ImageServer på separat tråd
+        Thread serverThread = new Thread(() -> {
             try {
                 imageServer = new ImageServer(8081);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        serverThread.setDaemon(true); // avslutas automatiskt vid app-stopp
+        serverThread.start();
 
         // Ladda FXML
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
 
-        // Hämta controller och injicera model
+        // Hämta controller och injicera connection
         HelloController controller = fxmlLoader.getController();
-        HelloModel model = new HelloModel(connection);
-        controller.setModel(model);
+        controller.setConnection(connection);
 
         stage.setTitle("HelloFX Chat");
         stage.setScene(scene);
         stage.show();
 
-        // Stäng trådar och server vid stängning
+        // Säkerställ stängning av server och connection vid fönsterstängning
         stage.setOnCloseRequest(event -> {
-            if (connection != null) connection.stopReceiving();
-            if (imageServer != null) imageServer.stop();
+            System.out.println("🛑 Application closing...");
+
+            if (connection != null) {
+                connection.stopReceiving();
+                System.out.println("🔌 NtfyConnection stopped");
+            }
+
+            if (imageServer != null) {
+                imageServer.stop();
+            }
+
+            // Vänta på server-trådens avslut (valfritt)
+            try {
+                serverThread.join(500); // max 0.5 sekunder
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         });
     }
 

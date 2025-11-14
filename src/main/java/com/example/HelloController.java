@@ -33,6 +33,11 @@ public class HelloController {
         this.model = model;
         attachListeners();
     }
+    public void setConnection(NtfyConnection connection) {
+        if (connection == null) throw new IllegalArgumentException("Connection cannot be null");
+        this.model = new HelloModel(connection);
+        attachListeners();
+    }
 
     private void attachListeners() {
         model.getMessages().addListener((ListChangeListener<NtfyMessageDto>) change -> {
