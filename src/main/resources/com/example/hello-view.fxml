@@ -13,9 +13,3 @@
     </HBox>
 </VBox>
 
-<!--<VBox alignment="CENTER" stylesheets="@../../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">-->
-<!--        <Label fx:id="messageLabel" text="Chat Box" />-->
-<!--        <Button onAction="#sendMessage" text="Send message" />-->
-<!--        <TextField />-->
-<!--    <ListView fx:id="messageView" />-->
-<!--</VBox>-->
