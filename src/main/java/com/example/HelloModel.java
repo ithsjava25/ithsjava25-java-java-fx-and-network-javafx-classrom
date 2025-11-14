@@ -1,169 +1,68 @@
 package com.example;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import com.example.NtfyConnection;
+
+import java.io.*;
 import java.net.URL;
 
 public class HelloModel {
-
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private final StringProperty messageToSend = new SimpleStringProperty();
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessage();
+        receiveMessages();
     }
 
-    public ObservableList<NtfyMessageDto> getMessages() {
-        return messages;
+    public ObservableList<NtfyMessageDto> getMessages() { return messages; }
+
+    public void sendMessage(String text) {
+        boolean success = connection.send(text);
+        if (!success) showError("Kunde inte skicka meddelandet");
     }
 
-    public StringProperty messageToSendProperty() {
-        return messageToSend;
-    }
+    public boolean sendFile(File file) { return connection.sendFile(file); }
 
-    public void setMessageToSend(String message) {
-        messageToSend.set(message);
-    }
-
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
-    public String getGreeting() {
-        return "Welcome to NTFY chat";
-    }
-
-    public void sendMessage(String enteredText) {
-        // SKAPA INTE lokalt meddelande här - låt servern hantera det
-        // Meddelandet kommer automatiskt via receive() när servern skickar tillbaka det
-
-        // Skicka bara till server
-        boolean success = connection.send(enteredText);
-        if (!success) {
-            System.err.println("Failed to send message to server: " + enteredText);
-            // Visa felmeddelande till användaren
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Sändningsfel");
-                alert.setHeaderText(null);
-                alert.setContentText("Kunde inte skicka meddelandet: " + enteredText);
-                alert.showAndWait();
-            });
-        } else {
-            Platform.runLater(() -> {
-                // Rensa bara inputfältet, meddelandet kommer via receive()
-                System.out.println("Message sent to server: " + enteredText);
-            });
-        }
-    }
-
-    public void receiveMessage() {
-        connection.receive(m -> {
-            Platform.runLater(() -> {
-                // Debug: skriv ut rådata för varje meddelande
-                System.out.println("=== INKOMMANDE MEDDELANDE ===");
-                System.out.println(m.toString());
-                System.out.println("=============================");
-
-                messages.add(m);
-            });
-        });
-    }
-
-    public boolean sendFile(File file) {
-        return connection.sendFile(file);
-    }
-
-    public boolean sendFileFromUrl(String url) {
-        System.out.println("sendFileFromUrl not implemented yet for URL: " + url);
-        return false;
+    public void receiveMessages() {
+        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
     }
 
     public void downloadAttachment(NtfyMessageDto item, File destination) {
         new Thread(() -> {
-            try {
-                String attachmentUrl = item.getAttachmentUrl();
-                if (attachmentUrl != null) {
-                    URL url = new URL(attachmentUrl);
-                    try (InputStream in = url.openStream();
-                         FileOutputStream out = new FileOutputStream(destination)) {
+            try (InputStream in = new URL(item.getAttachmentUrl()).openStream();
+                 FileOutputStream out = new FileOutputStream(destination)) {
+                byte[] buf = new byte[8192];
+                int r;
+                while ((r = in.read(buf)) != -1) out.write(buf, 0, r);
 
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        while ((bytesRead = in.read(buffer)) != -1) {
-                            out.write(buffer, 0, bytesRead);
-                        }
+                Platform.runLater(() -> showInfo("Fil sparad: " + destination.getAbsolutePath()));
 
-                        Platform.runLater(() -> {
-                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                            alert.setTitle("Fil nedladdad");
-                            alert.setHeaderText(null);
-                            alert.setContentText("Fil sparad som: " + destination.getAbsolutePath());
-                            alert.showAndWait();
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Fel vid nedladdning");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Kunde inte ladda ner filen: " + e.getMessage());
-                    alert.showAndWait();
-                });
-            }
+            } catch (Exception e) { Platform.runLater(() -> showError("Fel vid nedladdning: " + e.getMessage())); }
         }).start();
     }
 
-    public void previewImage(NtfyMessageDto item) {
-        new Thread(() -> {
-            try {
-                String attachmentUrl = item.getAttachmentUrl();
-                if (attachmentUrl != null) {
-                    URL url = new URL(attachmentUrl);
-                    try (InputStream in = url.openStream()) {
-                        Image image = new Image(in);
+    public Image loadImageFromUrl(NtfyMessageDto item) {
+        try (InputStream in = new URL(item.getAttachmentUrl()).openStream()) {
+            return new Image(in, 100, 100, true, true);
+        } catch (Exception e) { return null; }
+    }
 
-                        Platform.runLater(() -> {
-                            // Skapa ett nytt fönster för att visa bilden
-                            Stage imageStage = new Stage();
-                            ImageView imageView = new ImageView(image);
-                            imageView.setPreserveRatio(true);
-                            imageView.setFitWidth(600);
+    private void showError(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
 
-                            ScrollPane scrollPane = new ScrollPane(imageView);
-                            scrollPane.setFitToWidth(true);
-                            scrollPane.setFitToHeight(true);
-
-                            javafx.scene.Scene scene = new javafx.scene.Scene(scrollPane, 800, 600);
-                            imageStage.setTitle("Förhandsvisning: " + item.getAttachmentName());
-                            imageStage.setScene(scene);
-                            imageStage.show();
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Fel vid förhandsvisning");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Kunde inte visa bilden: " + e.getMessage());
-                    alert.showAndWait();
-                });
-            }
-        }).start();
+    private void showInfo(String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setContentText(msg);
+        alert.showAndWait();
     }
 }

@@ -1,118 +1,89 @@
 package com.example;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.cdimascio.dotenv.Dotenv;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.*;
-import java.nio.charset.StandardCharsets;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NtfyConnectionImpl implements NtfyConnection {
 
     private final HttpClient http = HttpClient.newHttpClient();
-    private final String hostName;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final String hostName;
+    private final String topic;
 
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"), "HOST_NAME must be set in .env file");
+        hostName = Objects.requireNonNull(dotenv.get("NTFY_BASE_URL"), "Missing NTFY_BASE_URL in .env");
+        topic = Objects.requireNonNull(dotenv.get("NTFY_TOPIC"), "Missing NTFY_TOPIC in .env");
     }
 
-    public NtfyConnectionImpl(String hostName) {
-        this.hostName = hostName;
-    }
-
+    @Override
     public boolean send(String message) {
         try {
-            HttpRequest httpRequest = HttpRequest.newBuilder()
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(hostName + "/" + topic))
                     .POST(HttpRequest.BodyPublishers.ofString(message))
-                    .uri(URI.create(hostName + "/mytopic"))
                     .build();
-
-            var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() >= 400) {
-                System.err.println("Server error: " + response.statusCode() + " - " + response.body());
-                return false;
-            }
-            return response.statusCode() >= 200 && response.statusCode() < 300;
-
+            var resp = http.send(request, HttpResponse.BodyHandlers.ofString());
+            return resp.statusCode() >= 200 && resp.statusCode() < 300;
         } catch (IOException | InterruptedException e) {
-            System.err.println("Error sending message: " + e.getMessage());
+            e.printStackTrace();
             Thread.currentThread().interrupt();
             return false;
         }
     }
 
     @Override
-    public void receive(Consumer<NtfyMessageDto> messageHandler) {
-        HttpRequest httpRequest = HttpRequest.newBuilder()
+    public void receive(Consumer<NtfyMessageDto> handler) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(hostName + "/" + topic + "/json"))
                 .GET()
-                .uri(URI.create(hostName + "/mytopic/json"))
                 .build();
 
-        http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> {
-                    response.body()
-                            .forEach(line -> {
-                                try {
-                                    NtfyMessageDto message = mapper.readValue(line, NtfyMessageDto.class);
-                                    if ("message".equals(message.event())) {
-                                        messageHandler.accept(message);
-                                    }
-                                } catch (JsonProcessingException e) {
-                                    System.err.println("Error parsing message: " + e.getMessage());
-                                }
-                            });
-                })
-                .exceptionally(throwable -> {
-                    System.err.println("Error receiving messages: " + throwable.getMessage());
-                    return null;
-                });
+        http.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
+                .thenAccept(resp -> resp.body().forEach(line -> {
+                    try {
+                        NtfyMessageDto msg = mapper.readValue(line, NtfyMessageDto.class);
+                        if ("message".equals(msg.event())) handler.accept(msg);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }))
+                .exceptionally(t -> { t.printStackTrace(); return null; });
     }
 
     @Override
     public boolean sendFile(File file) {
-        if (file == null || !file.exists()) {
-            System.out.println("Filen är ogiltig eller saknas.");
-            return false;
-        }
+        if (file == null || !file.exists()) return false;
 
         try {
-            byte[] fileBytes = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
-
+            byte[] data = Files.readAllBytes(file.toPath());
             String contentType = Files.probeContentType(file.toPath());
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
+            if (contentType == null) contentType = "application/octet-stream";
+            if (file.getName().endsWith(".png")) contentType = "image/png";
+            else if (file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg")) contentType = "image/jpeg";
 
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(hostName + "/mytopic"))
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(hostName + "/" + topic))
                     .header("Content-Type", contentType)
                     .header("Filename", file.getName())
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(data))
                     .build();
 
-            var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                return true;
-            } else {
-                System.out.println("Fel vid sändning av fil. Statuskod: " + response.statusCode());
-                return false;
-            }
+            var resp = http.send(request, HttpResponse.BodyHandlers.ofString());
+            return resp.statusCode() >= 200 && resp.statusCode() < 300;
 
         } catch (IOException | InterruptedException e) {
-            System.out.println("Error reading or sending file: " + e.getMessage());
+            e.printStackTrace();
             Thread.currentThread().interrupt();
             return false;
         }

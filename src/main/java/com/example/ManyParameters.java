@@ -1,15 +1,10 @@
 package com.example;
 
 public class ManyParameters {
-
     public ManyParameters(String computerName, int timeout,
-                          String method, int size, byte[] data) {
+                          String method, int size, byte[] data) {}
 
-    }
-
-
-    static void main() {
-        ManyParametersBuilder builder = new ManyParametersBuilder();
+    static void main() {ManyParametersBuilder builder = new ManyParametersBuilder();
         builder
                 .setComputerName("localhost")
                 .setTimeout(10)
