@@ -9,8 +9,9 @@ public record NtfyMessageDto(
         String event,
         String topic,
         String message,
-        Attachment attachment,     // används av ntfy vid multipart upload
-        String imageUrl            // används vid egen JSON med bild-URL
+        Attachment attachment,
+        String imageUrl,
+        String clientId
 ) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)

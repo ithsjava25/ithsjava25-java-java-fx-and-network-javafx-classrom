@@ -33,6 +33,7 @@ public class HelloController {
         this.model = model;
         attachListeners();
     }
+
     public void setConnection(NtfyConnection connection) {
         if (connection == null) throw new IllegalArgumentException("Connection cannot be null");
         this.model = new HelloModel(connection);
@@ -45,10 +46,11 @@ public class HelloController {
                 while (change.next()) {
                     if (change.wasAdded()) {
                         for (NtfyMessageDto msg : change.getAddedSubList()) {
-                            boolean sentByUser = msg.topic().equals(HelloModel.DEFAULT_TOPIC);
-                            if (msg.imageUrl() != null) {
-                                addImageBubbleFromUrl(msg.imageUrl(), sentByUser);
-                            } else if (msg.message() != null) {
+                            boolean sentByUser = msg.clientId() != null && msg.clientId().equals(model.getClientId());
+
+                            if (msg.imageUrl() != null && !msg.imageUrl().isBlank()) {
+                                addImageBubbleFromUrl(msg.imageUrl(), sentByUser, msg.time());
+                            } else if (msg.message() != null && !msg.message().isBlank()) {
                                 addMessageBubble(msg.message(), sentByUser, msg.time());
                             }
                         }
@@ -57,6 +59,7 @@ public class HelloController {
             });
         });
     }
+
 
     @FXML
     private void initialize() {
@@ -74,6 +77,7 @@ public class HelloController {
         if (!message.isEmpty()) {
             model.sendMessage(message);
             messageField.clear();
+            model.setMessageToSend(""); // Clear property for bound text fields
         }
     }
 
@@ -91,6 +95,11 @@ public class HelloController {
         File imageFile = fileChooser.showOpenDialog(window);
 
         if (imageFile != null) {
+            if (!imageFile.exists()) {
+                showStatus("Fil finns inte: " + imageFile.getName());
+                return;
+            }
+
             boolean success = model.sendImage(imageFile);
             if (!success) {
                 showStatus("Misslyckades att skicka bilden: " + imageFile.getName());
@@ -122,7 +131,9 @@ public class HelloController {
         chatBox.getChildren().add(container);
     }
 
-    private void addImageBubbleFromUrl(String url, boolean isSentByUser) {
+    private void addImageBubbleFromUrl(String url, boolean isSentByUser, long timestamp) {
+        if (url == null || url.isBlank()) return;
+
         ImageView imageView = new ImageView(new Image(url, true));
         imageView.setFitWidth(200);
         imageView.setPreserveRatio(true);
@@ -142,7 +153,7 @@ public class HelloController {
             stage.show();
         });
 
-        String timeString = Instant.now()
+        String timeString = Instant.ofEpochSecond(timestamp)
                 .atZone(ZoneId.systemDefault())
                 .toLocalTime().toString().substring(0, 5);
         Label timeLabel = new Label(timeString);

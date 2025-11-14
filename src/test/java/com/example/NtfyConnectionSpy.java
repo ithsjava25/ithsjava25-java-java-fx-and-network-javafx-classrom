@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.function.Consumer;
 
 /**
- * Test-double for HelloModel.
- * Sends and receive messages without actual HTTP.
+ * Test-double för HelloModel.
+ * Simulerar skickande och mottagning av meddelanden utan HTTP.
  */
 public class NtfyConnectionSpy implements NtfyConnection {
 
@@ -15,9 +15,10 @@ public class NtfyConnectionSpy implements NtfyConnection {
     public Consumer<NtfyMessageDto> messageHandler;
 
     @Override
-    public void send(String jsonMessage) {
-        this.lastSentMessage = jsonMessage;
-        System.out.println("🧪 Spy send(): " + jsonMessage);
+    public void send(String message) {
+        this.lastSentMessage = message;
+        this.lastClientId = null; // Plain text, ingen clientId
+        System.out.println("🧪 Spy send(): " + message);
     }
 
     @Override
@@ -38,20 +39,20 @@ public class NtfyConnectionSpy implements NtfyConnection {
     public void stopReceiving() { }
 
     /**
-     * Simulates an incoming JSON-message.
+     * Simulerar inkommande meddelande.
      */
-    public void simulateIncomingMessage(String json) {
+    public void simulateIncomingMessage(String message, String imageUrl, String clientId) {
         if (messageHandler != null) {
             long now = System.currentTimeMillis() / 1000;
-
             NtfyMessageDto dto = new NtfyMessageDto(
                     "test-id",
                     now,
                     "message",
                     HelloModel.DEFAULT_TOPIC,
-                    json.contains("\"message\"") ? json.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1") : null,
+                    message,
                     null,
-                    json.contains("\"imageUrl\"") ? json.replaceAll(".*\"imageUrl\":\"([^\"]+)\".*", "$1") : null
+                    imageUrl,
+                    clientId
             );
             messageHandler.accept(dto);
         }
