@@ -62,4 +62,21 @@ public class NtfyConnectionImpl implements NtfyConnection {
                         .peek(System.out::println)
                         .forEach(messageHandler));
     }
+
+        @Override
+        public void sendFile(String filename, byte[] data) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(data))
+                    .header("Content-Type", "application/octet-stream")
+                    .header("Title", filename)  // ntfy stöder Title-header
+                    .uri(URI.create(hostName + "/mytopic"))
+                    .build();
+            try {
+                http.send(request, HttpResponse.BodyHandlers.discarding());
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+
+        }
+
+    }
 }

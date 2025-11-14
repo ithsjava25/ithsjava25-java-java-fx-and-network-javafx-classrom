@@ -1,40 +1,39 @@
 package com.example;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@WireMockTest
 class HelloModelTest {
 
-    @Test
-    @DisplayName("Given a model with messageToSend when calling sendMessage then send method on connection should be called")
-    void sendMessageCallsConnectionWithMessageToSend() {
-        //Arrange  Given
-        var spy = new NtfyConnectionSpy();
-        var model = new HelloModel(spy);
-        model.setMessageToSend("Hello World");
-        //Act  When
-        model.sendMessage();
-        //Assert   Then
-        assertThat(spy.message).isEqualTo("Hello World");
+    private HelloModel model;
+    private NtfyConnectionSpy connectionSpy;
+
+    @BeforeEach
+    void setUp() {
+        connectionSpy = new NtfyConnectionSpy();
+        model = new HelloModel(connectionSpy);
     }
 
     @Test
-    void sendMessageToFakeServer(WireMockRuntimeInfo wmRuntimeInfo) {
-        var con = new NtfyConnectionImpl("http://localhost:" + wmRuntimeInfo.getHttpPort());
-        var model = new HelloModel(con);
-        model.setMessageToSend("Hello World");
-        stubFor(post("/mytopic").willReturn(ok()));
+    void sendMessage_callsConnection() {
+        model.sendMessage("Hej");
+        assertThat(connectionSpy.getLastMessage()).isEqualTo("Hej!");
+    }
 
-        model.sendMessage();
+    @Test
+    void sendFile_callsConnectionWithData() throws IOException {
+        File tempFile = File.createTempFile("testfile", ".txt");
+        Files.writeString(tempFile.toPath(), "Hello World");
 
-        //Verify call made to server
-        verify(postRequestedFor(urlEqualTo("/mytopic"))
-                .withRequestBody(matching("Hello World")));
+        model.sendFile(tempFile);
+
+        assertThat(connectionSpy.getLastFileName()).isEqualTo(tempFile.getName());
+        assertThat(connectionSpy.getLastFileData()).isEqualTo(Files.readAllBytes(tempFile.toPath()));
     }
 }

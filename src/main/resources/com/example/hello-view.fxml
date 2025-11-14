@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
-
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    <Button text="Send message" onAction="#sendMessage"/>
-    <ListView fx:id="messageView"/>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+
+<?import javafx.scene.layout.HBox?>
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.HelloController"
+      spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+
+    <!-- Greeting label -->
+    <Label fx:id="messageLabel" text="Welcome!" style="-fx-font-size: 16px;"/>
+
+    <!-- Input field for message -->
+    <TextField fx:id="inputMessage" promptText="Type your message here" prefWidth="400"/>
+
+    <!-- Buttons -->
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Send Message" onAction="#sendMessage"/>
+        <Button text="Attach File" onAction="#attachFile"/>
+    </HBox>
+
+    <!-- List of messages -->
+    <ListView fx:id="messageView" prefWidth="500" prefHeight="300"/>
 </VBox>
