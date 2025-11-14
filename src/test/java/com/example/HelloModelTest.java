@@ -23,8 +23,11 @@ class HelloModelTest {
     }
 
 
+    /**
+     * Verifies that a valid message is sent successfully and captured by the connection spy.
+     */
     @Test
-    @DisplayName("Should send message successfully when message is valid")
+    @DisplayName("Should send message successfully when message is valid.")
     void shouldSendValidMessageSuccessfully() throws InterruptedException {
         // Arrange
         var spy = new NtfyConnectionSpy();
@@ -43,8 +46,11 @@ class HelloModelTest {
         assertThat(spy.message).isEqualTo("Hello World");
     }
 
+    /**
+     * Ensures the message input field is cleared after a successful send operation.
+     */
     @Test
-    @DisplayName("Should clear message field after successful send")
+    @DisplayName("Should clear message field after successful send.")
     void shouldClearMessageFieldAfterSuccessfulSend() throws InterruptedException {
         // Arrange
         var spy = new NtfyConnectionSpy();
@@ -63,6 +69,9 @@ class HelloModelTest {
         assertThat(model.getMessageToSend()).isEmpty();
     }
 
+    /**
+     * Confirms that sending an empty string returns false and does not trigger a send.
+     */
     @Test
     @DisplayName("Should return false when sending empty string")
     void shouldReturnFalseForEmptyMessage() throws InterruptedException {
@@ -88,6 +97,9 @@ class HelloModelTest {
         assertThat(spy.message).isNull();
     }
 
+    /**
+     * Confirms that sending a null message returns false and does not trigger a send.
+     */
     @Test
     @DisplayName("Should return false when sending null message")
     void shouldReturnFalseForNullMessage() throws InterruptedException {
@@ -113,6 +125,9 @@ class HelloModelTest {
         assertThat(spy.message).isNull();
     }
 
+    /**
+     * Ensures failed sends are handled gracefully: callback receives false, message is retained.
+     */
     @Test
     @DisplayName("Should handle failed send and keep message")
     void shouldHandleFailedSendGracefully() throws InterruptedException {
@@ -145,6 +160,9 @@ class HelloModelTest {
         assertThat(model.getMessageToSend()).isEqualTo("Fail this message");
     }
 
+    /**
+     * Verifies multiple sequential sends are processed correctly in order.
+     */
     @Test
     @DisplayName("Should handle multiple sequential sends correctly")
     void shouldHandleMultipleSequentialSends() throws InterruptedException {
@@ -177,6 +195,9 @@ class HelloModelTest {
         assertThat(spy.message).isEqualTo("Second");
     }
 
+    /**
+     * Ensures exceptions during send are caught and result in a failed callback (false).
+     */
     @Test
     @DisplayName("Should handle exceptions during send gracefully")
     void shouldHandleExceptionsDuringSend() throws InterruptedException {
@@ -219,8 +240,9 @@ class HelloModelTest {
         }
     }
 
-    // ========== RECEIVE MESSAGE TESTS ==========
-
+    /**
+     * Verifies that a valid incoming message is added to the observable message list.
+     */
     @Test
     @DisplayName("Should add received message to message list")
     void shouldAddReceivedMessageToList() throws InterruptedException {
@@ -249,6 +271,9 @@ class HelloModelTest {
         assertThat(model.getMessages()).contains(message);
     }
 
+    /**
+     * Ensures null messages received from the connection are ignored and not added.
+     */
     @Test
     @DisplayName("Should ignore null received messages")
     void shouldIgnoreNullReceivedMessages() throws InterruptedException {
@@ -273,6 +298,9 @@ class HelloModelTest {
         assertThat(model.getMessages()).isEmpty();
     }
 
+    /**
+     * Confirms messages with blank or empty content are filtered out and not added.
+     */
     @Test
     @DisplayName("Should ignore messages with blank or empty content")
     void shouldIgnoreBlankOrEmptyMessages() throws InterruptedException {
@@ -301,6 +329,9 @@ class HelloModelTest {
         assertThat(model.getMessages()).isEmpty();
     }
 
+    /**
+     * Verifies multiple incoming messages are added in the correct arrival order.
+     */
     @Test
     @DisplayName("Should add multiple received messages in correct order")
     void shouldAddMultipleMessagesInOrder() throws InterruptedException {
@@ -337,8 +368,10 @@ class HelloModelTest {
         assertThat(model.getMessages().get(2)).isEqualTo(message3);
     }
 
-    // ========== INTEGRATION TESTS ==========
 
+    /**
+     * Integration test: verifies message is successfully sent to a mocked Ntfy server via HTTP.
+     */
     @Test
     @DisplayName("Should send message to fake server successfully")
     void shouldSendMessageToFakeServer(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {

@@ -10,6 +10,12 @@ import java.util.function.Consumer;
 
 import static com.example.FxUtils.runOnFx;
 
+/**
+ * Model layer for the chatapp RuneChat.
+ * <p>
+ * Manages messages, the current topic, and sending/receiving messages via NtfyConnection.
+ */
+
 public class HelloModel {
 
     private final NtfyConnection connection;

@@ -8,6 +8,12 @@ import javafx.stage.Stage;
 
 import java.util.Objects;
 
+/**
+ * Main JavaFX application class for RuneChat.
+ * <p>
+ * Loads the FXML view, applies the stylesheet, and starts the application window.
+ */
+
 public class HelloFX extends Application {
 
     @Override

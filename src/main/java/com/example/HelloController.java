@@ -13,7 +13,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Controller layer: mediates between the view (FXML) and the model.
+ * Controller for the chat app.
+ * <p>
+ * Connects the FXML view to the HelloModel.
+ * Handles sending messages, changing topics, and updating the UI.
  */
 
 public class HelloController {
