@@ -13,9 +13,6 @@ import javafx.collections.ObservableList;
 
 import java.io.File;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -78,6 +75,12 @@ public class HelloModel {
         CompletableFuture.runAsync(() -> {
             // Nätverksanropet sker här i bakgrunden
             connection.send(message, currentTopic.get());
+            try {
+                 connection.send(message, currentTopic.get());
+            } catch (Exception e) {
+                 System.err.println("Failed to send message: " + e.getMessage());
+
+            }
         });
     }
 
@@ -88,18 +91,26 @@ public class HelloModel {
      */
     public void sendFile() {
         File file = fileToSend.get();
+        if (file == null) {
+            System.err.println("Cannot send file: no file selected.");
+            return;
+            }
         final NtfyMessageDto localSentDto = new NtfyMessageDto(file.getName(), currentTopic.get(), "file", true);
         runOnFx(() -> {
             messages.add(localSentDto);
             fileToSend.set(null); // Rensa filbilagan i UI
         });
 
-        // 2. Utför nätverksanropet på en bakgrundstråd
 
         // 2. Utför nätverksanropet på en bakgrundstråd
         CompletableFuture.runAsync(() -> {
             // Nätverksanropet sker här i bakgrunden
             connection.sendFile(file, currentTopic.get());
+            try {
+                connection.sendFile(file, currentTopic.get());
+            } catch( Exception e){
+                System.err.println("Failed to send file: " + e.getMessage());
+            }
         });
     }
 

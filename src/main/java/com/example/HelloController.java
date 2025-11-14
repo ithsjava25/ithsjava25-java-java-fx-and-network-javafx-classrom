@@ -22,6 +22,14 @@ public class HelloController {
 
     private static final String HOST_NAME = System.getenv("HOST_NAME");
 
+    static {
+        if (HOST_NAME == null || HOST_NAME.isBlank()) {
+            throw new IllegalStateException(
+                    "Environment variable HOST_NAME must be set to the server URL."
+            );
+        }
+    }
+
 
 
 
