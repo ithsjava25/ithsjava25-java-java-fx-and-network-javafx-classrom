@@ -1,13 +1,11 @@
 package com.example;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.io.*;
-import java.util.Objects;
 
 /**
  * Model layer: encapsulates application data and business logic.
