@@ -19,18 +19,25 @@ public class ChatController {
     private ChatModel model;
 
     public void initialize() {
+        // Skapa modellen
         model = new ChatModel();
+
+        // Koppla ListView till modellens ObservableList
         messageList.setItems(model.getMessages());
 
+        // Sätt upp knapp och enter-tangent
         sendButton.setOnAction(e -> sendMessage());
         inputField.setOnAction(e -> sendMessage());
     }
 
     private void sendMessage() {
         String text = inputField.getText();
-        model.addMessage(text);
-        inputField.clear();
+        if (text != null && !text.isBlank()) {
+            model.addMessage(text);
+            inputField.clear();
+        }
     }
 }
+
 
 

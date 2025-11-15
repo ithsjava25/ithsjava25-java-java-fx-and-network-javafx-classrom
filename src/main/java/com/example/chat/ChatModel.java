@@ -19,7 +19,7 @@ public class ChatModel {
     public ChatModel() {
         String url = System.getenv("NTFY_URL");
         if (url == null || url.isBlank()) {
-            url = "http://localhost:8080/topic/test";
+            url = "http://localhost:8080/topic/test"; // fallback
         }
         ntfyUrl = url;
         startListening();
@@ -44,9 +44,13 @@ public class ChatModel {
                     .header("Content-Type", "text/plain")
                     .build();
 
-            client.sendAsync(request, HttpResponse.BodyHandlers.discarding());
+            client.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                    .exceptionally(e -> {
+                        Platform.runLater(() -> messages.add("Error sending message: " + e.getMessage()));
+                        return null;
+                    });
         } catch (Exception e) {
-            e.printStackTrace();
+            messages.add("Error creating request: " + e.getMessage());
         }
     }
 
@@ -59,17 +63,13 @@ public class ChatModel {
 
                 client.send(request, HttpResponse.BodyHandlers.ofLines())
                         .body()
-                        .forEach(line -> {
-                            if (!line.isBlank()) {
-                                Platform.runLater(() -> messages.add("Other: " + line));
-                            }
-                        });
+                        .forEach(line -> Platform.runLater(() -> {
+                            if (!line.isBlank()) messages.add("Other: " + line);
+                        }));
 
             } catch (Exception e) {
-                Platform.runLater(() -> messages.add("Error connecting to backend: " + e.getMessage()));
-                e.printStackTrace();
+                Platform.runLater(() -> messages.add("Error receiving messages: " + e.getMessage()));
             }
         }).start();
     }
 }
-
