@@ -6,7 +6,13 @@
 <VBox prefHeight="516.0" prefWidth="248.0" spacing="10" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
     <ListView fx:id="messageList" prefHeight="471.0" prefWidth="248.0" />
     <HBox spacing="10">
-        <TextField fx:id="inputField" promptText="Type here" HBox.hgrow="ALWAYS" />
-        <Button onAction="#sendMessage" text="Send" />
+        <VBox>
+            <TextField fx:id="inputField" promptText="Type here" HBox.hgrow="ALWAYS" />
+            <Label fx:id="fileLabel" text="No file selected"/>
+        </VBox>
+        <VBox prefHeight="51.0" prefWidth="78.0">
+            <Button onAction="#sendMessage" text="Send"/>
+            <Button onAction="#attachFile" text="Attach File"/>
+        </VBox>
     </HBox>
 </VBox>

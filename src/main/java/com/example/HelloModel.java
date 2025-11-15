@@ -6,6 +6,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.File;
+import java.io.IOException;
 
 
 public class HelloModel {
@@ -39,6 +41,10 @@ public class HelloModel {
 
     public void sendMessage() {
         connection.send(messageToSend.get());
+    }
+
+    public void sendFileToServer(File file) throws IOException {
+        connection.send(file.getAbsolutePath());
     }
 
     public void receiveMessage() {
