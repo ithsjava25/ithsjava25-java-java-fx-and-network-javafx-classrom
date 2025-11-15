@@ -1,18 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox stylesheets="@../../css/style.css" alignment="CENTER" style="-fx-spacing: 5;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="com.example.HelloController">
+
+    <top>
+        <HBox spacing="8" style="-fx-background-color: -fx-control-inner-background; -fx-alignment: center;">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+
+            <Label text="Username:">
+            <opaqueInsets>
+               <Insets />
+            </opaqueInsets></Label>
+            <TextField fx:id="usernameField" prefWidth="200" />
+            <Region HBox.hgrow="ALWAYS" />
+            <CheckBox fx:id="hideMyMessagesCheck" text="Hide my messages" />
+            <Button fx:id="attachButton" onAction="#onAttachFile" text="Attach file" />
+        </HBox>
+    </top>
 
 
-    <Label fx:id="messageLabel" text="0 poäng" />
-    <Label fx:id="currentDateAndTime" text="" />
-    <HBox alignment="CENTER" style="-fx-padding: 10; -fx-spacing: 5">
-        <ImageView image="${controller.model.noSmash}"/>
-        <ImageView image="${controller.model.smash1}"/>
-        <ImageView image="${controller.model.smash2}"/>
-    </HBox>
+    <center>
+        <VBox spacing="6">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
 
-</VBox>
+            <ListView fx:id="chatList" prefHeight="380" />
+
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <ProgressBar fx:id="uploadProgress" prefWidth="200" progress="0" visible="false" />
+                <Label fx:id="statusLabel" text="Ready" />
+            </HBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="8">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+
+            <TextField fx:id="inputField" onAction="#onSend" HBox.hgrow="ALWAYS" />
+            <Button fx:id="sendButton" onAction="#onSend" text="Send" />
+        </HBox>
+    </bottom>
+
+</BorderPane>
