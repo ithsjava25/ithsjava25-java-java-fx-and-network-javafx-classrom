@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.HelloController"
+      spacing="10" padding="10">
+    <!-- Hälsning -->
+    <Label fx:id="messageLabel" text="Hello, JavaFX" />
+
+    <!--Lista för meddelanden-->
+    <Label text="Meddelanden: " />
+    <ListView fx:id="messageListView" prefHeight="200" />
+
+    <!--Inputfält och knappar-->
+    <HBox spacing="10">
+        <TextField fx:id="messageTextField" promptText="Skriv ett meddelande..." />
+        <Button text="Skicka" onAction="#onSendButtonClick" />
+    </HBox>
+
+    <!--Prenumerationsknappar-->
+    <HBox spacing="10">
+        <Button text="Prenumerera" onAction="#onSubscribeButtonClick" />
+        <Button text="Avbryt prenumeration" onAction="#onUnsubscribeButtonClick" />
+    </HBox>
+
+    <!--Status för anslutning-->
+    <Label fx:id="connectionStatusLabel" text="Ansluten: nej" />
+</VBox>
+
+
+
