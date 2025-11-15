@@ -1,23 +1,33 @@
-package java.com.example.chat.model;
-
 package com.example.chat.model;
 
+import com.example.chat.ChatModel;
+import javafx.collections.ObservableList;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ChatModelTest {
-    @Test
-    void buildPublishJson_shouldContainTopicAndMessage() throws Exception {
-        ChatModel m = new ChatModel();
-        String json = m.buildPublishJson("hejtopic", "hej världen");
-        assertTrue(json.contains("hejtopic"));
-        assertTrue(json.contains("hej världen"));
+class ChatModelTest {
+
+    private ChatModel model;
+
+    @BeforeEach
+    void setUp() {
+        model = new ChatModel();
     }
 
     @Test
-    void addMessage_addsToList() {
-        ChatModel m = new ChatModel();
-        m.addMessage(new ChatMessage("Anna", "Hej"));
-        assertEquals(1, m.getMessages().size());
+    void testAddMessage() {
+        model.addMessage("Hello");
+        ObservableList<String> messages = model.getMessages();
+        assertEquals(1, messages.size());
+        assertTrue(messages.get(0).contains("Me: Hello"));
+    }
+
+    @Test
+    void testAddEmptyMessage() {
+        model.addMessage("");
+        ObservableList<String> messages = model.getMessages();
+        assertEquals(0, messages.size());
     }
 }
