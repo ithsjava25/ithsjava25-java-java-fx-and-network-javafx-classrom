@@ -1,28 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.chat.ChatController">
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.chat.ChatController">
+    <ListView fx:id="messageList" prefHeight="400" />
+    <HBox spacing="10">
+        <TextField fx:id="inputField" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="sendButton" text="Send"/>
+    </HBox>
+</VBox>
 
-    <center>
-        <ListView fx:id="messageList"/>
-    </center>
-
-    <bottom>
-        <BorderPane padding="10">
-            <left>
-                <TextField fx:id="messageInput" promptText="Enter message..."/>
-            </left>
-            <right>
-                <Button fx:id="sendButton"
-                        text="Send"
-                        onAction="#onSendClicked"/>
-            </right>
-        </BorderPane>
-    </bottom>
-
-</BorderPane>

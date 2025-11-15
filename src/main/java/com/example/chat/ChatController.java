@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 public class ChatController {
 
     @FXML
-    private TextField messageInput;
+    private TextField inputField;
 
     @FXML
     private Button sendButton;
@@ -19,14 +19,18 @@ public class ChatController {
     private ChatModel model;
 
     public void initialize() {
-        model = new ChatModel(messageList);
+        model = new ChatModel();
+        messageList.setItems(model.getMessages());
+
+        sendButton.setOnAction(e -> sendMessage());
+        inputField.setOnAction(e -> sendMessage());
     }
 
-    @FXML
-    private void onSendClicked() {
-        String text = messageInput.getText();
-        model.sendMessage(text);
-        messageInput.clear();
+    private void sendMessage() {
+        String text = inputField.getText();
+        model.addMessage(text);
+        inputField.clear();
     }
 }
+
 

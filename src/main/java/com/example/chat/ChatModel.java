@@ -1,21 +1,22 @@
 package com.example.chat;
 
-import javafx.application.Platform;
-import javafx.scene.control.ListView;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class ChatModel {
 
-    private final ListView<String> messageList;
+    private final ObservableList<String> messages = FXCollections.observableArrayList();
 
-    public ChatModel(ListView<String> messageList) {
-        this.messageList = messageList;
+    public ObservableList<String> getMessages() {
+        return messages;
     }
 
-    public void sendMessage(String text) {
-        if (text == null || text.isBlank()) return;
-
-        // For now: only add to UI (network comes in later commits)
-        Platform.runLater(() -> messageList.getItems().add("You: " + text));
+    public void addMessage(String message) {
+        if (message != null && !message.isBlank()) {
+            messages.add(message);
+        }
     }
+
 }
+
 
