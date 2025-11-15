@@ -30,6 +30,9 @@ public class HelloFX extends Application {
         fxmlLoader.setControllerFactory(c -> new HelloController(model, httpClient, hostName));
         Parent root = fxmlLoader.load();
         Scene scene = new Scene(root, 640, 480);
+
+        scene.getStylesheets().add(HelloFX.class.getResource("styles.css").toExternalForm());
+
         stage.setTitle("Hello MVC");
         stage.setScene(scene);
         stage.show();

@@ -1,0 +1,7 @@
+.list-view .list-cell {
+    -fx-padding: 5px;
+}
+
+.button {
+    -fx-pref-width: 120px;
+}
