@@ -166,47 +166,78 @@ public class HelloController {
     private void sendMessage() {
         try {
             if (selectedFile != null) {
-                String fileName = selectedFile.getName();
-                pendingFileNames.add(fileName);
-                Platform.runLater(() -> messageView.refresh());
-
-                boolean ok = model.sendFile(selectedFile);
-                messageLabel.setText(ok ? "File sent" : "File error");
-                Timeline cleanupTimeline = new Timeline(
-                        new KeyFrame(javafx.util.Duration.millis(2000), e -> {
-                            pendingFileNames.remove(fileName);
-                            trackRealFileId(fileName);
-                        })
-                );
-                cleanupTimeline.play();
-
-                selectedFile = null;
+                sendFileMessage();
                 return;
             }
 
-            String text = inputField.getText().trim();
-            if (!text.isEmpty()) {
-                pendingMessageTexts.add(text);
-                Platform.runLater(() -> messageView.refresh());
-                model.sendMessage(text);
-                inputField.clear();
-                messageLabel.setText("Message sent");
-                Timeline cleanupTimeline = new Timeline(
-                        new KeyFrame(javafx.util.Duration.millis(2000), e -> {
-                            pendingMessageTexts.remove(text);
-                            trackRealMessageId(text);
-                        })
-                );
-                cleanupTimeline.play();
-
-            } else {
-                messageLabel.setText("Write something before sending.");
-            }
+            sendTextMessage();
         } catch (Exception e) {
-            messageLabel.setText("Send error: " + e.getMessage());
-            System.err.println("❌ SEND ERROR: ");
-            e.printStackTrace();
+            handleSendError(e);
         }
+    }
+
+    /**
+     * Handles sending file messages with proper cleanup and tracking
+     */
+    private void sendFileMessage() {
+        String fileName = selectedFile.getName();
+        pendingFileNames.add(fileName);
+        Platform.runLater(() -> messageView.refresh());
+
+        boolean ok = model.sendFile(selectedFile);
+        messageLabel.setText(ok ? "File sent" : "File error");
+
+        scheduleCleanup(() -> {
+            pendingFileNames.remove(fileName);
+            trackRealFileId(fileName);
+        }, 2000);
+
+        selectedFile = null;
+    }
+
+    /**
+     * Handles sending text messages with validation and cleanup
+     */
+    private void sendTextMessage() {
+        String text = inputField.getText().trim();
+        if (text.isEmpty()) {
+            messageLabel.setText("Write something before sending.");
+            return;
+        }
+
+        pendingMessageTexts.add(text);
+        Platform.runLater(() -> messageView.refresh());
+        model.sendMessage(text);
+        inputField.clear();
+        messageLabel.setText("Message sent");
+
+        scheduleCleanup(() -> {
+            pendingMessageTexts.remove(text);
+            trackRealMessageId(text);
+        }, 2000);
+    }
+
+    /**
+     * Schedules cleanup tasks to run after a delay
+     * @param cleanupTask the task to execute
+     * @param delayMillis delay in milliseconds
+     */
+    private void scheduleCleanup(Runnable cleanupTask, long delayMillis) {
+        Timeline cleanupTimeline = new Timeline(
+                new KeyFrame(javafx.util.Duration.millis(delayMillis), e -> cleanupTask.run())
+        );
+        cleanupTimeline.play();
+    }
+
+    /**
+     * Handles send errors with consistent error reporting
+     * @param e the exception that occurred
+     */
+    private void handleSendError(Exception e) {
+        String errorMessage = "Send error: " + e.getMessage();
+        messageLabel.setText(errorMessage);
+        System.err.println("❌ SEND ERROR: " + errorMessage);
+        e.printStackTrace();
     }
 
     /**
