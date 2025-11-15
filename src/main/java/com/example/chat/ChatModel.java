@@ -69,10 +69,11 @@ public class ChatModel {
                     client.send(request, HttpResponse.BodyHandlers.ofLines())
                             .body()
                             .forEach(line -> {
-                                if (!line.isBlank() && !line.contains("data:")) return; // ignore non-data lines
-                                String content = line.replaceFirst("data:", "").trim();
-                                if (!content.isEmpty()) {
-                                    Platform.runLater(() -> messages.add("Other: " + content));
+                                if (!line.isBlank() && line.startsWith("data:")) {
+                                    String content = line.replaceFirst("data:", "").trim();
+                                    if (!content.isEmpty()) {
+                                        Platform.runLater(() -> messages.add("Other: " + content));
+                                    }
                                 }
                             });
 
