@@ -56,29 +56,28 @@ public class ChatModel {
     }
 
     private void startListening() {
-        new Thread(() -> {
-            try {
-                while (true) {
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(URI.create(ntfyUrl + "/events"))
-                            .GET()
-                            .build();
+    new Thread(() -> {
+        try {
+            while (true) {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(ntfyUrl + "/events"))
+                        .build();
 
-                    client.send(request, HttpResponse.BodyHandlers.ofLines())
-                            .body()
-                            .forEach(line -> {
-                                if (!line.isBlank() && !line.contains("data:")) return; // ignore non-data lines
-                                String content = line.replaceFirst("data:", "").trim();
-                                if (!content.isEmpty()) {
-                                    Platform.runLater(() -> messages.add("Other: " + content));
-                                }
-                            });
+                client.send(request, HttpResponse.BodyHandlers.ofLines())
+                        .body()
+                        .forEach(line -> {
+                            if (!line.isBlank()) {
+                                Platform.runLater(() -> messages.add("Other: " + line));
+                            }
+                        });
 
-                    Thread.sleep(1000); // poll every second
-                }
-            } catch (Exception e) {
-                Platform.runLater(() -> messages.add("Error receiving messages: " + e.getMessage()));
+                // Vänta lite innan nästa poll
+                Thread.sleep(1000);
             }
-        }).start();
-    }
+        } catch (Exception e) {
+            Platform.runLater(() -> messages.add("Error receiving messages: " + e.getMessage()));
+        }
+    }).start();
+}
+
 }
