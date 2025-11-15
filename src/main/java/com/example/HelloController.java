@@ -32,8 +32,12 @@ public class HelloController {
     private final String myTopic = "MY_TOPIC";
     private final Set<String> sentMessageIds = ConcurrentHashMap.newKeySet();
     private final Set<String> pendingMessageTexts = ConcurrentHashMap.newKeySet();
-    private final Set<String> pendingFileNames = ConcurrentHashMap.newKeySet(); // Track files we just sent
+    private final Set<String> pendingFileNames = ConcurrentHashMap.newKeySet();
 
+    /**
+     * Sets the primary stage for this controller
+     * @param stage the primary JavaFX stage to use for dialog windows
+     */
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }
@@ -42,50 +46,43 @@ public class HelloController {
     private void initialize() {
         try {
             messageView.setItems(model.getMessages());
-
-            // Add Enter key support for sending messages
             inputField.setOnAction(event -> sendMessage());
-
-            // Auto-scroll to latest message when new messages are added
             model.getMessages().addListener((javafx.collections.ListChangeListener.Change<? extends NtfyMessageDto> change) -> {
                 while (change.next()) {
                     if (change.wasAdded()) {
                         Platform.runLater(() -> {
                             messageView.scrollTo(messageView.getItems().size() - 1);
-                            // Refresh to ensure proper sender labeling
                             messageView.refresh();
                         });
                     }
                 }
             });
 
-            // Show welcome message
             showWelcomeMessage();
 
             messageView.setCellFactory(lv -> new ListCell<>() {
+                /**
+                 * Updates the list cell content for each message
+                 * @param item the NtfyMessageDto to display, contains message data
+                 * @param empty indicates if the cell is empty and should be cleared
+                 */
                 @Override
                 protected void updateItem(NtfyMessageDto item, boolean empty) {
                     super.updateItem(item, empty);
-
                     if (empty || item == null) {
                         setText(null);
                         setGraphic(null);
                         return;
                     }
-
-                    // Determine if this is our message or incoming
                     boolean isMyMessage = isMyMessage(item);
 
-                    // Create the message content
                     VBox messageContainer = new VBox(2);
                     messageContainer.setAlignment(Pos.CENTER);
                     messageContainer.setPadding(new Insets(5, 10, 5, 10));
 
-                    // Sender label
                     Label senderLabel = new Label(isMyMessage ? "You:" : "Incoming:");
                     senderLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #00FF41; -fx-font-weight: bold;");
 
-                    // Message content
                     HBox contentBox = new HBox(5);
                     contentBox.setAlignment(Pos.CENTER);
 
@@ -127,7 +124,6 @@ public class HelloController {
                         contentBox.getChildren().add(messageLabel);
                     }
 
-                    // Timestamp
                     Label timeLabel = new Label(item.getFormattedTime());
                     timeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #00AA00;");
 
@@ -154,27 +150,14 @@ public class HelloController {
 
     /**
      * Simplified method to determine if a message is from the current user
+     * @param item the message DTO to check ownership of
+     * @return true if the message was sent by current user, false otherwise
      */
     private boolean isMyMessage(NtfyMessageDto item) {
-        // Check if we've tracked this message ID
-        if (sentMessageIds.contains(item.id())) {
-            return true;
-        }
-
-        // Check if this is a text message we just sent (by content)
-        if (item.message() != null && pendingMessageTexts.contains(item.message())) {
-            return true;
-        }
-
-        // Check if this is a file we just sent (by attachment name)
-        if (item.hasAttachment() && item.getAttachmentName() != null &&
-                pendingFileNames.contains(item.getAttachmentName())) {
-            return true;
-        }
-
-        // Fallback: check if it's from our topic
-        return myTopic.equals(item.topic());
-    }
+        if (sentMessageIds.contains(item.id())) {return true;}
+        if (item.message() != null && pendingMessageTexts.contains(item.message())) {return true;}
+        if (item.hasAttachment() && item.getAttachmentName() != null && pendingFileNames.contains(item.getAttachmentName())) {return true;}
+        return myTopic.equals(item.topic());}
 
     @FXML
     private void onSend() { sendMessage(); }
@@ -183,20 +166,14 @@ public class HelloController {
     private void sendMessage() {
         try {
             if (selectedFile != null) {
-                // Track this file name immediately
                 String fileName = selectedFile.getName();
                 pendingFileNames.add(fileName);
-
-                // Refresh immediately to show any matching file messages as "You:"
                 Platform.runLater(() -> messageView.refresh());
 
                 boolean ok = model.sendFile(selectedFile);
                 messageLabel.setText(ok ? "File sent" : "File error");
-
-                // Set up delayed cleanup and ID tracking for files
                 Timeline cleanupTimeline = new Timeline(
                         new KeyFrame(javafx.util.Duration.millis(2000), e -> {
-                            // Remove from pending file names and try to find the real ID
                             pendingFileNames.remove(fileName);
                             trackRealFileId(fileName);
                         })
@@ -209,21 +186,13 @@ public class HelloController {
 
             String text = inputField.getText().trim();
             if (!text.isEmpty()) {
-                // Track this message text immediately
                 pendingMessageTexts.add(text);
-
-                // Refresh immediately to show any matching messages as "You:"
                 Platform.runLater(() -> messageView.refresh());
-
-                // Send the message
                 model.sendMessage(text);
                 inputField.clear();
                 messageLabel.setText("Message sent");
-
-                // Set up delayed cleanup and ID tracking
                 Timeline cleanupTimeline = new Timeline(
                         new KeyFrame(javafx.util.Duration.millis(2000), e -> {
-                            // Remove from pending texts and try to find the real ID
                             pendingMessageTexts.remove(text);
                             trackRealMessageId(text);
                         })
@@ -241,17 +210,14 @@ public class HelloController {
     }
 
     /**
-     * Find the real message ID for a sent message
+     * Find the real message ID for a sent message by matching text content
+     * @param expectedText the text content to search for in received messages
      */
     private void trackRealMessageId(String expectedText) {
         for (NtfyMessageDto message : model.getMessages()) {
             if (expectedText.equals(message.message()) &&
                     !sentMessageIds.contains(message.id())) {
-
-                // Track the real ID
                 sentMessageIds.add(message.id());
-
-                // Refresh the display
                 Platform.runLater(() -> messageView.refresh());
                 break;
             }
@@ -265,18 +231,13 @@ public class HelloController {
         for (NtfyMessageDto message : model.getMessages()) {
             if (message.hasAttachment() && expectedFileName.equals(message.getAttachmentName()) &&
                     !sentMessageIds.contains(message.id())) {
-
-                // Track the real ID
                 sentMessageIds.add(message.id());
-
-                // Refresh the display
                 Platform.runLater(() -> messageView.refresh());
                 break;
             }
         }
     }
 
-    // ... rest of the methods remain the same ...
     private void showWelcomeMessage() {
         Platform.runLater(() -> {
             Alert welcomeAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -301,25 +262,26 @@ public class HelloController {
                             "-fx-border-width: 2px; " +
                             "-fx-border-radius: 5px;"
             );
-
             welcomeAlert.getDialogPane().lookupButton(ButtonType.OK).setStyle(
                     "-fx-background-color: #003B00; " +
                             "-fx-text-fill: #00FF41; " +
                             "-fx-border-color: #00FF41; " +
                             "-fx-font-family: 'Consolas';"
             );
-
             welcomeAlert.setGraphic(null);
-
             Timeline autoCloseTimeline = new Timeline(
                     new KeyFrame(javafx.util.Duration.seconds(12), e -> welcomeAlert.close())
             );
             autoCloseTimeline.play();
-
             welcomeAlert.show();
         });
     }
 
+    /**
+     * Creates an appropriate icon view for different attachment types
+     * @param item the message DTO containing attachment information
+     * @return ImageView configured with appropriate icon and click handlers
+     */
     private ImageView createIconForAttachment(NtfyMessageDto item) {
         ImageView iconView = new ImageView();
         try {
@@ -344,7 +306,6 @@ public class HelloController {
                         }
                     });
                 }
-
             } else if ("application/pdf".equals(type)) {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/pdf.png")));
             } else if ("application/zip".equals(type)) {
@@ -352,7 +313,6 @@ public class HelloController {
             } else {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
             }
-
         } catch (Exception e) {
             System.err.println("❌ ICON ERROR: " + e.getMessage());
             e.printStackTrace();
@@ -360,7 +320,6 @@ public class HelloController {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/file.png")));
             } catch (Exception ignored) {}
         }
-
         return iconView;
     }
 
@@ -377,6 +336,10 @@ public class HelloController {
         }
     }
 
+    /**
+     * Shows an error alert dialog with the specified message
+     * @param msg the error message to display in the alert dialog
+     */
     private void showAlert(String msg) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
