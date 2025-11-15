@@ -2,14 +2,14 @@ package com.example;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -34,85 +34,95 @@ public class HelloController {
     @FXML
     private void initialize() {
         try {
-            messageView.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent;");
             messageView.setItems(model.getMessages());
 
             messageView.setCellFactory(lv -> new ListCell<>() {
                 @Override
                 protected void updateItem(NtfyMessageDto item, boolean empty) {
-                    try {
-                        super.updateItem(item, empty);
+                    super.updateItem(item, empty);
 
-                        if (empty || item == null) {
-                            setText(null);
-                            setGraphic(null);
-                            return;
-                        }
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                        return;
+                    }
 
-                        boolean isIncoming = !myTopic.equals(item.topic());
-                        HBox cellBox = new HBox(5);
-                        cellBox.setMaxWidth(Double.MAX_VALUE);
-                        Region spacer = new Region();
-                        HBox.setHgrow(spacer, Priority.ALWAYS);
+                    boolean isIncoming = !myTopic.equals(item.topic());
 
-                        // Hantera text
-                        String displayText;
-                        if (item.hasAttachment()) {
-                            displayText = item.getAttachmentName();
-                        } else if (item.message() != null && !item.message().isBlank()) {
-                            displayText = item.message();
-                        } else {
-                            displayText = null;
-                        }
+                    // Create the message content with sender label and timestamp
+                    VBox messageContainer = new VBox(2);
+                    messageContainer.setAlignment(Pos.CENTER);
+                    messageContainer.setPadding(new Insets(5, 10, 5, 10));
 
-                        Label text = new Label();
-                        if (displayText != null) {
-                            text.setText(displayText);
-                        } else if (isIncoming) {
-                            text.setText("(Inget meddelande)");
-                        } else {
-                            text.setText(""); // tom text för skickade meddelanden
-                        }
+                    // Sender label (Me: or Incoming:)
+                    Label senderLabel = new Label(isIncoming ? "Incoming:" : "Me:");
+                    senderLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #00FF41; -fx-font-weight: bold;");
 
-                        text.setWrapText(true);
-                        text.setMaxWidth(400);
-                        text.setStyle(
-                                "-fx-background-color: " + (isIncoming ? "#DDDDDDCC" : "#4CAF50CC") + ";" +
-                                        "-fx-text-fill: " + (isIncoming ? "black" : "white") + ";" +
-                                        "-fx-padding: 8;" +
-                                        "-fx-background-radius: 10;"
+                    // Message content
+                    HBox contentBox = new HBox(5);
+                    contentBox.setAlignment(Pos.CENTER);
+
+                    // Handle attachment icon
+                    if (item.hasAttachment()) {
+                        ImageView icon = createIconForAttachment(item);
+                        icon.setFitWidth(20);
+                        icon.setFitHeight(20);
+
+                        Label messageLabel = new Label("📎 " + item.getAttachmentName());
+                        messageLabel.setWrapText(true);
+                        messageLabel.setMaxWidth(400);
+                        messageLabel.setStyle(
+                                "-fx-background-color: #003B00;" +
+                                        "-fx-text-fill: #00FF41;" +
+                                        "-fx-padding: 8px 12px;" +
+                                        "-fx-background-radius: 15px;" +
+                                        "-fx-font-size: 14px;" +
+                                        "-fx-border-color: #008F11;" +
+                                        "-fx-border-width: 1px;" +
+                                        "-fx-border-radius: 15px;"
                         );
 
-                        // Hantera ikon
-                        ImageView iconView = null;
-                        if (item.hasAttachment()) {
-                            iconView = createIconForAttachment(item);
-                        }
+                        contentBox.getChildren().addAll(icon, messageLabel);
+                    } else {
+                        // Text message
+                        String displayText = getDisplayText(item);
+                        Label messageLabel = new Label(displayText);
+                        messageLabel.setWrapText(true);
+                        messageLabel.setMaxWidth(400);
+                        messageLabel.setStyle(
+                                "-fx-background-color: " + (isIncoming ? "#002800" : "#003B00") + ";" +
+                                        "-fx-text-fill: #00FF41;" +
+                                        "-fx-padding: 8px 12px;" +
+                                        "-fx-background-radius: 15px;" +
+                                        "-fx-font-size: 14px;" +
+                                        "-fx-border-color: " + (isIncoming ? "#006400" : "#008F11") + ";" +
+                                        "-fx-border-width: 1px;" +
+                                        "-fx-border-radius: 15px;"
+                        );
+                        contentBox.getChildren().add(messageLabel);
+                    }
 
-                        if (isIncoming) {
-                            if (iconView != null) cellBox.getChildren().add(iconView);
-                            cellBox.getChildren().add(text);
-                        } else {
-                            cellBox.getChildren().add(spacer);
-                            cellBox.getChildren().add(text);
-                            if (iconView != null) cellBox.getChildren().add(iconView);
-                        }
+                    // Timestamp
+                    Label timeLabel = new Label(item.getFormattedTime());
+                    timeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #00AA00;");
 
-                        HBox wrapper = new HBox(cellBox);
-                        wrapper.setMaxWidth(Double.MAX_VALUE);
-                        wrapper.setAlignment(isIncoming ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
-                        setGraphic(wrapper);
+                    messageContainer.getChildren().addAll(senderLabel, contentBox, timeLabel);
 
-                    } catch (Exception e) {
-                        System.err.println("❌ Fel i cell-factory: " + e.getMessage());
-                        setText("(Fel vid visning)");
-                        setGraphic(null);
-                        e.printStackTrace();
+                    setGraphic(messageContainer);
+                    setText(null);
+                    setAlignment(Pos.CENTER); // Center all messages
+                }
+
+                private String getDisplayText(NtfyMessageDto item) {
+                    if (item.message() != null && !item.message().isBlank()) {
+                        return item.message();
+                    } else {
+                        return "(No message)";
                     }
                 }
             });
         } catch (Exception e) {
-            showAlert("Fel vid initialisering: " + e.getMessage());
+            showAlert("Error during initialization: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -125,7 +135,7 @@ public class HelloController {
         try {
             if (selectedFile != null) {
                 boolean ok = model.sendFile(selectedFile);
-                messageLabel.setText(ok ? "Filen skickad" : "Fel vid fil");
+                messageLabel.setText(ok ? "File sent" : "File error");
                 selectedFile = null;
                 return;
             }
@@ -134,12 +144,12 @@ public class HelloController {
             if (!text.isEmpty()) {
                 model.sendMessage(text);
                 inputField.clear();
-                messageLabel.setText("Meddelande skickat");
+                messageLabel.setText("Message sent");
             } else {
-                messageLabel.setText("Skriv något innan du skickar.");
+                messageLabel.setText("Write something before sending.");
             }
         } catch (Exception e) {
-            messageLabel.setText("Fel vid sändning: " + e.getMessage());
+            messageLabel.setText("Send error: " + e.getMessage());
             System.err.println("❌ SEND ERROR: ");
             e.printStackTrace();
         }
@@ -148,28 +158,26 @@ public class HelloController {
     private ImageView createIconForAttachment(NtfyMessageDto item) {
         ImageView iconView = new ImageView();
         try {
-            iconView.setFitWidth(24);
-            iconView.setFitHeight(24);
-
             String type = item.getAttachmentContentType();
             File file = new File("downloads", item.getAttachmentName());
 
             if (type != null && type.startsWith("image/")) {
-                // Alltid visa image.png som ikon
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
 
-                // Klickbar bild för att öppna i nytt fönster
                 if (file.exists()) {
+                    // Fix: Use setOnMouseClicked instead of adding multiple handlers
                     iconView.setOnMouseClicked(e -> {
-                        ImageView fullImage = new ImageView(new Image(file.toURI().toString()));
-                        fullImage.setPreserveRatio(true);
-                        fullImage.setFitWidth(600);
-                        fullImage.setFitHeight(600);
+                        if (e.getClickCount() == 2) { // Double click
+                            ImageView fullImage = new ImageView(new Image(file.toURI().toString()));
+                            fullImage.setPreserveRatio(true);
+                            fullImage.setFitWidth(600);
+                            fullImage.setFitHeight(600);
 
-                        Stage stage = new Stage();
-                        stage.setTitle(item.getAttachmentName());
-                        stage.setScene(new Scene(new StackPane(fullImage), 600, 600));
-                        stage.show();
+                            Stage stage = new Stage();
+                            stage.setTitle(item.getAttachmentName());
+                            stage.setScene(new Scene(new StackPane(fullImage), 600, 600));
+                            stage.show();
+                        }
                     });
                 }
 
@@ -197,9 +205,9 @@ public class HelloController {
         try {
             FileChooser chooser = new FileChooser();
             selectedFile = chooser.showOpenDialog(primaryStage);
-            if (selectedFile != null) messageLabel.setText("Vald fil: " + selectedFile.getName());
+            if (selectedFile != null) messageLabel.setText("Selected file: " + selectedFile.getName());
         } catch (Exception e) {
-            showAlert("Fel vid filval: " + e.getMessage());
+            showAlert("File selection error: " + e.getMessage());
             System.err.println("❌ FILE CHOOSER ERROR: ");
             e.printStackTrace();
         }
@@ -208,7 +216,7 @@ public class HelloController {
     private void showAlert(String msg) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Fel");
+            alert.setTitle("Error");
             alert.setHeaderText(null);
             alert.setContentText(msg);
             alert.showAndWait();

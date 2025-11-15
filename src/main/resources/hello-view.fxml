@@ -3,12 +3,12 @@
 <?import javafx.scene.layout.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.example.HelloController">
+           fx:controller="com.example.HelloController" stylesheets="@styles.css">
 
-    <VBox spacing="10" alignment="CENTER" prefWidth="700" prefHeight="600">
-        <Label fx:id="messageLabel" text="Chatt-status"/>
-        <ListView fx:id="messageView" prefHeight="450" prefWidth="680"/>
-        <HBox spacing="5" alignment="CENTER">
+    <VBox spacing="0" alignment="CENTER" prefWidth="700" prefHeight="600" style="-fx-background-color: transparent;">
+        <Label fx:id="messageLabel" text="Chatt-status" styleClass="chat-status"/>
+        <ListView fx:id="messageView" prefHeight="450" prefWidth="680" styleClass="message-list"/>
+        <HBox spacing="5" alignment="CENTER" styleClass="input-area">
             <TextField fx:id="inputField" promptText="Skriv meddelande..." HBox.hgrow="ALWAYS"/>
             <Button text="Send" onAction="#onSend"/>
             <Button text="Attach" onAction="#attachFile"/>

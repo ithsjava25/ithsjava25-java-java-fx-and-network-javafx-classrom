@@ -1,0 +1,113 @@
+/* styles.css - Matrix Theme with Readable Chat */
+
+.root {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-background-color: #000000;
+}
+
+/* Make chat bubbles semi-transparent to show Matrix background */
+.message-list {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+    -fx-control-inner-background: transparent;
+    -fx-border-color: #00FF41;
+    -fx-border-width: 1px;
+    -fx-background-radius: 5px;
+}
+
+.message-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 2px;
+    -fx-alignment: center;
+}
+
+.message-list .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+.message-list .scroll-bar:vertical {
+    -fx-background-color: rgba(0, 17, 0, 0.8);
+}
+
+.message-list .scroll-bar:vertical .thumb {
+    -fx-background-color: #00FF41;
+}
+
+.message-list .scroll-bar:vertical .track {
+    -fx-background-color: rgba(0, 34, 0, 0.8);
+}
+
+/* Input area with transparency */
+.input-area {
+    -fx-background-color: rgba(0, 17, 0, 0.8);
+    -fx-padding: 15px;
+    -fx-border-color: #00FF41;
+    -fx-border-width: 1px 0 0 0;
+    -fx-background-radius: 0 0 5px 5px;
+}
+
+.chat-status {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #00FF41;
+    -fx-padding: 10px;
+    -fx-background-color: rgba(0, 17, 0, 0.8);
+    -fx-border-color: #00FF41;
+    -fx-border-width: 0 0 1px 0;
+    -fx-background-radius: 5px 5px 0 0;
+}
+
+.text-field {
+    -fx-background-color: rgba(0, 34, 0, 0.9);
+    -fx-text-fill: #00FF41;
+    -fx-prompt-text-fill: #008F11;
+    -fx-border-color: #00FF41;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px 12px;
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+}
+
+.text-field:focused {
+    -fx-border-color: #00FF41;
+    -fx-background-color: rgba(0, 51, 0, 0.9);
+    -fx-effect: dropshadow(gaussian, #00FF41, 10, 0.5, 0, 0);
+}
+
+.button {
+    -fx-background-color: rgba(0, 34, 0, 0.9);
+    -fx-text-fill: #00FF41;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+    -fx-border-color: #00FF41;
+    -fx-border-width: 1px;
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+}
+
+.button:hover {
+    -fx-background-color: rgba(0, 51, 0, 0.9);
+    -fx-effect: dropshadow(gaussian, #00FF41, 10, 0.5, 0, 0);
+}
+
+.button:pressed {
+    -fx-background-color: rgba(0, 17, 0, 0.9);
+}
+
+/* Specific button styles */
+.button:text="Send" {
+    -fx-background-color: rgba(0, 59, 0, 0.9);
+}
+
+.button:text="Send":hover {
+                       -fx-background-color: rgba(0, 77, 0, 0.9);
+                   }
+
+.button:text="Attach" {
+    -fx-background-color: rgba(0, 40, 0, 0.9);
+}
+
+.button:text="Attach":hover {
+                         -fx-background-color: rgba(0, 51, 0, 0.9);
+                     }
