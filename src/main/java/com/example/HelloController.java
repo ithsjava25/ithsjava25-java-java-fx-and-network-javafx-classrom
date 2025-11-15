@@ -1,5 +1,7 @@
 package com.example;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -35,6 +37,9 @@ public class HelloController {
     private void initialize() {
         try {
             messageView.setItems(model.getMessages());
+
+            // Show welcome message
+            showWelcomeMessage();
 
             messageView.setCellFactory(lv -> new ListCell<>() {
                 @Override
@@ -125,6 +130,50 @@ public class HelloController {
             showAlert("Error during initialization: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void showWelcomeMessage() {
+        Platform.runLater(() -> {
+            Alert welcomeAlert = new Alert(Alert.AlertType.INFORMATION);
+            welcomeAlert.setTitle("Welcome to Matrix Binary Chat");
+            welcomeAlert.setHeaderText("🚀 Welcome to the Matrix Binary Chat!");
+
+            String welcomeText = "Welcome to the Matrix Binary Chat!\n\n" +
+                    "💡 Tips:\n" +
+                    "• Double tap file icons to open pictures\n" +
+                    "• Pictures and files are automatically downloaded to 'downloads' folder\n" +
+                    "• Chat in real-time with binary encryption\n\n" +
+                    "This message will auto-close in 12 seconds...";
+
+            Label contentLabel = new Label(welcomeText);
+            contentLabel.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 12px; -fx-text-fill: #00FF41; -fx-background-color: #001100; -fx-padding: 10px;");
+            contentLabel.setWrapText(true);
+
+            welcomeAlert.getDialogPane().setContent(contentLabel);
+            welcomeAlert.getDialogPane().setStyle(
+                    "-fx-background-color: #001100; " +
+                            "-fx-border-color: #00FF41; " +
+                            "-fx-border-width: 2px; " +
+                            "-fx-border-radius: 5px;"
+            );
+
+            welcomeAlert.getDialogPane().lookupButton(ButtonType.OK).setStyle(
+                    "-fx-background-color: #003B00; " +
+                            "-fx-text-fill: #00FF41; " +
+                            "-fx-border-color: #00FF41; " +
+                            "-fx-font-family: 'Consolas';"
+            );
+
+            welcomeAlert.setGraphic(null);
+
+            // Auto-close using Timeline (JavaFX way) - 12 seconds
+            Timeline autoCloseTimeline = new Timeline(
+                    new KeyFrame(javafx.util.Duration.seconds(12), e -> welcomeAlert.close())
+            );
+            autoCloseTimeline.play();
+
+            welcomeAlert.show();
+        });
     }
 
     @FXML
