@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.chat.ChatController"
+      spacing="10">
+
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <ListView fx:id="messageList" prefHeight="400"/>
+    
+    <HBox spacing="10">
+        <TextField fx:id="inputField" HBox.hgrow="ALWAYS" promptText="Type your message..."/>
+        <Button fx:id="sendButton" text="Send"/>
+    </HBox>
+</VBox>
