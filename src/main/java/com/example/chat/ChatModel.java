@@ -66,7 +66,8 @@ public class ChatModel {
                     client.send(request, HttpResponse.BodyHandlers.ofLines())
                             .body()
                             .forEach(line -> {
-                                if (!line.isBlank()) {
+                                if (line != null && !line.isBlank()) {
+                                    // Ta bort "data:" om det finns
                                     String content = line.contains("data:") ? line.replaceFirst("data:", "").trim() : line;
                                     if (!content.isEmpty()) {
                                         Platform.runLater(() -> messages.add("Other: " + content));
@@ -74,7 +75,7 @@ public class ChatModel {
                                 }
                             });
 
-                    Thread.sleep(1000); // poll every second
+                    Thread.sleep(1000); // poll varje sekund
                 }
             } catch (Exception e) {
                 Platform.runLater(() -> messages.add("Error receiving messages: " + e.getMessage()));
@@ -82,3 +83,4 @@ public class ChatModel {
         }).start();
     }
 }
+
