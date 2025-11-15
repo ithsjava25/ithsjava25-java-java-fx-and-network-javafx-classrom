@@ -17,6 +17,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class HelloController {
 
@@ -28,6 +30,7 @@ public class HelloController {
     private Stage primaryStage;
     private File selectedFile;
     private final String myTopic = "MY_TOPIC";
+    private final Set<String> sentMessageIds = new HashSet<>(); // Track sent messages
 
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
@@ -52,15 +55,28 @@ public class HelloController {
                         return;
                     }
 
-                    boolean isIncoming = !myTopic.equals(item.topic());
+                    // Debug: Print message details to understand what's happening
+                    System.out.println("Message ID: " + item.id() +
+                            " | Topic: " + item.topic() +
+                            " | My Topic: " + myTopic +
+                            " | Message: " + item.message());
+
+                    // Determine if this is our message or incoming
+                    // Method 1: Check if we sent this message recently
+                    boolean isMyMessage = sentMessageIds.contains(item.id());
+
+                    // Method 2: If not found in sent messages, use topic comparison as fallback
+                    if (!isMyMessage) {
+                        isMyMessage = myTopic.equals(item.topic());
+                    }
 
                     // Create the message content with sender label and timestamp
                     VBox messageContainer = new VBox(2);
                     messageContainer.setAlignment(Pos.CENTER);
                     messageContainer.setPadding(new Insets(5, 10, 5, 10));
 
-                    // Sender label (Me: or Incoming:)
-                    Label senderLabel = new Label(isIncoming ? "Incoming:" : "Me:");
+                    // Sender label (You: for your messages, Incoming: for others)
+                    Label senderLabel = new Label(isMyMessage ? "You:" : "Incoming:");
                     senderLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #00FF41; -fx-font-weight: bold;");
 
                     // Message content
@@ -77,12 +93,12 @@ public class HelloController {
                         messageLabel.setWrapText(true);
                         messageLabel.setMaxWidth(400);
                         messageLabel.setStyle(
-                                "-fx-background-color: #003B00;" +
+                                "-fx-background-color: " + (isMyMessage ? "#003B00" : "#002800") + ";" +
                                         "-fx-text-fill: #00FF41;" +
                                         "-fx-padding: 8px 12px;" +
                                         "-fx-background-radius: 15px;" +
                                         "-fx-font-size: 14px;" +
-                                        "-fx-border-color: #008F11;" +
+                                        "-fx-border-color: " + (isMyMessage ? "#008F11" : "#006400") + ";" +
                                         "-fx-border-width: 1px;" +
                                         "-fx-border-radius: 15px;"
                         );
@@ -95,12 +111,12 @@ public class HelloController {
                         messageLabel.setWrapText(true);
                         messageLabel.setMaxWidth(400);
                         messageLabel.setStyle(
-                                "-fx-background-color: " + (isIncoming ? "#002800" : "#003B00") + ";" +
+                                "-fx-background-color: " + (isMyMessage ? "#003B00" : "#002800") + ";" +
                                         "-fx-text-fill: #00FF41;" +
                                         "-fx-padding: 8px 12px;" +
                                         "-fx-background-radius: 15px;" +
                                         "-fx-font-size: 14px;" +
-                                        "-fx-border-color: " + (isIncoming ? "#006400" : "#008F11") + ";" +
+                                        "-fx-border-color: " + (isMyMessage ? "#008F11" : "#006400") + ";" +
                                         "-fx-border-width: 1px;" +
                                         "-fx-border-radius: 15px;"
                         );
@@ -128,6 +144,51 @@ public class HelloController {
             });
         } catch (Exception e) {
             showAlert("Error during initialization: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onSend() { sendMessage(); }
+
+    @FXML
+    private void sendMessage() {
+        try {
+            if (selectedFile != null) {
+                boolean ok = model.sendFile(selectedFile);
+                messageLabel.setText(ok ? "File sent" : "File error");
+
+                // When we send a file, we can't track the ID, so we'll rely on topic comparison
+                // For files, we'll assume they show as "You:" based on topic
+                selectedFile = null;
+                return;
+            }
+
+            String text = inputField.getText().trim();
+            if (!text.isEmpty()) {
+                // Store that we're sending a message
+                // Note: We can't get the message ID before sending, so we'll track it differently
+                // For now, we'll rely on the topic comparison
+                model.sendMessage(text);
+                inputField.clear();
+                messageLabel.setText("Message sent");
+
+                // Add a small delay and then check the last message to mark it as ours
+                Platform.runLater(() -> {
+                    if (!model.getMessages().isEmpty()) {
+                        NtfyMessageDto lastMessage = model.getMessages().get(model.getMessages().size() - 1);
+                        if (lastMessage.message() != null && lastMessage.message().equals(text)) {
+                            sentMessageIds.add(lastMessage.id());
+                            messageView.refresh(); // Refresh to update the display
+                        }
+                    }
+                });
+            } else {
+                messageLabel.setText("Write something before sending.");
+            }
+        } catch (Exception e) {
+            messageLabel.setText("Send error: " + e.getMessage());
+            System.err.println("❌ SEND ERROR: ");
             e.printStackTrace();
         }
     }
@@ -174,34 +235,6 @@ public class HelloController {
 
             welcomeAlert.show();
         });
-    }
-
-    @FXML
-    private void onSend() { sendMessage(); }
-
-    @FXML
-    private void sendMessage() {
-        try {
-            if (selectedFile != null) {
-                boolean ok = model.sendFile(selectedFile);
-                messageLabel.setText(ok ? "File sent" : "File error");
-                selectedFile = null;
-                return;
-            }
-
-            String text = inputField.getText().trim();
-            if (!text.isEmpty()) {
-                model.sendMessage(text);
-                inputField.clear();
-                messageLabel.setText("Message sent");
-            } else {
-                messageLabel.setText("Write something before sending.");
-            }
-        } catch (Exception e) {
-            messageLabel.setText("Send error: " + e.getMessage());
-            System.err.println("❌ SEND ERROR: ");
-            e.printStackTrace();
-        }
     }
 
     private ImageView createIconForAttachment(NtfyMessageDto item) {
