@@ -17,17 +17,21 @@ class ChatModelTest {
     }
 
     @Test
-    void testAddMessage() {
-        model.addMessage("Hello");
+    void testAddMessageAddsToList() {
         ObservableList<String> messages = model.getMessages();
+        assertEquals(0, messages.size());
+
+        model.addMessage("Hello");
         assertEquals(1, messages.size());
-        assertTrue(messages.get(0).contains("Me: Hello"));
+        assertEquals("Me: Hello", messages.get(0));
     }
 
     @Test
-    void testAddEmptyMessage() {
-        model.addMessage("");
+    void testAddMessageIgnoresEmpty() {
         ObservableList<String> messages = model.getMessages();
+        model.addMessage("");
+        model.addMessage("   ");
         assertEquals(0, messages.size());
     }
 }
+
