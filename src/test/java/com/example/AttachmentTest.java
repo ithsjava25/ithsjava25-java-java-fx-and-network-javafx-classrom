@@ -33,4 +33,17 @@ class AttachmentTest {
         assertThat(attachment1).isNotEqualTo(attachment3);
         assertThat(attachment1.hashCode()).isEqualTo(attachment2.hashCode());
     }
+
+    @Test
+    @DisplayName("Attachment with null values should work correctly")
+    void attachment_WithNullValues_ShouldWorkCorrectly() {
+        // Arrange & Act
+        Attachment attachment = new Attachment(null, null, null, 0L);
+
+        // Assert
+        assertThat(attachment.name()).isNull();
+        assertThat(attachment.url()).isNull();
+        assertThat(attachment.type()).isNull();
+        assertThat(attachment.size()).isEqualTo(0L);
+    }
 }

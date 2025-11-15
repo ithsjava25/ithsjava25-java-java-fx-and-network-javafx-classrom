@@ -42,6 +42,18 @@ class NtfyMessageDtoTest {
     }
 
     @Test
+    @DisplayName("getAttachment methods should return null when no attachment")
+    void getAttachmentMethods_ShouldReturnNull_WhenNoAttachment() {
+        // Arrange
+        NtfyMessageDto message = new NtfyMessageDto("1", 1234567890L, "message", "topic", "test", null, null);
+
+        // Act & Assert
+        assertThat(message.getAttachmentName()).isNull();
+        assertThat(message.getAttachmentUrl()).isNull();
+        assertThat(message.getAttachmentContentType()).isNull();
+    }
+
+    @Test
     @DisplayName("equals and hashCode should work correctly")
     void equalsAndHashCode_ShouldWorkCorrectly() {
         // Arrange
@@ -53,5 +65,38 @@ class NtfyMessageDtoTest {
         assertThat(message1).isEqualTo(message2);
         assertThat(message1).isNotEqualTo(message3);
         assertThat(message1.hashCode()).isEqualTo(message2.hashCode());
+    }
+
+    @Test
+    @DisplayName("toString should include all fields")
+    void toString_ShouldIncludeAllFields() {
+        // Arrange
+        Attachment attachment = new Attachment("file.txt", "http://example.com/file", "text/plain", 1024L);
+        NtfyMessageDto message = new NtfyMessageDto("123", 1763200650L, "message", "mytopic", "hello", "Title", attachment);
+
+        // Act
+        String result = message.toString();
+
+        // Assert
+        assertThat(result).contains("id='123'");
+        assertThat(result).contains("time=1763200650");
+        assertThat(result).contains("event='message'");
+        assertThat(result).contains("topic='mytopic'");
+        assertThat(result).contains("message='hello'");
+        assertThat(result).contains("title='Title'");
+        assertThat(result).contains("attachment=");
+    }
+
+    @Test
+    @DisplayName("should handle message with all null fields in toString")
+    void shouldHandleMessageWithAllNullFields_InToString() {
+        // Arrange
+        NtfyMessageDto message = new NtfyMessageDto(null, 0L, null, null, null, null, null);
+
+        // Act
+        String result = message.toString();
+
+        // Assert - Should not throw exception
+        assertThat(result).isNotNull();
     }
 }

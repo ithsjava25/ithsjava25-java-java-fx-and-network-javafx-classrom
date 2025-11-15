@@ -43,12 +43,10 @@ public record NtfyMessageDto(
 
     @Override
     public String toString() {
-        DateTimeFormatter swedishFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
-        String formattedTime = swedishFormatter.format(Instant.ofEpochSecond(time));
 
         return "NtfyMessageDto{" +
                 "id='" + id + '\'' +
-                ", time=" + formattedTime +
+                ", time=" + time +
                 ", event='" + event + '\'' +
                 ", topic='" + topic + '\'' +
                 ", message='" + message + '\'' +
