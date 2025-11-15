@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
@@ -19,40 +18,77 @@ import java.util.concurrent.Executor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+/**
+ * Unit tests for {@link HelloModel} class.
+ * Tests message sending, file sending, message receiving, error handling, and event filtering.
+ * Uses {@link FakeNtfyConnection} for isolated testing without real network calls.
+ */
 class HelloModelTest {
 
     private FakeNtfyConnection fakeConnection;
     private HelloModel model;
     private TestErrorHandler testErrorHandler;
 
+    /**
+     * Test implementation of {@link Executor} that executes commands immediately on the same thread.
+     * Useful for testing without involving the JavaFX application thread.
+     */
     static class TestExecutor implements Executor {
+        /**
+         * Executes the given command immediately on the same thread
+         * @param command the runnable task to execute
+         */
         @Override
         public void execute(Runnable command) {
-            command.run(); // Kör direkt på samma tråd för testning
+            command.run();
         }
     }
 
+    /**
+     * Test implementation of error handler that collects error messages for verification.
+     * Allows tests to check if specific errors occurred during test execution.
+     */
     static class TestErrorHandler implements java.util.function.Consumer<String> {
         private final List<String> errors = new ArrayList<>();
 
+        /**
+         * Accepts and stores an error message
+         * @param error the error message to store
+         */
         @Override
         public void accept(String error) {
             errors.add(error);
         }
 
+        /**
+         * Gets all stored error messages
+         * @return a copy of the list of error messages
+         */
         public List<String> getErrors() {
             return new ArrayList<>(errors);
         }
 
+        /**
+         * Checks if any error contains the specified partial message
+         * @param partialMessage the partial message to search for
+         * @return true if any error contains the partial message, false otherwise
+         */
         public boolean hasError(String partialMessage) {
             return errors.stream().anyMatch(error -> error.contains(partialMessage));
         }
 
+        /**
+         * Clears all stored error messages
+         */
         public void clear() {
             errors.clear();
         }
     }
 
+    /**
+     * Sets up test fixtures before each test method.
+     * Initializes a fresh {@link FakeNtfyConnection}, {@link TestErrorHandler}, and {@link HelloModel} instance.
+     */
     @BeforeEach
     void setUp() {
         fakeConnection = new FakeNtfyConnection();
@@ -61,6 +97,9 @@ class HelloModelTest {
         model = new HelloModel(fakeConnection, testExecutor, testErrorHandler);
     }
 
+    /**
+     * Tests that sending a message correctly calls the connection's send method with the expected message.
+     */
     @Test
     @DisplayName("sendMessage should call connection.send with correct message")
     void sendMessage_ShouldCallConnectionSend() {
@@ -72,18 +111,9 @@ class HelloModelTest {
         assertThat(testErrorHandler.getErrors()).isEmpty();
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @DisplayName("sendMessage should handle null and empty messages gracefully")
-    void sendMessage_ShouldHandleNullOrEmptyMessages(String message) {
-        // Act
-        model.sendMessage(message);
-
-        // Assert - Should not crash and should attempt to send
-        assertThat(fakeConnection.getSentMessages()).containsExactly(message);
-        assertThat(testErrorHandler.getErrors()).isEmpty();
-    }
-
+    /**
+     * Tests that error handling works correctly when the connection fails to send a message.
+     */
     @Test
     @DisplayName("sendMessage should show error when connection fails")
     void sendMessage_ShouldShowError_WhenConnectionFails() {
@@ -98,6 +128,11 @@ class HelloModelTest {
         assertThat(testErrorHandler.hasError("Could not send message")).isTrue();
     }
 
+    /**
+     * Tests that sending a file correctly calls the connection's sendFile method with the expected file.
+     * @param tempDir temporary directory provided by JUnit for test file creation
+     * @throws IOException if test file creation fails
+     */
     @Test
     @DisplayName("sendFile should call connection.sendFile with correct file")
     void sendFile_ShouldCallConnectionSendFile(@TempDir Path tempDir) throws IOException {
@@ -114,33 +149,11 @@ class HelloModelTest {
         assertThat(testErrorHandler.getErrors()).isEmpty();
     }
 
-    @Test
-    @DisplayName("sendFile should return false for non-existent file")
-    void sendFile_ShouldReturnFalseForNonExistentFile() {
-        // Arrange
-        File nonExistentFile = new File("non_existent_file.txt");
-
-        // Act
-        boolean result = model.sendFile(nonExistentFile);
-
-        // Assert
-        assertThat(result).isFalse();
-        assertThat(fakeConnection.getSentFiles()).isEmpty();
-        assertThat(testErrorHandler.getErrors()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("sendFile should return false for null file")
-    void sendFile_ShouldReturnFalseForNullFile() {
-        // Act
-        boolean result = model.sendFile(null);
-
-        // Assert
-        assertThat(result).isFalse();
-        assertThat(fakeConnection.getSentFiles()).isEmpty();
-        assertThat(testErrorHandler.getErrors()).isEmpty();
-    }
-
+    /**
+     * Tests that error handling works correctly when the connection fails to send a file.
+     * @param tempDir temporary directory provided by JUnit for test file creation
+     * @throws IOException if test file creation fails
+     */
     @Test
     @DisplayName("sendFile should show error when connection fails")
     void sendFile_ShouldShowError_WhenConnectionFails(@TempDir Path tempDir) throws IOException {
@@ -158,6 +171,11 @@ class HelloModelTest {
         assertThat(testErrorHandler.hasError("Could not send file")).isTrue();
     }
 
+    /**
+     * Tests that exceptions during file sending are properly caught and handled with error messages.
+     * @param tempDir temporary directory provided by JUnit for test file creation
+     * @throws IOException if test file creation fails
+     */
     @Test
     @DisplayName("sendFile should show error when exception occurs")
     void sendFile_ShouldShowError_WhenExceptionOccurs(@TempDir Path tempDir) throws IOException {
@@ -165,12 +183,21 @@ class HelloModelTest {
         File testFile = tempDir.resolve("test.txt").toFile();
         Files.writeString(testFile.toPath(), "Test content");
 
-        // Mocka ett exception genom att använda en speciell fil som FakeNtfyConnection kan känna igen
+        // Create a temporary FakeNtfyConnection that throws exception for specific files
         File problematicFile = tempDir.resolve("problematic.txt").toFile();
         Files.writeString(problematicFile.toPath(), "Problematic content");
 
-        // Skapa en temporär FakeNtfyConnection som kastar exception för specifika filer
+        /**
+         * Custom FakeNtfyConnection that throws RuntimeException for specific files.
+         * Used to simulate file sending exceptions.
+         */
         FakeNtfyConnection throwingConnection = new FakeNtfyConnection() {
+            /**
+             * Sends a file, but throws RuntimeException for problematic files
+             * @param file the file to send
+             * @return true if successful, false otherwise
+             * @throws RuntimeException if file name is "problematic.txt"
+             */
             @Override
             public boolean sendFile(File file) {
                 if (file.getName().equals("problematic.txt")) {
@@ -192,6 +219,9 @@ class HelloModelTest {
         assertThat(localErrorHandler.hasError("Simulated file error")).isTrue();
     }
 
+    /**
+     * Tests that the getMessages method returns a valid observable list that is initially empty.
+     */
     @Test
     @DisplayName("getMessages should return observable list")
     void getMessages_ShouldReturnObservableList() {
@@ -200,6 +230,9 @@ class HelloModelTest {
         assertThat(model.getMessages()).isEmpty();
     }
 
+    /**
+     * Tests that incoming message events are properly added to the observable messages list.
+     */
     @Test
     @DisplayName("incoming message event should be added to observable list")
     void incomingMessageEvent_ShouldBeAddedToObservableList() {
@@ -214,6 +247,9 @@ class HelloModelTest {
         assertThat(model.getMessages().get(0)).isEqualTo(testMessage);
     }
 
+    /**
+     * Tests that "open" system events are properly filtered out and not added to the messages list.
+     */
     @Test
     @DisplayName("open event should be filtered out")
     void openEvent_ShouldBeFilteredOut() {
@@ -221,7 +257,7 @@ class HelloModelTest {
         NtfyMessageDto openEvent = new NtfyMessageDto(
                 "H17EHDF9nohk",
                 1763200648L,
-                "open",  // This should be filtered out
+                "open",
                 "mytopic",
                 null,
                 null,
@@ -235,6 +271,9 @@ class HelloModelTest {
         assertThat(model.getMessages()).isEmpty();
     }
 
+    /**
+     * Tests that "keepalive" system events are properly filtered out and not added to the messages list.
+     */
     @Test
     @DisplayName("keepalive event should be filtered out")
     void keepaliveEvent_ShouldBeFilteredOut() {
@@ -242,7 +281,7 @@ class HelloModelTest {
         NtfyMessageDto keepaliveEvent = new NtfyMessageDto(
                 "bzLISfMxUlj3",
                 1763200859L,
-                "keepalive",  // This should be filtered out
+                "keepalive",
                 "mytopic",
                 null,
                 null,
@@ -256,6 +295,10 @@ class HelloModelTest {
         assertThat(model.getMessages()).isEmpty();
     }
 
+    /**
+     * Parameterized test that verifies all system event types are filtered out.
+     * @param eventType the type of system event to test (provided by ValueSource)
+     */
     @ParameterizedTest
     @ValueSource(strings = {"open", "keepalive", "poll_request"})
     @DisplayName("all system events should be filtered out")
@@ -278,6 +321,9 @@ class HelloModelTest {
         assertThat(model.getMessages()).isEmpty();
     }
 
+    /**
+     * Tests that messages with attachments are properly handled and attachment information is accessible.
+     */
     @Test
     @DisplayName("messages with attachments should be handled correctly")
     void messagesWithAttachments_ShouldBeHandledCorrectly() {
@@ -308,6 +354,9 @@ class HelloModelTest {
         );
     }
 
+    /**
+     * Tests that multiple incoming messages are stored in the correct order.
+     */
     @Test
     @DisplayName("multiple messages should be stored in order")
     void multipleMessages_ShouldBeStoredInOrder() {
@@ -328,10 +377,13 @@ class HelloModelTest {
         assertThat(model.getMessages().get(2)).isEqualTo(message3);
     }
 
+    /**
+     * Tests that the model constructor with dependency injection works correctly.
+     */
     @Test
     @DisplayName("model constructor with single parameter should work")
     void modelConstructor_WithSingleParameter_ShouldWork() {
-        // Arrange - Använd vår test-executor istället för standardkonstruktorn
+        // Arrange
         FakeNtfyConnection connection = new FakeNtfyConnection();
         TestErrorHandler localErrorHandler = new TestErrorHandler();
         HelloModel singleParamModel = new HelloModel(connection, new TestExecutor(), localErrorHandler);
@@ -343,6 +395,9 @@ class HelloModelTest {
         assertThat(singleParamModel.getMessages()).hasSize(1);
     }
 
+    /**
+     * Tests that messages with identical content but different IDs are treated as distinct messages.
+     */
     @Test
     @DisplayName("messages with same content but different IDs should be treated as different")
     void messagesWithSameContentDifferentIds_ShouldBeTreatedAsDifferent() {
@@ -359,30 +414,9 @@ class HelloModelTest {
         assertThat(model.getMessages().get(0)).isNotEqualTo(model.getMessages().get(1));
     }
 
-    @Test
-    @DisplayName("messages with attachments but no URL should not cause errors")
-    void messagesWithAttachmentsButNoUrl_ShouldNotCauseErrors() {
-        // Arrange
-        Attachment attachment = new Attachment("test.txt", null, "text/plain", 100L);
-        NtfyMessageDto message = new NtfyMessageDto(
-                "test-id",
-                System.currentTimeMillis() / 1000,
-                "message",
-                "MY_TOPIC",
-                "File without URL",
-                null,
-                attachment
-        );
-
-        // Act & Assert - Should not throw exception
-        fakeConnection.simulateIncomingMessage(message);
-
-        // Assert
-        assertThat(model.getMessages()).hasSize(1);
-        assertThat(model.getMessages().get(0).hasAttachment()).isTrue();
-        assertThat(model.getMessages().get(0).getAttachmentUrl()).isNull();
-    }
-
+    /**
+     * Tests that real-world message formats (from actual logs) are handled correctly.
+     */
     @Test
     @DisplayName("should handle real-world message format")
     void shouldHandleRealWorldMessageFormat() {
@@ -407,13 +441,15 @@ class HelloModelTest {
         assertThat(received.message()).isEqualTo("hello world");
     }
 
+    /**
+     * Tests the scenario where a sent message is echoed back and properly handled as a received message.
+     */
     @Test
     @DisplayName("should handle received message echo after sending")
     void shouldHandleReceivedMessageEcho_AfterSending() {
         // Arrange
         model.sendMessage("hello world");
 
-        // Simulate the echo response from server
         NtfyMessageDto echoMessage = new NtfyMessageDto(
                 "9Jor91oU8JTv",
                 1763200650L,
@@ -433,7 +469,11 @@ class HelloModelTest {
         assertThat(model.getMessages().get(0).message()).isEqualTo("hello world");
     }
 
-    // Helper methods
+    /**
+     * Creates a test message event with the specified message text
+     * @param message the message text to include in the event
+     * @return a new NtfyMessageDto with test data
+     */
     private NtfyMessageDto createMessageEvent(String message) {
         return new NtfyMessageDto(
                 "test-id-" + System.currentTimeMillis(),

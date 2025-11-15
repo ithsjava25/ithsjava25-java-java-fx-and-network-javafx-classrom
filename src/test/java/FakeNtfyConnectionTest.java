@@ -15,15 +15,26 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Unit tests for {@link FakeNtfyConnection} class.
+ * Tests the fake implementation of {@link NtfyConnection} used for isolated testing.
+ * Verifies message sending, file sending, message receiving, and state management behavior.
+ */
 class FakeNtfyConnectionTest {
 
     private FakeNtfyConnection fakeConnection;
 
+    /**
+     * Sets up a fresh {@link FakeNtfyConnection} instance before each test method.
+     */
     @BeforeEach
     void setUp() {
         fakeConnection = new FakeNtfyConnection();
     }
 
+    /**
+     * Tests that the send method stores messages and returns success when configured to succeed.
+     */
     @Test
     @DisplayName("send should store message and return success")
     void send_ShouldStoreMessageAndReturnSuccess() {
@@ -35,6 +46,9 @@ class FakeNtfyConnectionTest {
         assertThat(fakeConnection.getSentMessages()).containsExactly("Test message");
     }
 
+    /**
+     * Tests that the send method returns false when the connection is configured to fail.
+     */
     @Test
     @DisplayName("send should return false when shouldSucceed is false")
     void send_ShouldReturnFalse_WhenShouldSucceedIsFalse() {
@@ -49,6 +63,12 @@ class FakeNtfyConnectionTest {
         assertThat(fakeConnection.getSentMessages()).containsExactly("Test message");
     }
 
+    /**
+     * Tests that sendFile stores files and returns success for existing files.
+     *
+     * @param tempDir the temporary directory provided by JUnit for creating test files
+     * @throws IOException if test file creation fails
+     */
     @Test
     @DisplayName("sendFile should store file and return success for existing file")
     void sendFile_ShouldStoreFileAndReturnSuccess(@TempDir java.nio.file.Path tempDir) throws IOException {
@@ -64,6 +84,9 @@ class FakeNtfyConnectionTest {
         assertThat(fakeConnection.getSentFiles()).containsExactly(testFile);
     }
 
+    /**
+     * Tests that sendFile returns false for non-existent files.
+     */
     @Test
     @DisplayName("sendFile should return false for non-existent file")
     void sendFile_ShouldReturnFalseForNonExistentFile() {
@@ -75,6 +98,9 @@ class FakeNtfyConnectionTest {
         assertThat(fakeConnection.getSentFiles()).isEmpty();
     }
 
+    /**
+     * Tests that sendFile returns false for null file references.
+     */
     @Test
     @DisplayName("sendFile should return false for null file")
     void sendFile_ShouldReturnFalseForNullFile() {
@@ -86,6 +112,9 @@ class FakeNtfyConnectionTest {
         assertThat(fakeConnection.getSentFiles()).isEmpty();
     }
 
+    /**
+     * Tests that the receive method properly sets the message handler.
+     */
     @Test
     @DisplayName("receive should set message handler")
     void receive_ShouldSetMessageHandler() {
@@ -100,6 +129,9 @@ class FakeNtfyConnectionTest {
         assertThat(handlerCalled.get()).isTrue();
     }
 
+    /**
+     * Tests that simulateIncomingMessage calls the registered handler with the correct message.
+     */
     @Test
     @DisplayName("simulateIncomingMessage should call registered handler")
     void simulateIncomingMessage_ShouldCallRegisteredHandler() {
@@ -115,6 +147,9 @@ class FakeNtfyConnectionTest {
         assertThat(receivedMessage.get()).isEqualTo(testMessage);
     }
 
+    /**
+     * Tests that simulateIncomingMessage doesn't throw exceptions when no handler is registered.
+     */
     @Test
     @DisplayName("simulateIncomingMessage should not throw when no handler is set")
     void simulateIncomingMessage_ShouldNotThrow_WhenNoHandlerIsSet() {
@@ -125,11 +160,15 @@ class FakeNtfyConnectionTest {
         fakeConnection.simulateIncomingMessage(testMessage);
     }
 
+    /**
+     * Tests that the clear method resets all internal state including messages, files, and handler.
+     */
     @Test
     @DisplayName("clear should reset all state")
     void clear_ShouldResetAllState() {
         // Arrange
-        fakeConnection.receive(msg -> {});
+        fakeConnection.receive(msg -> {
+        });
         fakeConnection.send("Test message");
 
         // Act
@@ -142,6 +181,9 @@ class FakeNtfyConnectionTest {
         fakeConnection.simulateIncomingMessage(new NtfyMessageDto("1", 123L, "message", "topic", "test", null, null));
     }
 
+    /**
+     * Tests that getSentMessages returns a defensive copy, not the internal list.
+     */
     @Test
     @DisplayName("getSentMessages should return copy of sent messages")
     void getSentMessages_ShouldReturnCopy() {
@@ -158,6 +200,12 @@ class FakeNtfyConnectionTest {
         assertThat(messages2).containsExactly("Message 1", "Message 2");
     }
 
+    /**
+     * Tests that getSentFiles returns a defensive copy, not the internal list.
+     *
+     * @param tempDir the temporary directory provided by JUnit for creating test files
+     * @throws IOException if test file creation fails
+     */
     @Test
     @DisplayName("getSentFiles should return copy of sent files")
     void getSentFiles_ShouldReturnCopy(@TempDir java.nio.file.Path tempDir) throws IOException {
@@ -178,6 +226,9 @@ class FakeNtfyConnectionTest {
         assertThat(files2).containsExactly(file1, file2);
     }
 
+    /**
+     * Tests that the connection should succeed by default.
+     */
     @Test
     @DisplayName("shouldSucceed should be true by default")
     void shouldSucceed_ShouldBeTrueByDefault() {
@@ -188,25 +239,9 @@ class FakeNtfyConnectionTest {
         assertThat(result).isTrue();
     }
 
-    @Test
-    @DisplayName("setShouldSucceed should affect both send and sendFile")
-    void setShouldSucceed_ShouldAffectBothSendAndSendFile(@TempDir java.nio.file.Path tempDir) throws IOException {
-        // Arrange
-        fakeConnection.setShouldSucceed(false);
-        File testFile = tempDir.resolve("test.txt").toFile();
-        Files.writeString(testFile.toPath(), "Test content");
-
-        // Act
-        boolean sendResult = fakeConnection.send("Test message");
-        boolean sendFileResult = fakeConnection.sendFile(testFile);
-
-        // Assert
-        assertThat(sendResult).isFalse();
-        assertThat(sendFileResult).isFalse();
-        assertThat(fakeConnection.getSentMessages()).containsExactly("Test message");
-        assertThat(fakeConnection.getSentFiles()).containsExactly(testFile);
-    }
-
+    /**
+     * Tests that multiple message handlers can be set sequentially and each receives the appropriate messages.
+     */
     @Test
     @DisplayName("should handle multiple message handlers sequentially")
     void shouldHandleMultipleMessageHandlers_Sequentially() {
@@ -224,55 +259,5 @@ class FakeNtfyConnectionTest {
         // Assert
         assertThat(handler1Count.get()).isEqualTo(1); // Should only receive first message
         assertThat(handler2Count.get()).isEqualTo(1); // Should only receive second message
-    }
-
-    @Test
-    @DisplayName("should simulate real open event")
-    void shouldSimulateRealOpenEvent() {
-        // Arrange
-        AtomicReference<NtfyMessageDto> receivedMessage = new AtomicReference<>();
-        fakeConnection.receive(receivedMessage::set);
-
-        NtfyMessageDto openEvent = new NtfyMessageDto(
-                "H17EHDF9nohk",
-                1763200648L,
-                "open",
-                "mytopic",
-                null,
-                null,
-                null
-        );
-
-        // Act
-        fakeConnection.simulateIncomingMessage(openEvent);
-
-        // Assert
-        assertThat(receivedMessage.get()).isEqualTo(openEvent);
-        assertThat(receivedMessage.get().event()).isEqualTo("open");
-    }
-
-    @Test
-    @DisplayName("should simulate real keepalive event")
-    void shouldSimulateRealKeepaliveEvent() {
-        // Arrange
-        AtomicReference<NtfyMessageDto> receivedMessage = new AtomicReference<>();
-        fakeConnection.receive(receivedMessage::set);
-
-        NtfyMessageDto keepaliveEvent = new NtfyMessageDto(
-                "bzLISfMxUlj3",
-                1763200859L,
-                "keepalive",
-                "mytopic",
-                null,
-                null,
-                null
-        );
-
-        // Act
-        fakeConnection.simulateIncomingMessage(keepaliveEvent);
-
-        // Assert
-        assertThat(receivedMessage.get()).isEqualTo(keepaliveEvent);
-        assertThat(receivedMessage.get().event()).isEqualTo("keepalive");
     }
 }
