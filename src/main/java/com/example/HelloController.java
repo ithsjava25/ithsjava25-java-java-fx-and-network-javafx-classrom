@@ -11,7 +11,9 @@ import javafx.scene.control.Button;
  */
 public class HelloController {
 
-    private final HelloModel model = new HelloModel();
+    private final HelloModel model;
+    private final ChatNetworkClient httpClient;  // Abstraktion (Dependency Inversion)
+    private final String hostName;
 
     @FXML private Label messageLabel;
 
@@ -19,6 +21,13 @@ public class HelloController {
     @FXML private ListView<NtfyMessage> messageListView;     //Visar meddelanden från HelloModel
     @FXML private TextField messageTextField;               //Används för att skriva nya meddelanden
     @FXML private Button sendButton;                       //Används för att skicka meddelanden
+
+    //Konstruktor för Dependency Injection
+    public HelloController(HelloModel model, ChatNetworkClient httpClient, String hostName) {
+        this.model = model;
+        this.httpClient = httpClient;
+        this.hostName = hostName;
+    }
 
     @FXML
     private void initialize() {
@@ -43,7 +52,18 @@ public class HelloController {
                     messageText //Meddelandetext
             );
             model.addMessage(message);
-            messageTextField.clear(); // Rensa inputfältet
+
+            //Lägg till meddelandet i modellen
+            model.addMessage(message);
+
+            try {
+                //Använd hostName-fältet (skickat via konstruktorn)
+                httpClient.send(hostName, message);
+                messageTextField.clear();
+            } catch (Exception e) {
+                System.err.println("Fel vid sändning: " + e.getMessage());
+            }
+
         }
 
     }

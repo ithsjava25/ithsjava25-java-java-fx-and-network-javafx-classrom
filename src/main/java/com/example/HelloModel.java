@@ -1,5 +1,6 @@
 package com.example;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -35,11 +36,21 @@ public class HelloModel {
 
     //Metod för att lägga till meddelande
     public void addMessage(NtfyMessage message) {
-        messages.add(message);
+        runOnFX(() -> messages.add(message));
     }
 
     //Metod för att uppdatera anslutningstillstånd
     public void setConnected(boolean connected) {
-        this.connected.set(connected);
+        runOnFX(() -> this.connected.set(connected));
+    }
+
+    //Dispatcher Utility
+    private static void runOnFX(Runnable task) {
+        try {
+            if (Platform.isFxApplicationThread()) task.run();
+            else Platform.runLater(task);
+        } catch (IllegalThreadStateException notInitialized) {
+            task.run(); //Fallback för enhetstester
+        }
     }
 }
