@@ -17,14 +17,11 @@ public class ChatModel {
     private final String ntfyUrl;
 
     public ChatModel() {
-        // Hämta backend-url från environment variable
         String url = System.getenv("NTFY_URL");
         if (url == null || url.isBlank()) {
-            url = "http://localhost:8080/topic/test"; // fallback
+            url = "http://localhost:8080/topic/test";
         }
         ntfyUrl = url;
-
-        // Starta lyssning på inkommande meddelanden
         startListening();
     }
 
@@ -33,13 +30,10 @@ public class ChatModel {
     }
 
     public void addMessage(String message) {
-        if (message == null || message.isBlank()) return;
-
-        // Lägg till i ListView
-        messages.add("Me: " + message);
-
-        // Skicka till ntfy backend i bakgrunden
-        new Thread(() -> sendToBackend(message)).start();
+        if (message != null && !message.isBlank()) {
+            messages.add("Me: " + message);
+            sendToBackend(message);
+        }
     }
 
     private void sendToBackend(String message) {
@@ -65,15 +59,17 @@ public class ChatModel {
 
                 client.send(request, HttpResponse.BodyHandlers.ofLines())
                         .body()
-                        .forEach(line -> Platform.runLater(() -> {
+                        .forEach(line -> {
                             if (!line.isBlank()) {
-                                messages.add("Other: " + line);
+                                Platform.runLater(() -> messages.add("Other: " + line));
                             }
-                        }));
+                        });
 
             } catch (Exception e) {
+                Platform.runLater(() -> messages.add("Error connecting to backend: " + e.getMessage()));
                 e.printStackTrace();
             }
         }).start();
     }
 }
+
