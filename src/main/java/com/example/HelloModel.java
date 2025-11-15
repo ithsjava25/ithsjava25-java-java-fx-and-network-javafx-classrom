@@ -9,17 +9,22 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.net.URL;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public class HelloModel {
 
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
+    private final Executor uiExecutor;
+    private final Consumer<String> errorHandler;
 
     /**
      * Default constructor that creates a new NtfyConnection instance
      */
     public HelloModel() {
-        this.connection = new NtfyConnectionImpl();receiveMessages();}
+        this(new NtfyConnectionImpl(), Platform::runLater, HelloModel::showPlatformAlert);
+    }
 
     /**
      * Constructor that accepts a custom NtfyConnection instance
@@ -27,8 +32,32 @@ public class HelloModel {
      * @throws NullPointerException if connection is null
      */
     public HelloModel(NtfyConnection connection) {
+        this(connection, Platform::runLater, HelloModel::showPlatformAlert);
+    }
+
+    /**
+     * Constructor for testing with custom connection and executor
+     * @param connection the NtfyConnection implementation to use for messaging
+     * @param uiExecutor the executor to use for UI operations
+     * @param errorHandler the error handler for displaying errors
+     * @throws NullPointerException if connection or uiExecutor is null
+     */
+    public HelloModel(NtfyConnection connection, Executor uiExecutor, Consumer<String> errorHandler) {
         this.connection = Objects.requireNonNull(connection);
+        this.uiExecutor = Objects.requireNonNull(uiExecutor);
+        this.errorHandler = Objects.requireNonNull(errorHandler);
         receiveMessages();
+    }
+
+    /**
+     * Default platform alert implementation
+     */
+    private static void showPlatformAlert(String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 
     /**
@@ -69,7 +98,7 @@ public class HelloModel {
      * Automatically filters system events and handles attachments
      */
     public void receiveMessages() {
-        connection.receive(msg -> Platform.runLater(() -> {
+        connection.receive(msg -> uiExecutor.execute(() -> {
             // Filtrera bort system-event
             if (!"message".equals(msg.event())) return;
 
@@ -115,14 +144,10 @@ public class HelloModel {
     }
 
     /**
-     * Shows an error alert dialog on the JavaFX application thread
-     * @param msg the error message to display in the alert
+     * Shows an error using the configured error handler
+     * @param msg the error message to display
      */
     private void showError(String msg) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(msg);
-            alert.showAndWait();
-        });
+        errorHandler.accept(msg);
     }
 }
