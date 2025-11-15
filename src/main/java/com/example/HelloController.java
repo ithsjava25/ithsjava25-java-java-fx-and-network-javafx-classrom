@@ -196,13 +196,13 @@ public class HelloController {
     private void showWelcomeMessage() {
         Platform.runLater(() -> {
             Alert welcomeAlert = new Alert(Alert.AlertType.INFORMATION);
-            welcomeAlert.setTitle("Welcome to Matrix Binary Chat");
-            welcomeAlert.setHeaderText("🚀 Welcome to the Matrix Binary Chat!");
+            welcomeAlert.setTitle("Matrix Binary Chat");
+            welcomeAlert.setHeaderText(null); // This completely removes the header
 
             String welcomeText = "Welcome to the Matrix Binary Chat!\n\n" +
                     "💡 Tips:\n" +
-                    "• Double tap file icons to open pictures\n" +
-                    "• Pictures and files are automatically downloaded to 'downloads' folder\n" +
+                    "• Double tap picture icon to open pictures\n" +
+                    "• Files and pictures are automatically downloaded to 'downloads' folder\n" +
                     "• Chat in real-time with binary encryption\n\n" +
                     "This message will auto-close in 12 seconds...";
 

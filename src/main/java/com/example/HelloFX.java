@@ -20,7 +20,7 @@ public class HelloFX extends Application {
         HelloController ctrl = loader.getController();
         ctrl.setPrimaryStage(stage);
         Scene scene = new Scene(root, 700, 600);
-        stage.setTitle("Binary Chat");
+        stage.setTitle("Matrix Binary Chat");
         stage.setScene(scene);
         stage.show();
         rain.startAnimation();
