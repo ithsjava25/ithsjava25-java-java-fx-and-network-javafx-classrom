@@ -38,46 +38,49 @@ public class ChatModel {
     }
 
     private void sendToBackend(String message) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ntfyUrl))
-                    .POST(HttpRequest.BodyPublishers.ofString(message, StandardCharsets.UTF_8))
-                    .header("Content-Type", "text/plain")
-                    .build();
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(ntfyUrl))
+                        .POST(HttpRequest.BodyPublishers.ofString(message, StandardCharsets.UTF_8))
+                        .header("Content-Type", "text/plain")
+                        .build();
 
-            client.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                    .exceptionally(ex -> {
-                        Platform.runLater(() -> messages.add("Error sending message: " + ex.getMessage()));
-                        return null;
-                    });
-        } catch (Exception e) {
-            messages.add("Error sending message: " + e.getMessage());
-        }
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() >= 400) {
+                    Platform.runLater(() -> messages.add("Error sending message: " + response.statusCode()));
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> messages.add("Error sending message: " + e.getMessage()));
+            }
+        }).start();
     }
 
     private void startListening() {
-    new Thread(() -> {
-        try {
-            while (true) {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(ntfyUrl + "/events"))
-                        .build();
+        new Thread(() -> {
+            try {
+                while (true) {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(ntfyUrl + "/events"))
+                            .GET()
+                            .build();
 
-                client.send(request, HttpResponse.BodyHandlers.ofLines())
-                        .body()
-                        .forEach(line -> {
-                            if (!line.isBlank()) {
-                                Platform.runLater(() -> messages.add("Other: " + line));
-                            }
-                        });
+                    client.send(request, HttpResponse.BodyHandlers.ofLines())
+                            .body()
+                            .forEach(line -> {
+                                if (!line.isBlank() && !line.contains("data:")) return; // ignore non-data lines
+                                String content = line.replaceFirst("data:", "").trim();
+                                if (!content.isEmpty()) {
+                                    Platform.runLater(() -> messages.add("Other: " + content));
+                                }
+                            });
 
-                // Vänta lite innan nästa poll
-                Thread.sleep(1000);
+                    Thread.sleep(1000); // poll every second
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> messages.add("Error receiving messages: " + e.getMessage()));
             }
-        } catch (Exception e) {
-            Platform.runLater(() -> messages.add("Error receiving messages: " + e.getMessage()));
-        }
-    }).start();
-}
-
+        }).start();
+    }
 }
