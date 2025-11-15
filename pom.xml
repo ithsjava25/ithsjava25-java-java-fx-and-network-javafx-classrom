@@ -91,7 +91,6 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.example.HelloFX</mainClass>
-                    <modules>javafx.controls,javafx.fxml,javafx.swing</modules>
                     <options>
                         <option>--enable-native-access=javafx.graphics</option>
                     </options>
