@@ -48,6 +48,20 @@
     </dependencies>
     <build>
         <plugins>
+
+            <!-- Compiler plugin: tells Maven to use Java 25 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                    <release>25</release>
+                </configuration>
+            </plugin>
+
+            <!-- JavaFX plugin -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -55,7 +69,7 @@
                 <configuration>
                     <mainClass>com.example.HelloFX</mainClass>
                     <options>
-                    <option>--enable-native-access=javafx.graphics</option>
+                        <option>--enable-native-access=javafx.graphics</option>
                     </options>
                     <launcher>javafx</launcher>
                     <stripDebug>true</stripDebug>
@@ -63,6 +77,7 @@
                     <noManPages>true</noManPages>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 </project>
