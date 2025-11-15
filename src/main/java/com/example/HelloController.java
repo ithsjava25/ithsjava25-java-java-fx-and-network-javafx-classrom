@@ -55,12 +55,6 @@ public class HelloController {
                         return;
                     }
 
-                    // Debug: Print message details to understand what's happening
-                    System.out.println("Message ID: " + item.id() +
-                            " | Topic: " + item.topic() +
-                            " | My Topic: " + myTopic +
-                            " | Message: " + item.message());
-
                     // Determine if this is our message or incoming
                     // Method 1: Check if we sent this message recently
                     boolean isMyMessage = sentMessageIds.contains(item.id());
