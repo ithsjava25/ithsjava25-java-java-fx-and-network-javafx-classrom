@@ -17,7 +17,6 @@ public class ChatModel {
     private final String ntfyUrl;
 
     public ChatModel() {
-        // Hämta backend-url från env variable
         String url = System.getenv("NTFY_URL");
         if (url == null || url.isBlank()) {
             url = "http://localhost:8080/topic/test"; // fallback
@@ -47,7 +46,6 @@ public class ChatModel {
                         .build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
                 if (response.statusCode() >= 400) {
                     Platform.runLater(() -> messages.add("Error sending message: " + response.statusCode()));
                 }
@@ -63,14 +61,13 @@ public class ChatModel {
                 while (true) {
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(ntfyUrl + "/events"))
-                            .GET()
                             .build();
 
                     client.send(request, HttpResponse.BodyHandlers.ofLines())
                             .body()
                             .forEach(line -> {
-                                if (!line.isBlank() && line.startsWith("data:")) {
-                                    String content = line.replaceFirst("data:", "").trim();
+                                if (!line.isBlank()) {
+                                    String content = line.contains("data:") ? line.replaceFirst("data:", "").trim() : line;
                                     if (!content.isEmpty()) {
                                         Platform.runLater(() -> messages.add("Other: " + content));
                                     }
