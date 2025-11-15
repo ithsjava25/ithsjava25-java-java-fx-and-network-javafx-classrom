@@ -20,6 +20,10 @@ public class NtfyConnectionImpl implements NtfyConnection {
     private final String hostName;
     private final String topic;
 
+    /**
+     * Default constructor that loads configuration from .env file
+     * Initializes HTTP client and JSON mapper with required settings
+     */
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
 
@@ -34,12 +38,22 @@ public class NtfyConnectionImpl implements NtfyConnection {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    /**
+     * Checks if an HTTP response indicates success
+     * @param resp the HTTP response to check
+     * @return true if status code is in 200-299 range, false otherwise
+     */
     private boolean isSuccess(HttpResponse<?> resp) {
         int c = resp.statusCode();
         return c >= 200 && c < 300;
     }
 
     @Override
+    /**
+     * Sends a text message to the NTFY topic
+     * @param message the text message to send to the NTFY topic
+     * @return true if the message was sent successfully, false if an error occurred
+     */
     public boolean send(String message) {
 
         System.out.println("📤 RAW SENT: " + message);
@@ -60,6 +74,10 @@ public class NtfyConnectionImpl implements NtfyConnection {
     }
 
     @Override
+    /**
+     * Starts receiving messages from the NTFY topic asynchronously
+     * @param handler the consumer callback that processes incoming NTFY messages
+     */
     public void receive(Consumer<NtfyMessageDto> handler) {
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -95,6 +113,11 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
 
     @Override
+    /**
+     * Sends a file attachment to the NTFY topic
+     * @param file the file to send as an attachment to the NTFY topic
+     * @return true if the file was sent successfully, false if the file is missing or an error occurred
+     */
     public boolean sendFile(File file) {
         if (file == null || !file.exists()) {
             System.err.println("❌ File missing");

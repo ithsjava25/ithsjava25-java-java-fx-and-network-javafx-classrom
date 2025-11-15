@@ -7,14 +7,20 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class HelloFX extends Application {
+
+    /**
+     * Main entry point for the JavaFX application
+     * @param stage the primary stage for this application, onto which
+     *              the application scene can be set
+     * @throws Exception if loading the FXML file or initializing the scene fails
+     */
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/hello-view.fxml"));
         StackPane root = loader.load();
 
-        // Add MatrixRain behind the chat with very low opacity
         MatrixRain rain = new MatrixRain(700, 600);
-        rain.setOpacity(0.15); // Very subtle so it doesn't interfere with chat readability
+        rain.setOpacity(0.15);
         root.getChildren().add(0, rain);
 
         HelloController ctrl = loader.getController();
@@ -26,6 +32,10 @@ public class HelloFX extends Application {
         rain.startAnimation();
     }
 
+    /**
+     * Application main method
+     * @param args the command line arguments passed to the application
+     */
     public static void main(String[] args) {
         launch();
     }

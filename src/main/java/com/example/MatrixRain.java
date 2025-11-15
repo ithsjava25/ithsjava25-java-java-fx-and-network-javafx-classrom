@@ -16,6 +16,12 @@ public class MatrixRain extends Canvas {
     private final int[] drops;
     private final Random random = new Random();
 
+
+    /**
+     * Creates a MatrixRain effect canvas with the specified dimensions
+     * @param width the width of the canvas in pixels
+     * @param height the height of the canvas in pixels
+     */
     public MatrixRain(int width, int height) {
         super(width, height);
         this.width = width;
@@ -25,6 +31,10 @@ public class MatrixRain extends Canvas {
         for (int i = 0; i < columns; i++) drops[i] = 1;
     }
 
+    /**
+     * Starts the Matrix digital rain animation effect
+     * Creates falling binary digits (0s and 1s) with trailing effects
+     */
     public void startAnimation() {
         GraphicsContext gc = getGraphicsContext2D();
         new AnimationTimer() {

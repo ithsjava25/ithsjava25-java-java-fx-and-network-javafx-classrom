@@ -1,50 +1,56 @@
 /* styles.css - Matrix Theme with Readable Chat */
-
 .root {
     -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
-    -fx-background-color: #000000;
-}
+    -fx-background-color: #000000;}
 
-/* Make chat bubbles semi-transparent to show Matrix background */
+/*
+ * Message list styling with semi-transparent background to show Matrix effect
+ * Creates a readable chat area while maintaining the Matrix aesthetic
+ */
 .message-list {
     -fx-background-color: rgba(0, 0, 0, 0.7);
     -fx-control-inner-background: transparent;
     -fx-border-color: #00FF41;
     -fx-border-width: 1px;
-    -fx-background-radius: 5px;
-}
+    -fx-background-radius: 5px;}
 
+/* Individual message cell styling */
 .message-list .list-cell {
     -fx-background-color: transparent;
     -fx-padding: 2px;
-    -fx-alignment: center;
-}
+    -fx-alignment: center;}
 
+/* Empty cell styling */
 .message-list .list-cell:empty {
-    -fx-background-color: transparent;
-}
+    -fx-background-color: transparent;}
 
+/* Vertical scroll bar styling */
 .message-list .scroll-bar:vertical {
-    -fx-background-color: rgba(0, 17, 0, 0.8);
-}
+    -fx-background-color: rgba(0, 17, 0, 0.8);}
 
+/* Scroll bar thumb (draggable part) */
 .message-list .scroll-bar:vertical .thumb {
-    -fx-background-color: #00FF41;
-}
+    -fx-background-color: #00FF41;}
 
+/* Scroll bar track (background) */
 .message-list .scroll-bar:vertical .track {
-    -fx-background-color: rgba(0, 34, 0, 0.8);
-}
+    -fx-background-color: rgba(0, 34, 0, 0.8);}
 
-/* Input area with transparency */
+/*
+ * Input area at bottom of chat
+ * Provides a semi-transparent background for input controls
+ */
 .input-area {
     -fx-background-color: rgba(0, 17, 0, 0.8);
     -fx-padding: 15px;
     -fx-border-color: #00FF41;
     -fx-border-width: 1px 0 0 0;
-    -fx-background-radius: 0 0 5px 5px;
-}
+    -fx-background-radius: 0 0 5px 5px;}
 
+/*
+ * Chat status label styling
+ * Displays connection status and notifications at top of chat
+ */
 .chat-status {
     -fx-font-weight: bold;
     -fx-font-size: 14px;
@@ -53,9 +59,15 @@
     -fx-background-color: rgba(0, 17, 0, 0.8);
     -fx-border-color: #00FF41;
     -fx-border-width: 0 0 1px 0;
-    -fx-background-radius: 5px 5px 0 0;
-}
+    -fx-background-radius: 5px 5px 0 0;}
 
+/*
+ * Text input field styling
+ * @param -fx-background-color: semi-transparent dark green background
+ * @param -fx-text-fill: bright green text color for user input
+ * @param -fx-prompt-text-fill: darker green for placeholder text
+ * @param -fx-border-color: bright green border to match Matrix theme
+ */
 .text-field {
     -fx-background-color: rgba(0, 34, 0, 0.9);
     -fx-text-fill: #00FF41;
@@ -64,15 +76,25 @@
     -fx-border-radius: 5px;
     -fx-background-radius: 5px;
     -fx-padding: 8px 12px;
-    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
-}
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;}
 
+/*
+ * Focused text field styling
+ * Enhances visibility when user is typing
+ * @param -fx-effect: adds glow effect to indicate active input
+ */
 .text-field:focused {
     -fx-border-color: #00FF41;
     -fx-background-color: rgba(0, 51, 0, 0.9);
-    -fx-effect: dropshadow(gaussian, #00FF41, 10, 0.5, 0, 0);
-}
+    -fx-effect: dropshadow(gaussian, #00FF41, 10, 0.5, 0, 0);}
 
+/*
+ * Base button styling
+ * @param -fx-background-color: semi-transparent dark green
+ * @param -fx-text-fill: bright green text
+ * @param -fx-border-color: bright green border
+ * @param -fx-cursor: hand cursor on hover for better UX
+ */
 .button {
     -fx-background-color: rgba(0, 34, 0, 0.9);
     -fx-text-fill: #00FF41;
@@ -83,31 +105,48 @@
     -fx-cursor: hand;
     -fx-border-color: #00FF41;
     -fx-border-width: 1px;
-    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
-}
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;}
 
+/*
+ * Button hover state
+ * @param -fx-background-color: slightly lighter green on hover
+ * @param -fx-effect: glow effect to indicate interactivity
+ */
 .button:hover {
     -fx-background-color: rgba(0, 51, 0, 0.9);
-    -fx-effect: dropshadow(gaussian, #00FF41, 10, 0.5, 0, 0);
-}
+    -fx-effect: dropshadow(gaussian, #00FF41, 10, 0.5, 0, 0);}
 
+/*
+ * Button pressed state
+ * @param -fx-background-color: darker green when actively pressed
+ */
 .button:pressed {
-    -fx-background-color: rgba(0, 17, 0, 0.9);
-}
+    -fx-background-color: rgba(0, 17, 0, 0.9);}
 
-/* Specific button styles */
+/*
+ * Send button specific styling
+ * @param -fx-background-color: darker green to distinguish as primary action
+ */
 .button:text="Send" {
-    -fx-background-color: rgba(0, 59, 0, 0.9);
-}
+    -fx-background-color: rgba(0, 59, 0, 0.9);  }
 
+/*
+ * Send button hover state
+ * @param -fx-background-color: lighter green when hovering send button
+ */
 .button:text="Send":hover {
-                       -fx-background-color: rgba(0, 77, 0, 0.9);
-                   }
+    -fx-background-color: rgba(0, 77, 0, 0.9);}
 
+/*
+* Attach button specific styling
+* @param -fx-background-color: medium green for secondary action
+*/
 .button:text="Attach" {
-    -fx-background-color: rgba(0, 40, 0, 0.9);
-}
+    -fx-background-color: rgba(0, 40, 0, 0.9);  }
 
+/*
+ * Attach button hover state
+ * @param -fx-background-color: slightly lighter green on hover
+ */
 .button:text="Attach":hover {
-                         -fx-background-color: rgba(0, 51, 0, 0.9);
-                     }
+     -fx-background-color: rgba(0, 51, 0, 0.9);}
