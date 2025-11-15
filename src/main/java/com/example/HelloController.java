@@ -19,6 +19,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HelloController {
 
@@ -30,7 +31,9 @@ public class HelloController {
     private Stage primaryStage;
     private File selectedFile;
     private final String myTopic = "MY_TOPIC";
-    private final Set<String> sentMessageIds = new HashSet<>(); // Track sent messages
+    private final Set<String> sentMessageIds = ConcurrentHashMap.newKeySet();
+    private final Set<String> pendingMessageTexts = ConcurrentHashMap.newKeySet();
+    private final Set<String> pendingFileNames = ConcurrentHashMap.newKeySet(); // Track files we just sent
 
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
@@ -40,6 +43,22 @@ public class HelloController {
     private void initialize() {
         try {
             messageView.setItems(model.getMessages());
+
+            // Add Enter key support for sending messages
+            inputField.setOnAction(event -> sendMessage());
+
+            // Auto-scroll to latest message when new messages are added
+            model.getMessages().addListener((javafx.collections.ListChangeListener.Change<? extends NtfyMessageDto> change) -> {
+                while (change.next()) {
+                    if (change.wasAdded()) {
+                        Platform.runLater(() -> {
+                            messageView.scrollTo(messageView.getItems().size() - 1);
+                            // Refresh to ensure proper sender labeling
+                            messageView.refresh();
+                        });
+                    }
+                }
+            });
 
             // Show welcome message
             showWelcomeMessage();
@@ -56,20 +75,14 @@ public class HelloController {
                     }
 
                     // Determine if this is our message or incoming
-                    // Method 1: Check if we sent this message recently
-                    boolean isMyMessage = sentMessageIds.contains(item.id());
+                    boolean isMyMessage = isMyMessage(item);
 
-                    // Method 2: If not found in sent messages, use topic comparison as fallback
-                    if (!isMyMessage) {
-                        isMyMessage = myTopic.equals(item.topic());
-                    }
-
-                    // Create the message content with sender label and timestamp
+                    // Create the message content
                     VBox messageContainer = new VBox(2);
                     messageContainer.setAlignment(Pos.CENTER);
                     messageContainer.setPadding(new Insets(5, 10, 5, 10));
 
-                    // Sender label (You: for your messages, Incoming: for others)
+                    // Sender label
                     Label senderLabel = new Label(isMyMessage ? "You:" : "Incoming:");
                     senderLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #00FF41; -fx-font-weight: bold;");
 
@@ -77,7 +90,6 @@ public class HelloController {
                     HBox contentBox = new HBox(5);
                     contentBox.setAlignment(Pos.CENTER);
 
-                    // Handle attachment icon
                     if (item.hasAttachment()) {
                         ImageView icon = createIconForAttachment(item);
                         icon.setFitWidth(20);
@@ -99,7 +111,6 @@ public class HelloController {
 
                         contentBox.getChildren().addAll(icon, messageLabel);
                     } else {
-                        // Text message
                         String displayText = getDisplayText(item);
                         Label messageLabel = new Label(displayText);
                         messageLabel.setWrapText(true);
@@ -125,7 +136,7 @@ public class HelloController {
 
                     setGraphic(messageContainer);
                     setText(null);
-                    setAlignment(Pos.CENTER); // Center all messages
+                    setAlignment(Pos.CENTER);
                 }
 
                 private String getDisplayText(NtfyMessageDto item) {
@@ -142,6 +153,30 @@ public class HelloController {
         }
     }
 
+    /**
+     * Simplified method to determine if a message is from the current user
+     */
+    private boolean isMyMessage(NtfyMessageDto item) {
+        // Check if we've tracked this message ID
+        if (sentMessageIds.contains(item.id())) {
+            return true;
+        }
+
+        // Check if this is a text message we just sent (by content)
+        if (item.message() != null && pendingMessageTexts.contains(item.message())) {
+            return true;
+        }
+
+        // Check if this is a file we just sent (by attachment name)
+        if (item.hasAttachment() && item.getAttachmentName() != null &&
+                pendingFileNames.contains(item.getAttachmentName())) {
+            return true;
+        }
+
+        // Fallback: check if it's from our topic
+        return myTopic.equals(item.topic());
+    }
+
     @FXML
     private void onSend() { sendMessage(); }
 
@@ -149,34 +184,53 @@ public class HelloController {
     private void sendMessage() {
         try {
             if (selectedFile != null) {
+                // Track this file name immediately
+                String fileName = selectedFile.getName();
+                pendingFileNames.add(fileName);
+
+                // Refresh immediately to show any matching file messages as "You:"
+                Platform.runLater(() -> messageView.refresh());
+
                 boolean ok = model.sendFile(selectedFile);
                 messageLabel.setText(ok ? "File sent" : "File error");
 
-                // When we send a file, we can't track the ID, so we'll rely on topic comparison
-                // For files, we'll assume they show as "You:" based on topic
+                // Set up delayed cleanup and ID tracking for files
+                Timeline cleanupTimeline = new Timeline(
+                        new KeyFrame(javafx.util.Duration.millis(2000), e -> {
+                            // Remove from pending file names and try to find the real ID
+                            pendingFileNames.remove(fileName);
+                            trackRealFileId(fileName);
+                        })
+                );
+                cleanupTimeline.play();
+
                 selectedFile = null;
                 return;
             }
 
             String text = inputField.getText().trim();
             if (!text.isEmpty()) {
-                // Store that we're sending a message
-                // Note: We can't get the message ID before sending, so we'll track it differently
-                // For now, we'll rely on the topic comparison
+                // Track this message text immediately
+                pendingMessageTexts.add(text);
+
+                // Refresh immediately to show any matching messages as "You:"
+                Platform.runLater(() -> messageView.refresh());
+
+                // Send the message
                 model.sendMessage(text);
                 inputField.clear();
                 messageLabel.setText("Message sent");
 
-                // Add a small delay and then check the last message to mark it as ours
-                Platform.runLater(() -> {
-                    if (!model.getMessages().isEmpty()) {
-                        NtfyMessageDto lastMessage = model.getMessages().get(model.getMessages().size() - 1);
-                        if (lastMessage.message() != null && lastMessage.message().equals(text)) {
-                            sentMessageIds.add(lastMessage.id());
-                            messageView.refresh(); // Refresh to update the display
-                        }
-                    }
-                });
+                // Set up delayed cleanup and ID tracking
+                Timeline cleanupTimeline = new Timeline(
+                        new KeyFrame(javafx.util.Duration.millis(2000), e -> {
+                            // Remove from pending texts and try to find the real ID
+                            pendingMessageTexts.remove(text);
+                            trackRealMessageId(text);
+                        })
+                );
+                cleanupTimeline.play();
+
             } else {
                 messageLabel.setText("Write something before sending.");
             }
@@ -187,11 +241,48 @@ public class HelloController {
         }
     }
 
+    /**
+     * Find the real message ID for a sent message
+     */
+    private void trackRealMessageId(String expectedText) {
+        for (NtfyMessageDto message : model.getMessages()) {
+            if (expectedText.equals(message.message()) &&
+                    !sentMessageIds.contains(message.id())) {
+
+                // Track the real ID
+                sentMessageIds.add(message.id());
+
+                // Refresh the display
+                Platform.runLater(() -> messageView.refresh());
+                break;
+            }
+        }
+    }
+
+    /**
+     * Find the real message ID for a sent file
+     */
+    private void trackRealFileId(String expectedFileName) {
+        for (NtfyMessageDto message : model.getMessages()) {
+            if (message.hasAttachment() && expectedFileName.equals(message.getAttachmentName()) &&
+                    !sentMessageIds.contains(message.id())) {
+
+                // Track the real ID
+                sentMessageIds.add(message.id());
+
+                // Refresh the display
+                Platform.runLater(() -> messageView.refresh());
+                break;
+            }
+        }
+    }
+
+    // ... rest of the methods remain the same ...
     private void showWelcomeMessage() {
         Platform.runLater(() -> {
             Alert welcomeAlert = new Alert(Alert.AlertType.INFORMATION);
             welcomeAlert.setTitle("Matrix Binary Chat");
-            welcomeAlert.setHeaderText(null); // This completely removes the header
+            welcomeAlert.setHeaderText(null);
 
             String welcomeText = "Welcome to the Matrix Binary Chat!\n\n" +
                     "💡 Tips:\n" +
@@ -221,7 +312,6 @@ public class HelloController {
 
             welcomeAlert.setGraphic(null);
 
-            // Auto-close using Timeline (JavaFX way) - 12 seconds
             Timeline autoCloseTimeline = new Timeline(
                     new KeyFrame(javafx.util.Duration.seconds(12), e -> welcomeAlert.close())
             );
@@ -241,9 +331,8 @@ public class HelloController {
                 iconView.setImage(new Image(getClass().getResourceAsStream("/icons/image.png")));
 
                 if (file.exists()) {
-                    // Fix: Use setOnMouseClicked instead of adding multiple handlers
                     iconView.setOnMouseClicked(e -> {
-                        if (e.getClickCount() == 2) { // Double click
+                        if (e.getClickCount() == 2) {
                             ImageView fullImage = new ImageView(new Image(file.toURI().toString()));
                             fullImage.setPreserveRatio(true);
                             fullImage.setFitWidth(600);
