@@ -10,16 +10,14 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class HelloModel {
-
-    private final Set<String> seenIds = Collections.synchronizedSet(new HashSet<>());
     private final String TOPIC_URL;
+    private final Set<String> seenIds = Collections.synchronizedSet(new HashSet<>());
 
     public HelloModel() {
         TOPIC_URL = EnvLoader.get("NTFY_URL");
@@ -28,148 +26,94 @@ public class HelloModel {
         }
     }
 
-    public void sendMessage(String username, String message) throws Exception {
+    public void sendMessage(String username, String message) throws IOException {
         JSONObject json = new JSONObject();
-        json.put("username", username);
-        json.put("message", message);
+        json.put("username", username == null || username.isBlank() ? "Anonymous" : username);
+        json.put("message", message == null ? "" : message);
         json.put("time", Instant.now().getEpochSecond());
-
-        byte[] out = json.toString().getBytes();
-
-        URL url = new URL(TOPIC_URL);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setDoOutput(true);
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.getOutputStream().write(out);
-
-        int response = conn.getResponseCode();
-        System.out.println("POST response: " + response);
-
-        conn.getInputStream().close();
-        conn.disconnect();
+        sendJsonToNtfy(json);
     }
 
+    protected void sendFile(String username, File file) {
+        if (file == null || !file.exists()) return;
+        final String safeUsername = (username == null || username.isBlank()) ? "Anonymous" : username;
 
-    public void listenForMessages(Consumer<ChatMessage> callback) {
         new Thread(() -> {
+            HttpURLConnection conn = null;
             try {
-                URL url = new URL(TOPIC_URL + "/json");
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
+                URL url = new URL(TOPIC_URL);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setDoOutput(true);
+                conn.setRequestMethod("PUT");
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String line;
+                String mimeType = Files.probeContentType(file.toPath());
+                if (mimeType == null) mimeType = "application/octet-stream";
 
-                while ((line = reader.readLine()) != null) {
-                    if (line.isBlank()) continue;
+                conn.setRequestProperty("Filename", file.getName());
+                conn.setRequestProperty("Content-Type", mimeType);
+                conn.setRequestProperty("X-Hide", "true");
+                conn.setFixedLengthStreamingMode(file.length());
+                conn.connect();
 
-                    JSONObject envelope = new JSONObject(line);
-
-                    if (!envelope.has("message")) continue;
-
-                    String id = envelope.optString("id", null);
-                    if (id != null && !seenIds.add(id)) {
-                        continue;
-                    }
-
-                    String rawMsg = envelope.getString("message");
-                    JSONObject json;
-
-                    try {
-                        json = new JSONObject(rawMsg);
-                    } catch (Exception e) {
-                        json = new JSONObject();
-                        json.put("username", "unknown");
-                        json.put("message", rawMsg);
-                        json.put("time", envelope.optLong("time", Instant.now().getEpochSecond()));
-                    }
-
-                    String username = json.optString("username", "unknown");
-                    String message  = json.optString("message", "");
-                    String fileName = json.optString("file_name", null);
-
-                    long rawTime = json.optLong("time", envelope.optLong("time", Instant.now().getEpochSecond()));
-                    String timestamp = Instant.ofEpochSecond(rawTime)
-                            .atZone(ZoneId.systemDefault())
-                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-
-                    String fileData = json.optString("file_data", null);
-                    ChatMessage msg;
-                    if (fileName != null) {
-                        msg = new ChatMessage(id, username, message, timestamp, fileName, fileData);
-                    } else {
-                        msg = new ChatMessage(id, username, message, timestamp);
-                    }
-
-                    callback.accept(msg);
+                try (OutputStream os = conn.getOutputStream()) {
+                    Files.copy(file.toPath(), os);
+                    os.flush();
                 }
+
+                int rc = conn.getResponseCode();
+                InputStream respStream = rc >= 400 ? conn.getErrorStream() : conn.getInputStream();
+                String responseJson = "";
+                if (respStream != null) responseJson = new String(respStream.readAllBytes(), StandardCharsets.UTF_8);
+                System.out.println("PUT upload response code: " + rc);
+                if (!responseJson.isBlank()) System.out.println("PUT upload response body: " + responseJson);
+
+                String fileUrl = null;
+                try {
+                    if (!responseJson.isBlank()) {
+                        JSONObject resp = new JSONObject(responseJson);
+                        if (resp.has("attachment")) {
+                            JSONObject attach = resp.getJSONObject("attachment");
+                            if (attach.has("url")) fileUrl = attach.getString("url");
+                        } else if (resp.has("url")) {
+                            fileUrl = resp.getString("url");
+                        }
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Failed to parse upload response JSON: " + ex.getMessage());
+                }
+
+                if (fileUrl == null && rc >= 200 && rc < 300) {
+                    if (!TOPIC_URL.endsWith("/")) fileUrl = TOPIC_URL + "/" + file.getName();
+                    else fileUrl = TOPIC_URL + file.getName();
+                }
+
+                JSONObject msg = new JSONObject();
+                msg.put("username", safeUsername);
+                msg.put("message", "Sent file: " + file.getName());
+                msg.put("time", Instant.now().getEpochSecond());
+                msg.put("fileName", file.getName());
+                msg.put("fileUrl", fileUrl);
+                msg.put("mimeType", mimeType);
+
+                sendJsonToNtfy(msg);
 
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (conn != null) conn.disconnect();
             }
         }).start();
     }
 
-    public void sendFile(File file, String username) {
-        try {
-            URL url = new URL(TOPIC_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("PUT");
-
-            String mimeType = Files.probeContentType(file.toPath());
-            if (mimeType == null) mimeType = "application/octet-stream";
-
-            conn.setRequestProperty("Filename", file.getName());
-            conn.setRequestProperty("Content-Type", mimeType);
-
-            byte[] bytes = Files.readAllBytes(file.toPath());
-            conn.setFixedLengthStreamingMode(bytes.length);
-
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(bytes);
-            }
-
-            String responseJson = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            conn.disconnect();
-
-            JSONObject uploadResponse = new JSONObject(responseJson);
-
-            if (!uploadResponse.has("attachment")) {
-                System.err.println("No attachment returned by ntfy!");
-                return;
-            }
-
-            JSONObject attachment = uploadResponse.getJSONObject("attachment");
-            String fileUrl = attachment.getString("url");
-
-
-            JSONObject msg = new JSONObject();
-            msg.put("username", username);
-            msg.put("message", "");  // no text, file only
-            msg.put("fileName", file.getName());
-            msg.put("fileUrl", fileUrl);
-            msg.put("mimeType", mimeType);
-            msg.put("time", Instant.now().getEpochSecond());
-
-            sendJsonToNtfy(msg);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private void sendJsonToNtfy(JSONObject json) throws IOException {
-        byte[] out = json.toString().getBytes();
+    protected void sendJsonToNtfy(JSONObject json) throws IOException {
+        byte[] out = json.toString().getBytes(StandardCharsets.UTF_8);
 
         URL url = new URL(TOPIC_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
-        conn.setFixedLengthStreamingMode(out.length); // nice to set Content-Length
+        conn.setFixedLengthStreamingMode(out.length);
         conn.connect();
 
         try (OutputStream os = conn.getOutputStream()) {
@@ -179,69 +123,133 @@ public class HelloModel {
 
         int rc = conn.getResponseCode();
         System.out.println("sendJsonToNtfy() -> response: " + rc);
-
         if (rc < 200 || rc >= 300) {
-            try (InputStream err = conn.getErrorStream()) {
-                if (err != null) {
-                    String body = new String(err.readAllBytes());
-                    System.err.println("ntfy error body: " + body);
-                }
+            InputStream err = conn.getErrorStream();
+            if (err != null) {
+                String body = new String(err.readAllBytes(), StandardCharsets.UTF_8);
+                System.err.println("ntfy error body: " + body);
             }
         }
 
-        conn.getInputStream().close();
+        try (InputStream is = conn.getInputStream()) { if (is != null) is.readAllBytes(); } catch (IOException ignored) {}
         conn.disconnect();
     }
+
     public void loadHistory(Consumer<ChatMessage> callback) {
         new Thread(() -> {
+            HttpURLConnection conn = null;
             try {
                 URL url = new URL(TOPIC_URL + "/json?since=all");
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
+                conn.connect();
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.isBlank()) continue;
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.isBlank()) continue;
+                        try {
+                            JSONObject envelope = new JSONObject(line);
+                            String id = envelope.optString("id", null);
+                            if (id != null && !seenIds.add(id)) continue;
 
-                    JSONObject envelope = new JSONObject(line);
-                    if (!envelope.has("message")) continue;
+                            String rawMsg = envelope.optString("message", "").trim();
+                            if (!rawMsg.startsWith("{") || !rawMsg.endsWith("}")) continue;
 
-                    String id = envelope.optString("id", null);
-                    if (id != null && !seenIds.add(id)) continue;
+                            ChatMessage msg = parseEnvelopeToChatMessage(envelope);
+                            if (msg != null) callback.accept(msg);
 
-                    JSONObject json;
-                    try {
-                        json = new JSONObject(envelope.getString("message"));
-                    } catch (Exception e) {
-                        json = new JSONObject();
-                        json.put("username", "unknown");
-                        json.put("message", envelope.getString("message"));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
-
-                    String username = json.optString("username", "unknown");
-                    String message = json.optString("message", "");
-                    String fileName = json.optString("file_name", null);
-
-                    long time = json.optLong("time", envelope.optLong("time", Instant.now().getEpochSecond()));
-                    String timestamp = Instant.ofEpochSecond(time)
-                            .atZone(ZoneId.systemDefault())
-                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-
-                    String fileData = json.optString("file_data", null);
-
-                    ChatMessage msg = (fileName != null)
-                            ? new ChatMessage(id, username, message, timestamp, fileName, fileData)
-                            : new ChatMessage(id, username, message, timestamp);
-
-                    callback.accept(msg);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (conn != null) conn.disconnect();
             }
         }).start();
     }
 
+
+    public void listenForMessages(Consumer<ChatMessage> callback) {
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(TOPIC_URL + "/json");
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept", "application/json");
+                conn.connect();
+
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.isBlank()) continue;
+
+                        try {
+                            JSONObject envelope = new JSONObject(line);
+                            String id = envelope.optString("id", null);
+                            if (id != null && !seenIds.add(id)) continue;
+
+                            String rawMsg = envelope.optString("message", "").trim();
+                            if (!rawMsg.startsWith("{") || !rawMsg.endsWith("}")) continue;
+
+                            ChatMessage msg = parseEnvelopeToChatMessage(envelope);
+                            if (msg != null) callback.accept(msg);
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }, "ntfy-listener-thread").start();
+    }
+
+
+
+    protected ChatMessage parseEnvelopeToChatMessage(JSONObject envelope) {
+        String rawMsg = envelope.optString("message", null);
+        if (rawMsg == null) return null;
+        if (!rawMsg.startsWith("{") || !rawMsg.endsWith("}")) return null;
+        try {
+            String id = envelope.optString("id", null);
+            long envelopeTime = envelope.optLong("time", Instant.now().getEpochSecond());
+            String timestamp = Instant.ofEpochSecond(envelopeTime)
+                    .atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
+            String username = envelope.optString("username", "unknown");
+
+            if (envelope.has("message")) {
+                rawMsg = envelope.getString("message");
+                JSONObject inner = null;
+                try { inner = new JSONObject(rawMsg); } catch (Exception ignored) {}
+
+                if (inner != null && inner.length() > 0) {
+                    username = inner.optString("username", username);
+                    String messageText = inner.optString("message", "");
+                    String fileName = inner.optString("fileName", null);
+                    String fileUrl = inner.optString("fileUrl", null);
+                    String mimeType = inner.optString("mimeType", null);
+
+                    if (fileName != null || fileUrl != null)
+                        return new ChatMessage(id, username, messageText, timestamp, fileName, fileUrl, mimeType);
+                    else
+                        return new ChatMessage(id, username, messageText, timestamp);
+                } else {
+                    return new ChatMessage(id, username, rawMsg, timestamp);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
 
 }
