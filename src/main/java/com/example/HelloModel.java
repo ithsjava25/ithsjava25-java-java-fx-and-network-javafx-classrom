@@ -48,8 +48,13 @@ public class HelloModel {
 
         senderMe=true;
 
+        long now = System.currentTimeMillis() / 1000;
+        NtfyMessageDto myMsg = new NtfyMessageDto("local", now, "message", "me", text);
+
+        Platform.runLater(() -> messages.add(myMsg));
+
         HttpRequest httpRequest= HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString("Hello world"))
+                .POST(HttpRequest.BodyPublishers.ofString(text))
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
@@ -65,9 +70,10 @@ public class HelloModel {
             System.out.println("Interrupted sending request");
         }
 
+
     }
 
-    public void receiveMessage(){
+    public void receiveMessage() {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(hostName + "/mytopic/json"))
@@ -85,13 +91,16 @@ public class HelloModel {
                         })
                         .filter(Objects::nonNull)
                         .filter(msg -> "message".equals(msg.event()))
-                        .forEach(msg->{
-                            if (senderMe) {
-                                senderMe=false;
+                        .forEach(msg -> {
+
+
+                            if ("me".equals(msg.topic())) {
                                 return;
                             }
-                        Platform.runLater(() -> messages.add(msg));
+
+                            Platform.runLater(() -> messages.add(msg));
                         }));
     }
+
 
 }

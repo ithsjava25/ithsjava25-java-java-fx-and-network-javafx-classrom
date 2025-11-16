@@ -5,17 +5,18 @@
 <?import javafx.scene.layout.*?>
 
 <VBox prefHeight="482.0" prefWidth="248.0" spacing="5.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
-    <Label fx:id="messageLabel" text="CHAT LAB3" />
-    <ListView fx:id="messageView" prefHeight="373.0" prefWidth="248.0" VBox.vgrow="ALWAYS" />
+<Label fx:id="messageLabel" text="CHAT LAB3" />
+<ListView fx:id="messageView" prefHeight="373.0" prefWidth="248.0" VBox.vgrow="ALWAYS" />
 
-<HBox spacing="10.0">
-    <TextField fx:id="messageField" prefHeight="50.0" prefWidth="187.0" promptText="Type your message..." HBox.hgrow="ALWAYS">
-         <HBox.margin>
-            <Insets bottom="5.0" left="5.0" />
-         </HBox.margin></TextField>
-    <Button onAction="#sendMessage" prefHeight="34.0" prefWidth="51.0" text="Send">
-         <HBox.margin>
+<HBox spacing="5.0">
+    <Button fx:id="emojiButton" onAction="#emojis" prefHeight="25.0" prefWidth="34.0" text="😀" />
+    <TextField fx:id="messageField" prefHeight="50.0" prefWidth="154.0" promptText="Type your message..." HBox.hgrow="ALWAYS">
+        <HBox.margin>
+            <Insets bottom="5.0" />
+        </HBox.margin></TextField>
+    <Button onAction="#sendMessage" prefHeight="34.0" prefWidth="43.0" text="Send">
+        <HBox.margin>
             <Insets right="2.0" />
-         </HBox.margin></Button>
+        </HBox.margin></Button>
 </HBox>
 </VBox>
