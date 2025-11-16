@@ -13,7 +13,7 @@ public class HelloFX extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("chat-view.fxml"));
         Parent root = fxmlLoader.load();
         Scene scene = new Scene(root, 640, 480);
-        stage.setTitle("Hello MVC");
+        stage.setTitle("Chat App");
         stage.setScene(scene);
         stage.show();
     }
