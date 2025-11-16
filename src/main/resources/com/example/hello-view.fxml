@@ -1,11 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ListView?>
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <Label fx:id="messageLabel" text="Hello, JavaFX!"/>
-    <Button text="Send" onAction="#sendMessage"/>
-    <ListView fx:id="messageView"/>
-</VBox>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="620" prefWidth="920" stylesheets="@messenger.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+
+    <!-- Övre ikonrad (snabbknappar som i WLM) -->
+    <top>
+        <ToolBar BorderPane.alignment="CENTER_LEFT">
+            <Button styleClass="tb-icon" />
+            <Button styleClass="tb-icon" />
+            <Button styleClass="tb-icon" />
+            <Separator />
+            <Button styleClass="tb-icon" />
+            <Button styleClass="tb-icon" />
+            <Button styleClass="tb-icon" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <TextField promptText="Sök" />
+        </ToolBar>
+    </top>
+
+    <!-- Mitt: Chat + Sidopanel -->
+    <center>
+        <SplitPane dividerPositions="0.74">
+            <!-- Vänster: chattområde -->
+            <BorderPane>
+                <!-- Chatthuvud med kontaktens namn/status och avatar -->
+                <top>
+                    <HBox alignment="CENTER_LEFT" maxHeight="49.0" minHeight="35.0" prefHeight="49.0" prefWidth="676.0" spacing="10">
+                        <padding>
+                            <Insets bottom="10" left="10" right="10" top="10" />
+                        </padding>
+                        <ImageView fx:id="contactAvatar" fitHeight="63.0" fitWidth="175.0" preserveRatio="true">
+                            <image>
+                                <Image url="@images/live.png" />
+                            </image>
+                        </ImageView>
+                        <VBox maxHeight="30.0" prefHeight="25.0" prefWidth="125.0" spacing="2" />
+                         <Label fx:id="chatTitle" maxHeight="61.0" minHeight="30.0" prefHeight="61.0" prefWidth="130.0" styleClass="chat-title" text="Ntfy Chatplication">
+                     <font>
+                        <Font name="JetBrains Mono ExtraBold Italic" size="15.0" />
+                     </font>
+                  </Label>
+                    </HBox>
+                </top>
+
+                <!-- Konversationsfönster -->
+                <center>
+                    <ScrollPane fitToWidth="true">
+                        <VBox fx:id="chatList" spacing="6">
+                            <padding>
+                                <Insets bottom="10" left="10" right="10" top="10" />
+                            </padding>
+                            <!-- Exempelbubblor (kan tas bort i produktion) -->
+                            <ListView fx:id="messageView" prefHeight="352.0" prefWidth="641.0" VBox.vgrow="NEVER" />
+                        </VBox>
+                    </ScrollPane>
+                </center>
+
+                <!-- Nedre inmatningsfält + knapprad -->
+                <bottom>
+                    <VBox spacing="6">
+                        <padding>
+                            <Insets bottom="8" left="8" right="8" top="8" />
+                        </padding>
+                        <!-- formaterings-/emoji-rad -->
+                        <ToolBar>
+                            <Button styleClass="fmt" text="B" />
+                            <Button styleClass="fmt" text="I" />
+                            <Button styleClass="fmt" text="U" />
+                            <Separator />
+                            <Button styleClass="emoji" text="🙂" />
+                            <Button styleClass="emoji" text="😉" />
+                            <Button styleClass="emoji" text="😂" />
+                            <Separator />
+                            <Pane HBox.hgrow="ALWAYS" />
+                        </ToolBar>
+
+                        <TextArea fx:id="messageInput" prefRowCount="3" promptText="Skriv ett meddelande..." wrapText="true" />
+
+                        <HBox alignment="CENTER_RIGHT" spacing="8">
+                            <CheckBox text="Enter skickar" />
+                            <Pane HBox.hgrow="ALWAYS" />
+                            <Button fx:id="sendFileButton" onAction="#sendFile" text="Välj fil" />
+                            <Button defaultButton="true" onAction="#sendMessage" text="Skicka" />
+                        </HBox>
+                    </VBox>
+                </bottom>
+            </BorderPane>
+
+            <!-- Höger: sidopanel (kontaktkort + miniatyrer) -->
+            <VBox spacing="10">
+                <padding>
+                    <Insets bottom="12" left="12" right="12" top="12" />
+                </padding>
+
+                <Separator />
+
+                <Label styleClass="side-heading" text="Delade filer / bilder" />
+                <ListView fx:id="sharedList" prefHeight="340.0" prefWidth="212.0" />
+                <Separator />
+                <ImageView fx:id="profileImage" fitHeight="131.0" fitWidth="130.0" preserveRatio="true">
+                    <image>
+                        <Image url="@images/profile.jpg" />
+                    </image>
+                </ImageView>
+            </VBox>
+        </SplitPane>
+    </center>
+
+    <!-- Underkant: statusrad -->
+    <bottom>
+        <HBox spacing="10" BorderPane.alignment="CENTER_LEFT">
+            <padding>
+                <Insets bottom="6" left="6" right="6" top="6" />
+            </padding>
+            <Label styleClass="status-text" text="Senaste meddelandet togs emot 19:50 2007-12-16" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label styleClass="status-ok" text="📶 Ansluten" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

@@ -1,60 +1,65 @@
 package com.example;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import tools.jackson.databind.ObjectMapper;
+import java.io.FileNotFoundException;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Objects;
-
-/**
- * Model layer: encapsulates application data and business logic.
- */
 public class HelloModel {
 
     private final NtfyConnection connection;
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
-    private final StringProperty messageToSend = new SimpleStringProperty();
+    //private final StringProperty messageToSend = new SimpleStringProperty();
 
     public HelloModel(NtfyConnection connection) {
         this.connection = connection;
-        receiveMessage();
     }
 
     public ObservableList<NtfyMessageDto> getMessages() {
         return messages;
     }
 
-    public String getMessageToSend() {
+    /*public String getMessageToSend() {
         return messageToSend.get();
+    }*/
+
+    public void loadInitialMessagesAsync() {
+        CompletableFuture
+                .supplyAsync(connection::fetchHistory)
+                .thenAccept(list -> Platform.runLater(() -> {
+                    messages.setAll(list);
+                    subscribeLive(); // start streaming after history
+                }))
+                .exceptionally(ex -> null);
     }
-    public StringProperty messageToSendProperty() {
+
+    private void subscribeLive() {
+        connection.receive(m -> Platform.runLater(() -> messages.add(m)));
+    }
+
+    /*public StringProperty messageToSendProperty() {
         return messageToSend;
     }
 
     public void setMessageToSend(String message) {
         messageToSend.set(message);
+    }*/
+
+    public boolean sendMessage(String text) {
+        return connection.send(text);
     }
 
-    public String getGreeting() {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        return "Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
-    }
-
-    public void sendMessage() {
-        connection.send(messageToSend.get());
+    public boolean sendFile(Path path) throws FileNotFoundException {
+        return connection.sendFile(path);
     }
 
     public void receiveMessage() {
         connection.receive(m -> Platform.runLater(() -> messages.add(m)));
     }
+
+
 }

@@ -1,12 +1,17 @@
 package com.example;
 
+import java.io.FileNotFoundException;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Consumer;
 
 public interface NtfyConnection {
 
-    public boolean send(String message);
+    boolean send(String message);
 
-    public void receive(Consumer<NtfyMessageDto> messageHandler);
+    void receive(Consumer<NtfyMessageDto> messageHandler);
 
+    List<NtfyMessageDto> fetchHistory();
 
+    boolean sendFile(Path path) throws FileNotFoundException;
 }

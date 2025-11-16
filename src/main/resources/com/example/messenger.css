@@ -1,0 +1,36 @@
+.root { -fx-font-family: "Segoe UI", Arial, sans-serif; -fx-font-size: 12px; }
+
+.tool-bar { -fx-background-color: linear-gradient(#e6f0fb, #d3e6fb); }
+.tb-icon { -fx-min-width: 28; -fx-min-height: 28; }
+
+.chat-title { -fx-font-size: 14px; -fx-font-weight: bold; }
+.chat-subtitle { -fx-text-fill: #5a6a7a; }
+
+.nick { -fx-text-fill: #0047ab; -fx-font-weight: bold; }
+.nick.self { -fx-text-fill: #a00000; }
+
+.bubble-left {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-padding: 6 10 6 10;
+    -fx-border-color: #cfd8e3;
+    -fx-border-radius: 10;
+}
+.bubble-right {
+    -fx-background-color: #e8f3ff;
+    -fx-background-radius: 10;
+    -fx-padding: 6 10 6 10;
+    -fx-border-color: #b9d4fb;
+    -fx-border-radius: 10;
+}
+
+.fmt { -fx-font-weight: bold; -fx-min-width: 32; }
+.emoji { -fx-min-width: 32; }
+.hint { -fx-text-fill: #6b7280; }
+
+.side-name { -fx-font-weight: bold; }
+.side-status { -fx-text-fill: #22aa22; }
+.side-heading { -fx-font-weight: bold; -fx-text-fill: #3b4a5a; }
+
+.status-text { -fx-text-fill: #4b5563; }
+.status-ok   { -fx-text-fill: #16a34a; }

@@ -7,6 +7,7 @@ module hellofx {
     requires tools.jackson.databind;
     requires java.desktop;
     requires javafx.graphics;
+    requires java.compiler;
 
     opens com.example to javafx.fxml;
     exports com.example;

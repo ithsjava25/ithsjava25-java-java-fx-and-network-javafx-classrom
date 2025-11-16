@@ -1,8 +1,10 @@
 package com.example;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
-public class NtfyConnectionSpy implements NtfyConnection{
+public class NtfyConnectionSpy implements NtfyConnection {
 
     String message;
 
@@ -14,6 +16,10 @@ public class NtfyConnectionSpy implements NtfyConnection{
 
     @Override
     public void receive(Consumer<NtfyMessageDto> messageHandler) {
+    }
 
+    @Override
+    public List<NtfyMessageDto> fetchHistory() {
+        return Collections.emptyList();
     }
 }
