@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -55,7 +56,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
         return new Subscription() {
             @Override
-            public void close() throws Exception {
+            public void close() throws IOException {
                 open.set(false);
                 future.cancel(true);
             }
