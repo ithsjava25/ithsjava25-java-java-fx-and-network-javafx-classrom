@@ -5,7 +5,6 @@ import com.example.domain.NtfyEventResponse;
 import com.example.domain.NtfyMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +30,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/" + topic + "/json"))
+                .header("accept", "application/json")
                 .GET()
                 .build();
 
@@ -72,7 +72,17 @@ public class NtfyHttpClient implements ChatNetworkClient {
     }
 
     @Override
-    public void send(String baseUrl, NtfyMessage msg) throws IOException, InterruptedException {
+    public void send(String baseUrl, NtfyMessage msg, java.io.File attachment) throws IOException, InterruptedException {
+
+        if (attachment != null) {
+            sendWithAttachment(baseUrl, msg, attachment);
+            return;
+        }
+
+        sendJsonOnly(baseUrl, msg);
+    }
+
+    private void sendJsonOnly(String baseUrl, NtfyMessage msg) throws IOException, InterruptedException {
         String json = mapper.writeValueAsString(msg);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -84,5 +94,23 @@ public class NtfyHttpClient implements ChatNetworkClient {
         HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
         log.info("Sent JSON payload: {}", json);
     }
+
+    private void sendWithAttachment(String baseUrl, NtfyMessage msg, java.io.File file)
+            throws IOException, InterruptedException {
+
+        String topicUrl = baseUrl + "/" + msg.topic();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(topicUrl))
+                .header("Filename", file.getName())
+                .PUT(HttpRequest.BodyPublishers.ofFile(file.toPath()))
+                .build();
+
+
+        var response = HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
+
+        log.info("Attachment sent: {} (status {})", file.getName(), response.statusCode());
+    }
+
 
 }

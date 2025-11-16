@@ -30,6 +30,11 @@
                    HBox.hgrow="ALWAYS"
                    promptText="Write a message..."
                    style="-fx-background-radius: 6;"/>
+
+        <Button text="+"
+                onAction="#onPickAttachment"
+                style="-fx-font-size: 16px; -fx-background-radius: 6;"/>
+
         <Button text="Send"
                 style="-fx-background-radius: 6;"
                 onAction="#onSend"/>

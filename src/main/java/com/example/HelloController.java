@@ -6,6 +6,7 @@ import com.example.domain.NtfyEventResponse;
 import com.example.domain.NtfyMessage;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
@@ -13,8 +14,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,6 +31,7 @@ public class HelloController {
     private ChatNetworkClient client;
     private String baseUrl;
     private String topic;
+    private File selectedFile =  null;
 
     @FXML
     private Label messageLabel;
@@ -71,9 +75,25 @@ public class HelloController {
 
 
     @FXML
+    private void onPickAttachment() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select attachment");
+        File file = chooser.showOpenDialog(messageInput.getScene().getWindow());
+
+        if (file != null) {
+            selectedFile = file;
+            messageLabel.setText("Attachment selected: " + file.getName());
+        }
+    }
+
+    @FXML
     private void onSend() {
         String txt = messageInput.getText();
-        if (txt == null || txt.isBlank()) return;
+
+        if ((txt == null || txt.isBlank()) && selectedFile == null) {
+            showStatus("Nothing to send");
+            return;
+        }
 
         String title = titleInput.getText();
         if (title != null && title.isBlank()) title = null;
@@ -101,16 +121,18 @@ public class HelloController {
                 .build();
 
         try {
-            client.send(baseUrl, msg);
-            showStatus("Message sent");
+            client.send(baseUrl, msg, selectedFile);
+            showStatus(selectedFile == null ? "Message sent" : "Attachment sent");
         } catch (InterruptedException | IOException e) {
-            showStatus("Error sending message: " + e.getMessage());
+            showStatus("Error sending: " + e.getMessage());
         }
 
         messageInput.clear();
         titleInput.clear();
         tagsInput.clear();
+        selectedFile = null;
     }
+
 
     private static final class MessageCell extends ListCell<NtfyEventResponse> {
         @Override
@@ -144,8 +166,6 @@ public class HelloController {
                     ImageView imageView = new ImageView(image);
                     container.getChildren().add(imageView);
                 } else {
-
-                    // Allow user to open file URL
                     Label fileLabel = getFileLabel(att);
                     container.getChildren().add(fileLabel);
                 }
@@ -173,6 +193,7 @@ public class HelloController {
             setGraphic(container);
         }
 
+        // Helper method to allow user to open file
         private static Label getFileLabel(NtfyEventResponse.Attachment att) {
             Label fileLabel = new Label("Open file: " + (att.name() != null ? att.name() : att.url()));
             fileLabel.setStyle("-fx-text-fill: #2c75ff; -fx-underline: true;");
