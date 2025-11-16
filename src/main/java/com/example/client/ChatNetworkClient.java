@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public interface ChatNetworkClient {
     Subscription subscribe(String baseUrl, String topic);
-    void send(String baseUrl, String topic, NtfyMessage message);
+    void send(String baseUrl, NtfyMessage message);
 
     interface Subscription extends AutoCloseable {
         @Override

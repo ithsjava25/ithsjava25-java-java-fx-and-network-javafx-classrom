@@ -19,8 +19,8 @@ public class HelloController {
         model.getMessages().addListener((ListChangeListener<NtfyMessage>) c -> {
             String events = model.getMessages()
                     .stream()
-                    .map(NtfyMessage::event)
-                    .collect(Collectors.joining(";"));
+                    .map(NtfyMessage::message)
+                    .collect(Collectors.joining(", "));
             messageLabel.setText(events);
         });
     }

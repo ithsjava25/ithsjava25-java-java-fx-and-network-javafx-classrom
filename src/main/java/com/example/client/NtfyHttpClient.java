@@ -44,7 +44,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
                 try {
                     NtfyMessage msg = mapper.readValue(line, NtfyMessage.class);
-                    if ("message".equals(msg.event())) {
+                    if (msg.event().equals("message")) {
                         Platform.runLater(() ->
                             model.addMessage(msg)
                         );
@@ -53,7 +53,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
                 }
             });
         });
-        log.info("Subscribing to topic {}", topic);
+        log.info("Successfully subscribed to topic: {}", topic);
 
         return new Subscription() {
             @Override
@@ -70,9 +70,9 @@ public class NtfyHttpClient implements ChatNetworkClient {
     }
 
     @Override
-    public void send(String baseUrl, String topic, NtfyMessage msg) {
+    public void send(String baseUrl, NtfyMessage msg) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/" + topic))
+                .uri(URI.create(baseUrl + "/" + msg.topic()))
                 .POST(HttpRequest.BodyPublishers.ofString(msg.message()))
                 .build();
 

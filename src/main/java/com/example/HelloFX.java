@@ -3,6 +3,7 @@ package com.example;
 import com.example.client.ChatNetworkClient;
 import com.example.client.NtfyHttpClient;
 import com.example.domain.ChatModel;
+import com.example.domain.NtfyMessage;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,7 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Properties;
+import java.util.UUID;
 
 
 import static com.example.utils.EnvLoader.loadEnv;
@@ -44,7 +47,7 @@ public class HelloFX extends Application {
 
         ChatNetworkClient.Subscription sub = client.subscribe(baseUrl, topic);
         log.info("Subscription: {}", sub);
-        // client.send(baseUrl, topic, "I've been expecting you.");
+        client.send(baseUrl, new NtfyMessage(UUID.randomUUID().toString(), System.currentTimeMillis(), "message", topic, "HELLO"));
 
         launch();
 
