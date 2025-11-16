@@ -40,7 +40,16 @@ public class HelloController {
 
     public void setModel(ChatModel model) {
         this.model = model;
+
         messagesList.setItems(model.getMessages());
+
+        messagesList.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(NtfyMessage msg, boolean empty) {
+                super.updateItem(msg, empty);
+                setText(empty ? "" : msg.message());
+            }
+        });
     }
 
     @FXML
