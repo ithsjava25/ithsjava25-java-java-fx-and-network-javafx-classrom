@@ -47,9 +47,47 @@ public class HelloController {
             @Override
             protected void updateItem(NtfyMessage msg, boolean empty) {
                 super.updateItem(msg, empty);
-                setText(empty ? "" : msg.message());
+
+                if (empty || msg == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                var container = new javafx.scene.layout.VBox();
+
+                if (msg.title() != null) {
+                    var titleLabel = new javafx.scene.control.Label(msg.title());
+                    titleLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
+                    container.getChildren().add(titleLabel);
+                }
+
+                var messageLabel = new javafx.scene.control.Label(msg.message());
+                messageLabel.setStyle("-fx-font-size: 14px;");
+                container.getChildren().add(messageLabel);
+
+                if (msg.tags() != null && !msg.tags().isEmpty()) {
+                    var tagsLabel = new javafx.scene.control.Label(String.join(", ", msg.tags()));
+                    tagsLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: darkblue;");
+                    container.getChildren().add(tagsLabel);
+                }
+
+                var timeLabel = new javafx.scene.control.Label(formatTime(msg.time()));
+                timeLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: gray;");
+                container.getChildren().add(timeLabel);
+
+                container.setSpacing(2);
+                setGraphic(container);
             }
         });
+
+
+    }
+
+    private static String formatTime(long epochMillis) {
+        var instant = java.time.Instant.ofEpochMilli(epochMillis);
+        var time = java.time.LocalTime.ofInstant(instant, java.time.ZoneId.systemDefault());
+        return time.toString();
     }
 
     @FXML
@@ -57,13 +95,15 @@ public class HelloController {
         String txt = messageInput.getText();
         if (txt == null || txt.isBlank()) return;
 
-        NtfyMessage msg = new NtfyMessage(
-                UUID.randomUUID().toString(),
-                System.currentTimeMillis(),
-                "message",
-                topic,
-                txt
-        );
+        NtfyMessage msg = new NtfyMessage.Builder()
+                .id(UUID.randomUUID().toString())
+                .time(System.currentTimeMillis())
+                .event("message")
+                .topic(topic)
+                .message(null)
+                .title(null)
+                .tags(null)
+                .build();
 
         try {
             client.send(baseUrl, msg);
