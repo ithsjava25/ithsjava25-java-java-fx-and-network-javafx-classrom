@@ -10,4 +10,5 @@ module hellofx {
     opens com.example to javafx.fxml;
     opens com.example.domain to com.fasterxml.jackson.databind;
     exports com.example;
+    exports com.example.domain;
 }

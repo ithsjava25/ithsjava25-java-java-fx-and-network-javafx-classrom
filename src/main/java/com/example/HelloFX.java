@@ -1,8 +1,11 @@
 package com.example;
 
+import com.example.domain.ChatModel;
 import com.example.domain.NtfyMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -16,18 +19,20 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Properties;
-import java.util.UUID;
 
 
 import static com.example.utils.EnvLoader.loadEnv;
 
 public class HelloFX extends Application {
     private static final Logger logger = LoggerFactory.getLogger("MAIN");
+    static final ChatModel model = new ChatModel();
 
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Parent root = fxmlLoader.load();
+        HelloController controller = fxmlLoader.getController();
+        controller.setModel(model);
         Scene scene = new Scene(root, 640, 480);
         stage.setTitle("Hello MVC");
         stage.setScene(scene);
@@ -58,21 +63,18 @@ public class HelloFX extends Application {
 
         client.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
                 .thenAccept(response -> {
-                    response.body().forEach(line -> {
-                        logger.info("Event received: {}", line);
-
-                        try {
-                            NtfyMessage msg = mapper.readValue(line, NtfyMessage.class);
-                            logger.info("NtfyMessage:\n  id     = {}\n  event  = {}\n  topic  = {}\n  message= {}",
-                                    msg.id(), msg.event(), msg.topic(), msg.message());
-                        } catch (Exception e) {
-                            logger.error("Failed to parse line: {}", line, e);
-                        }
-                    });
+                    response.body()
+                            .map(event -> {
+                                try {
+                                    return mapper.readValue(event, NtfyMessage.class);
+                                } catch (JsonProcessingException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                            .filter(msg -> msg.event().equals("message"))
+                            .forEach(msg -> Platform.runLater(() ->
+                                    model.addMessage(msg)));
                 });
-
-        System.out.println("Listening for messages on topic: " + topic);
-        Thread.sleep(Long.MAX_VALUE);
         launch();
 
     }
