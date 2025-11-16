@@ -12,11 +12,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Properties;
-import java.util.UUID;
-
 
 import static com.example.utils.EnvLoader.loadEnv;
 
@@ -41,7 +38,12 @@ public class HelloFX extends Application {
 
         client.subscribe(baseUrl, topic);
 
-        stage.setScene(new Scene(root));
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(
+                Objects.requireNonNull(HelloFX.class.getResource("styles.css")).toExternalForm()
+        );
+
+        stage.setScene(scene);
         stage.show();
     }
 

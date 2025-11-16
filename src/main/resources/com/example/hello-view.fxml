@@ -1,26 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.HelloController"
       spacing="10"
       prefWidth="1000"
-      prefHeight="500">
+      prefHeight="600">
 
-    <ListView fx:id="messagesList" VBox.vgrow="ALWAYS"/>
+    <ListView fx:id="messagesList"
+              VBox.vgrow="ALWAYS"/>
 
-    <TextField fx:id="titleInput" promptText="Optional title"/>
+    <Label fx:id="messageLabel"
+           text=""
+           style="-fx-font-size: 11px; -fx-text-fill: gray;"/>
 
-    <TextField fx:id="tagsInput" promptText="Optional tags (comma separated)"/>
+    <TextField fx:id="titleInput"
+               promptText="Optional title"/>
+
+    <TextField fx:id="tagsInput"
+               promptText="Optional tags (comma separated)"/>
 
     <HBox spacing="10">
-        <TextField fx:id="messageInput" HBox.hgrow="ALWAYS"/>
-        <Button text="Send" onAction="#onSend"/>
+        <TextField fx:id="messageInput"
+                   HBox.hgrow="ALWAYS"
+                   promptText="Write a message..."/>
+        <Button text="Send"
+                onAction="#onSend"/>
     </HBox>
 
 </VBox>

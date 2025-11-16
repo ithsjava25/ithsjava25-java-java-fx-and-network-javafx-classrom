@@ -1,0 +1,12 @@
+.list-view {
+    -fx-background-color: gray;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+}
+
+.list-cell:filled:selected,
+.list-cell:filled:selected:focused {
+    -fx-background-color: #e3f2fd;
+}
