@@ -11,7 +11,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Properties;
 import java.util.UUID;
+
+import static com.example.utils.EnvLoader.loadEnv;
 
 public class HelloFX extends Application {
 
@@ -27,8 +30,10 @@ public class HelloFX extends Application {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        String baseUrl = "https://ntfy.sh";
-        String topic = "a5ce42c9-6d30-4f7b-942b-7e11d3075925";
+        Properties env = loadEnv();
+
+        String baseUrl = env.getProperty("NTFY_BASE_URL");
+        String topic = env.getProperty("NTFY_TOPIC");
 
         HttpClient client = HttpClient.newHttpClient();
 
