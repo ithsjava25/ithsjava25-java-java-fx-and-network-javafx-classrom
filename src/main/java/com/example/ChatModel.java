@@ -22,24 +22,32 @@ public class ChatModel {
     private final String subscribeUrl;
     private final String clientId;
     private final Set<String> sentMessages = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final HttpClient httpClient;
+    private final Consumer<Runnable> platformRunner;
 
     public ChatModel() {
-        String topic = System.getenv().getOrDefault("NTFY_TOPIC", "https://ntfy.sh/newchatroom3");
+        this(HttpClient.newHttpClient(), Platform::runLater);
+    }
 
-        sendUrl = topic;
-        subscribeUrl = topic + "/sse";
-        clientId = UUID.randomUUID().toString();
+    public ChatModel(HttpClient httpClient, Consumer<Runnable> platformRunner) {
+        String topic = System.getenv().getOrDefault("NTFY_TOPIC", "https://ntfy.sh/newchatroom3");
+        this.sendUrl = topic;
+        this.subscribeUrl = topic + "/sse";
+        this.clientId = UUID.randomUUID().toString();
+        this.httpClient = httpClient;
+        this.platformRunner = platformRunner;
     }
 
     public void sendMessage(String message) {
         sentMessages.add(message);
 
         new Thread(() -> {
-            try { Thread.sleep(5000); } catch (Exception ignored) {}
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ignored) {
+            }
             sentMessages.remove(message);
-        }).start();
-
-        HttpClient client = HttpClient.newHttpClient();
+        }, "SentMessageCleaner").start();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(sendUrl))
@@ -49,36 +57,38 @@ public class ChatModel {
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .build();
 
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenAccept(response -> System.out.println("Sent, status=" + response.statusCode()))
-                .exceptionally(e -> { e.printStackTrace(); return null; });
+                .exceptionally(e -> {
+                    e.printStackTrace();
+                    return null;
+                });
     }
 
 
     public void subscribe(Consumer<String> onMessageReceived) {
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(subscribeUrl))
                 .header("Accept", "text/event-stream")
                 .build();
 
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
+        httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
                 .thenAccept(response -> {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()))) {
                         String line;
-                        boolean firstMessageSkipped = false;
+//                        boolean firstMessageSkipped = false;
                         while ((line = reader.readLine()) != null) {
                             if (line.startsWith("data:")) {
-                                if (!firstMessageSkipped) {
-                                    firstMessageSkipped = true;
-                                    continue;
-                                }
+//                                if (!firstMessageSkipped) {
+//                                    firstMessageSkipped = true;
+//                                    continue;
+//                                }
 
                                 String raw = line.substring(5).trim();
                                 String msg = parseMessage(raw);
 
                                 if (msg != null && !sentMessages.contains(msg)) {
-                                    Platform.runLater(() -> onMessageReceived.accept(msg));
+                                    platformRunner.accept(() -> onMessageReceived.accept(msg));
                                 }
                             }
                         }
@@ -89,12 +99,11 @@ public class ChatModel {
                 .exceptionally(e -> { e.printStackTrace(); return null; });
     }
 
-    private String parseMessage(String data) {
+    public String parseMessage(String data) {
         try {
             Matcher eventMatcher = Pattern.compile("\"event\"\\s*:\\s*\"(.*?)\"").matcher(data);
             if (eventMatcher.find()) {
                 String event = eventMatcher.group(1);
-
                 if (!"message".equals(event)) {
                     return null;
                 }
@@ -105,13 +114,7 @@ public class ChatModel {
                 return msgMatcher.group(1).replace("\\\"", "\"");
             }
         } catch (Exception ignored) {}
-
         return null;
     }
 
-
-
 }
-
-
-
