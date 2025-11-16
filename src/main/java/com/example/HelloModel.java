@@ -62,18 +62,9 @@ public class HelloModel {
                     System.out.println("Error sending message: " + ex.getMessage());
                     return null;
                 });
-        try {
-            var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            System.out.println("Error sending message");
-        } catch (InterruptedException e) {
-            System.out.println("Interrupted sending request");
-        }
+            }
 
-
-    }
-
-    public void receiveMessage() {
+    public void receiveMessage(){
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(hostName + "/mytopic/json"))
@@ -91,16 +82,13 @@ public class HelloModel {
                         })
                         .filter(Objects::nonNull)
                         .filter(msg -> "message".equals(msg.event()))
-                        .forEach(msg -> {
-
-
-                            if ("me".equals(msg.topic())) {
+                        .forEach(msg->{
+                            if (senderMe) {
+                                senderMe=false;
                                 return;
                             }
-
-                            Platform.runLater(() -> messages.add(msg));
+                        Platform.runLater(() -> messages.add(msg));
                         }));
     }
-
 
 }
