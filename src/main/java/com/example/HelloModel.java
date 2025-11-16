@@ -5,15 +5,20 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class HelloModel {
 
+    private final Set<String> seenIds = Collections.synchronizedSet(new HashSet<>());
     private final String TOPIC_URL;
 
     public HelloModel() {
@@ -63,6 +68,11 @@ public class HelloModel {
 
                     if (!envelope.has("message")) continue;
 
+                    String id = envelope.optString("id", null);
+                    if (id != null && !seenIds.add(id)) {
+                        continue;
+                    }
+
                     String rawMsg = envelope.getString("message");
                     JSONObject json;
 
@@ -87,9 +97,9 @@ public class HelloModel {
                     String fileData = json.optString("file_data", null);
                     ChatMessage msg;
                     if (fileName != null) {
-                        msg = new ChatMessage(username, message, timestamp, fileName, fileData);
+                        msg = new ChatMessage(id, username, message, timestamp, fileName, fileData);
                     } else {
-                        msg = new ChatMessage(username, message, timestamp);
+                        msg = new ChatMessage(id, username, message, timestamp);
                     }
 
                     callback.accept(msg);
@@ -101,29 +111,55 @@ public class HelloModel {
         }).start();
     }
 
-    public void sendFile(String username, File file) {
-        if (file == null || !file.exists()) return;
-        final String safeUsername = (username == null || username.isBlank()) ? "unknown" : username;
+    public void sendFile(File file, String username) {
+        try {
+            URL url = new URL(TOPIC_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("PUT");
 
-        new Thread(() -> {
-            try {
-                byte[] bytes = Files.readAllBytes(file.toPath());
-                String encoded = Base64.getEncoder().encodeToString(bytes);
+            String mimeType = Files.probeContentType(file.toPath());
+            if (mimeType == null) mimeType = "application/octet-stream";
 
-                JSONObject json = new JSONObject();
-                json.put("username", safeUsername);
-                json.put("message", "Sent file: " + file.getName());
-                json.put("time", Instant.now().getEpochSecond());
-                json.put("file_name", file.getName());
-                json.put("file_data", encoded);
+            conn.setRequestProperty("Filename", file.getName());
+            conn.setRequestProperty("Content-Type", mimeType);
 
-                sendJsonToNtfy(json);
+            byte[] bytes = Files.readAllBytes(file.toPath());
+            conn.setFixedLengthStreamingMode(bytes.length);
 
-            } catch (Exception e) {
-                e.printStackTrace();
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(bytes);
             }
-        }).start();
+
+            String responseJson = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            conn.disconnect();
+
+            JSONObject uploadResponse = new JSONObject(responseJson);
+
+            if (!uploadResponse.has("attachment")) {
+                System.err.println("No attachment returned by ntfy!");
+                return;
+            }
+
+            JSONObject attachment = uploadResponse.getJSONObject("attachment");
+            String fileUrl = attachment.getString("url");
+
+
+            JSONObject msg = new JSONObject();
+            msg.put("username", username);
+            msg.put("message", "");  // no text, file only
+            msg.put("fileName", file.getName());
+            msg.put("fileUrl", fileUrl);
+            msg.put("mimeType", mimeType);
+            msg.put("time", Instant.now().getEpochSecond());
+
+            sendJsonToNtfy(msg);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
     private void sendJsonToNtfy(JSONObject json) throws IOException {
         byte[] out = json.toString().getBytes();
@@ -172,6 +208,9 @@ public class HelloModel {
                     JSONObject envelope = new JSONObject(line);
                     if (!envelope.has("message")) continue;
 
+                    String id = envelope.optString("id", null);
+                    if (id != null && !seenIds.add(id)) continue;
+
                     JSONObject json;
                     try {
                         json = new JSONObject(envelope.getString("message"));
@@ -193,8 +232,8 @@ public class HelloModel {
                     String fileData = json.optString("file_data", null);
 
                     ChatMessage msg = (fileName != null)
-                            ? new ChatMessage(username, message, timestamp, fileName, fileData)
-                            : new ChatMessage(username, message, timestamp);
+                            ? new ChatMessage(id, username, message, timestamp, fileName, fileData)
+                            : new ChatMessage(id, username, message, timestamp);
 
                     callback.accept(msg);
                 }
