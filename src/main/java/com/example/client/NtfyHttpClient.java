@@ -8,22 +8,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
-public class NtfyHttpClient implements ChatNetworkClient {
+public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger("NtfyClient");
-    private final ChatModel model;
-
-    public NtfyHttpClient(ChatModel model) {
-        this.model = model;
-    }
 
     @Override
     public Subscription subscribe(String baseUrl, String topic) {
@@ -34,7 +31,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
                 .GET()
                 .build();
 
-        CompletableFuture<HttpResponse<java.util.stream.Stream<String>>> future =
+        CompletableFuture<HttpResponse<Stream<String>>> future =
                 HttpClientProvider.get().sendAsync(req, HttpResponse.BodyHandlers.ofLines());
 
         AtomicBoolean open = new AtomicBoolean(true);
@@ -50,7 +47,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
                         model.addMessage(msg);
                         log.info("Message added: {}", msg);
                     }
-                } catch (JsonProcessingException e)  {
+                } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -72,7 +69,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
     }
 
     @Override
-    public void send(String baseUrl, NtfyMessage msg, java.io.File attachment) throws IOException, InterruptedException {
+    public void send(String baseUrl, NtfyMessage msg, File attachment) throws IOException, InterruptedException {
 
         if (attachment != null) {
             sendWithAttachment(baseUrl, msg, attachment);
@@ -95,7 +92,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
         log.info("Sent JSON payload: {}", json);
     }
 
-    private void sendWithAttachment(String baseUrl, NtfyMessage msg, java.io.File file)
+    private void sendWithAttachment(String baseUrl, NtfyMessage msg, File file)
             throws IOException, InterruptedException {
 
         String topicUrl = baseUrl + "/" + msg.topic();
