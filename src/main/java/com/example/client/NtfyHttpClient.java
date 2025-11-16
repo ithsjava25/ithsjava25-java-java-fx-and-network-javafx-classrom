@@ -46,9 +46,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
                 try {
                     NtfyMessage msg = mapper.readValue(line, NtfyMessage.class);
                     if (msg.event().equals("message")) {
-                        Platform.runLater(() ->
-                            model.addMessage(msg)
-                        );
+                        model.addMessage(msg);
                         log.info("Message added: {}", msg);
                     }
                 } catch (JsonProcessingException e)  {
