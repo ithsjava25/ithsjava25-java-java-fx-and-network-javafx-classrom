@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpTimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -57,7 +56,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
         return new Subscription() {
             @Override
-            public void close() throws IOException {
+            public void close() {
                 open.set(false);
                 future.cancel(true);
             }
@@ -70,27 +69,15 @@ public class NtfyHttpClient implements ChatNetworkClient {
     }
 
     @Override
-    public void send(String baseUrl, NtfyMessage msg) {
+    public void send(String baseUrl, NtfyMessage msg) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/" + msg.topic()))
                 .POST(HttpRequest.BodyPublishers.ofString(msg.message()))
                 .build();
 
-        try {
-            HttpClientProvider.get()
-                    .send(request, HttpResponse.BodyHandlers.ofString());
+        HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
 
-            log.info("ok");
+        log.info("Successfully sent message: {}", msg.message());
 
-        } catch (HttpTimeoutException e) {
-            log.error("Timeout while sending message", e);
-
-        } catch (IOException e) {
-            log.error("IO error while sending message", e);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Send operation interrupted", e);
-        }
     }
 }

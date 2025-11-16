@@ -7,11 +7,11 @@ import java.io.IOException;
 
 public interface ChatNetworkClient {
     Subscription subscribe(String baseUrl, String topic);
-    void send(String baseUrl, NtfyMessage message);
+    void send(String baseUrl, NtfyMessage message) throws IOException, InterruptedException;
 
     interface Subscription extends AutoCloseable {
         @Override
-        void close() throws IOException;
+        void close();
         boolean isOpen();
     }
 }
