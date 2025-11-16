@@ -26,30 +26,27 @@ public class HelloFX extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
-        Parent root = fxmlLoader.load();
-        HelloController controller = fxmlLoader.getController();
-        controller.setModel(model);
-        Scene scene = new Scene(root, 640, 480);
-        stage.setTitle("Hello MVC");
-        stage.setScene(scene);
-        stage.show();
-    }
-
-    public static void main(String[] args) throws IOException, InterruptedException {
-
         Properties env = loadEnv();
-
         String baseUrl = env.getProperty("NTFY_BASE_URL");
         String topic = env.getProperty("NTFY_TOPIC");
 
+        FXMLLoader loader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
+        Parent root = loader.load();
+
+        HelloController controller = loader.getController();
+        controller.setModel(model);
+
         ChatNetworkClient client = new NtfyHttpClient(model);
+        controller.setClient(client, baseUrl, topic);
 
-        ChatNetworkClient.Subscription sub = client.subscribe(baseUrl, topic);
-        log.info("Subscription Active: {}", sub.isOpen());
-        client.send(baseUrl, new NtfyMessage(UUID.randomUUID().toString(), System.currentTimeMillis(), "message", topic, "HELLO"));
+        client.subscribe(baseUrl, topic);
 
-        launch();
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
 
     }
 
