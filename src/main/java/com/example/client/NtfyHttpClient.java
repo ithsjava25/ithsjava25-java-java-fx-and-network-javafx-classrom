@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -75,15 +76,21 @@ public class NtfyHttpClient implements ChatNetworkClient {
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .build();
 
-        HttpClientProvider.get()
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .whenComplete((response, error) -> {
-                    if (error != null) {
-                        log.error("Failed to send message", error);
-                        return;
-                    }
-                    log.info("ok");
-                });
-    }
+        try {
+            HttpClientProvider.get()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
 
+            log.info("ok");
+
+        } catch (HttpTimeoutException e) {
+            log.error("Timeout while sending message", e);
+
+        } catch (IOException e) {
+            log.error("IO error while sending message", e);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Send operation interrupted", e);
+        }
+    }
 }
