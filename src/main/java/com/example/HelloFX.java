@@ -7,6 +7,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.Objects;
+
 public class HelloFX extends Application {
 
     @Override
@@ -31,7 +33,9 @@ public class HelloFX extends Application {
         Parent root = fxmlLoader.load();
         Scene scene = new Scene(root, 640, 480);
 
-        scene.getStylesheets().add(HelloFX.class.getResource("styles.css").toExternalForm());
+        scene.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource("/com/example/styles.css")).toExternalForm()
+        );
 
         stage.setTitle("Hello MVC");
         stage.setScene(scene);
