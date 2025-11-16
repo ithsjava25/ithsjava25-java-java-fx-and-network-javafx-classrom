@@ -55,18 +55,14 @@ public class HelloController {
     private void onSendButtonClick() {
         String messageText = messageTextField.getText();
         if (!messageText.isEmpty()) {
-            //Skapa ett nytt meddelande och lägg till det i modellen
+            //Skapa ett nytt meddelande och skicka det
             NtfyMessage message = new NtfyMessage(
-                    "1",  // ID (kan genereras bättre) //TODO
+                    "1",  // ID (kan genereras bättre)
                     System.currentTimeMillis(), // Tid
                     "message", // Eventtyp
-                    "chat", // Topic
+                    "mytopic", // Topic
                     messageText //Meddelandetext
             );
-            model.addMessage(message);
-
-            //Lägg till meddelandet i modellen
-            model.addMessage(message);
             try {
                 //Använd hostName-fältet (skickat via konstruktorn)
                 httpClient.send(hostName, message);
@@ -80,10 +76,34 @@ public class HelloController {
     //Metod för att prenumerera på meddelanden
     @FXML
     private void onSubscribeButtonClick() {
+        //Avbryt den gamla prenumerationen OM den finns
+        if (subscription != null) {
+            try {
+                subscription.close();  //Stäng den gamla prenumerationen
+            } catch (IOException e) {
+                System.err.println("Kunde inte stänga gammal prenumeration: " + e.getMessage());
+            }
+        }
+        //Rensa gamla meddelanden vid ny prenumeration
+        model.getMessages().clear();
+
+        //Starta en ny prenumeration
         subscription = httpClient.subscribe(
                 hostName,
-                "chat",
-                message -> model.addMessage(message)  //Lägg till meddelande i modellen
+                "mytopic",
+                message -> {
+                    System.out.println("Mottaget meddelande: " + message.id());
+                    //Kontrollera om ett meddelande med samma ID redan finns
+                    boolean exists = model.getMessages().stream()
+                            .anyMatch(existingMessage -> existingMessage.id().equals(message.id()));
+                    System.out.println("Finns redan? " + exists);
+                    if (!exists) {
+                        System.out.println("Lägger till i modellen.");
+                        model.addMessage(message);
+                    } else{
+                        System.out.println("Hoppar över (dublett).");
+                    }
+                }
         );
         model.setConnected(true);
     }
@@ -98,6 +118,7 @@ public class HelloController {
             } catch (IOException e) {
                 System.err.println("Fel vid avprenumeration: " + e.getMessage());
             }
+            subscription = null; //Rensa referensen
         }
     }
 }

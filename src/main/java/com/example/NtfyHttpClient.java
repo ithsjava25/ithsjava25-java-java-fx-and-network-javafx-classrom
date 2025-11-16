@@ -8,7 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class NtfyHttpClient implements ChatNetworkClient{
@@ -24,12 +24,14 @@ public class NtfyHttpClient implements ChatNetworkClient{
     public void send(String baseUrl, NtfyMessage message) throws Exception{
         //Builder Pattern för HttpRequest
         HttpRequest request = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(
-                        String.format("{\"topic\":\"%s\",\"message\":\"%s\"}", message.topic(), message.message())
-                ))
+                .POST(HttpRequest.BodyPublishers.ofString(message.message()))
                 .header("Content-Type", "application/json")
                 .uri(URI.create(baseUrl + "/" + message.topic()))
                 .build();
+
+        //Debug-loggning
+        System.out.println("Skickar till: " + baseUrl + "/" + message.topic());
+        System.out.println("Meddelande: " + message.message());
 
         //Synkront anrop (blockerande)
         HttpResponse<Void> response = http.send(
@@ -40,31 +42,39 @@ public class NtfyHttpClient implements ChatNetworkClient{
         if (response.statusCode() >= 400) {
             throw new IOException("Fel vid sändning: HTTP " + response.statusCode());
         }
+        System.out.println("Meddelandet skickat! Statuskod: " + response.statusCode());
     }
 
     public Subscription subscribe(String baseUrl, String topic, Consumer<NtfyMessage> messageHandler) {
-        HttpRequest request = HttpRequest.newBuilder()
+        AtomicBoolean isOpen = new AtomicBoolean(true);  //Spåra prenumerationens status
+
+        http.sendAsync(
+                HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(baseUrl + "/" + topic + "/json"))
-                .build();
-
-        //Asynkront anrop (icke-blockerande)
-        CompletableFuture<Void> future = http.sendAsync(
-                request,
+                .build(),
                 HttpResponse.BodyHandlers.ofLines()
         ).thenAccept(response -> {
+            System.out.println("Prenumeration startad för topic: " + topic);  //Debug-loggning
+
+            //Logga varje rad som mottas från servern
             response.body()
+                    .peek(line -> System.out.println("Mottagen rad från servern: " + line))
+                    .takeWhile(line -> isOpen.get())  //Avbryt strömmen om isOpen = false
                     .map(line-> {
                         try {
-                            return mapper.readValue(line, NtfyMessage.class);
+                            NtfyMessage message = mapper.readValue(line, NtfyMessage.class);
+                            System.out.println("Parsat meddelande: " + message); //Debug-loggning
+                            return message;
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     })
                     .filter(message -> message.event().equals("message"))
                     .forEach(message -> {
-                        //Uppdatera UI på JavaFX-tråden
-                        Platform.runLater(() -> messageHandler.accept(message));
+                        if (isOpen.get()) {   //Endast om prenumerationen är öppen
+                            Platform.runLater(() -> messageHandler.accept(message));
+                        }
                     });
         }).exceptionally(error -> {
             System.err.println("Fel vid prenumeration: " + error.getMessage());
@@ -75,12 +85,12 @@ public class NtfyHttpClient implements ChatNetworkClient{
         return new Subscription() {
             @Override
             public void close() throws IOException {
-                future.cancel(true);
+                isOpen.set(false);  //Stäng strömmen
             }
 
             @Override
             public boolean isOpen() {
-                return !future.isDone();
+                return isOpen.get();
             }
         };
     }

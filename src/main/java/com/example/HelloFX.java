@@ -14,6 +14,7 @@ public class HelloFX extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Dotenv dotenv = Dotenv.load(); //Ladda .env-filen
+
         String hostName = dotenv.get("HOST_NAME");
 
         //Validering (valfritt)
