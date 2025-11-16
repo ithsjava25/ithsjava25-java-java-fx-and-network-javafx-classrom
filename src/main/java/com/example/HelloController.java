@@ -10,6 +10,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,11 @@ public class HelloController {
 
     @FXML
     private TextField messageInput;
+    @FXML
+    private TextField titleInput;
+
+    @FXML
+    private TextField tagsInput;
 
 
     public void setClient(ChatNetworkClient client, String baseUrl, String topic) {
@@ -95,14 +101,28 @@ public class HelloController {
         String txt = messageInput.getText();
         if (txt == null || txt.isBlank()) return;
 
+        String title = titleInput.getText();
+        if (title != null && title.isBlank()) title = null;
+
+        String tagsRaw = tagsInput.getText();
+        List<String> tags = null;
+
+        if (tagsRaw != null && !tagsRaw.isBlank()) {
+            tags = java.util.Arrays.stream(tagsRaw.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+        }
+
+
         NtfyMessage msg = new NtfyMessage.Builder()
                 .id(UUID.randomUUID().toString())
                 .time(System.currentTimeMillis())
                 .event("message")
                 .topic(topic)
-                .message(null)
-                .title(null)
-                .tags(null)
+                .message(txt)
+                .title(title)
+                .tags(tags)
                 .build();
 
         try {
@@ -112,6 +132,8 @@ public class HelloController {
         }
 
         messageInput.clear();
+        titleInput.clear();
+        tagsInput.clear();
     }
 
 }

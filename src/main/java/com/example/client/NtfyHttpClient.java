@@ -72,14 +72,23 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
     @Override
     public void send(String baseUrl, NtfyMessage msg) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
+        var builder = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/" + msg.topic()))
-                .POST(HttpRequest.BodyPublishers.ofString(msg.message()))
-                .build();
+                .POST(HttpRequest.BodyPublishers.ofString(msg.message()));
 
+        if (msg.title() != null) {
+            builder.header("title", msg.title());
+        }
+
+        if (msg.tags() != null && !msg.tags().isEmpty()) {
+            String tagsHeader = String.join(",", msg.tags());
+            builder.header("tags", tagsHeader);
+        }
+
+        HttpRequest request = builder.build();
         HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
 
         log.info("Successfully sent message: {}", msg.message());
-
     }
+
 }

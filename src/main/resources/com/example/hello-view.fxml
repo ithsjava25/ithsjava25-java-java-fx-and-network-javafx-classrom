@@ -14,6 +14,10 @@
 
     <ListView fx:id="messagesList" VBox.vgrow="ALWAYS"/>
 
+    <TextField fx:id="titleInput" promptText="Optional title"/>
+
+    <TextField fx:id="tagsInput" promptText="Optional tags (comma separated)"/>
+
     <HBox spacing="10">
         <TextField fx:id="messageInput" HBox.hgrow="ALWAYS"/>
         <Button text="Send" onAction="#onSend"/>
