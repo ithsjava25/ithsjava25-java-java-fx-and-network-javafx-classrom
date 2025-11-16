@@ -70,10 +70,10 @@ public class NtfyHttpClient implements ChatNetworkClient {
     }
 
     @Override
-    public void send(String baseUrl, String topic, String message) {
+    public void send(String baseUrl, String topic, NtfyMessage msg) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/" + topic))
-                .POST(HttpRequest.BodyPublishers.ofString(message))
+                .POST(HttpRequest.BodyPublishers.ofString(msg.message()))
                 .build();
 
         try {
