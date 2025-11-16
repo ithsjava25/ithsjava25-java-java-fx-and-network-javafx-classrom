@@ -26,6 +26,13 @@ public class HelloModel {
         }
     }
 
+    public HelloModel(String topicUrl) {
+        if (topicUrl == null || topicUrl.isBlank()) {
+            throw new IllegalStateException("NTFY_URL not found in .env file");
+        }
+        this.TOPIC_URL = topicUrl;
+    }
+
     public void sendMessage(String username, String message) throws IOException {
         JSONObject json = new JSONObject();
         json.put("username", username == null || username.isBlank() ? "Anonymous" : username);

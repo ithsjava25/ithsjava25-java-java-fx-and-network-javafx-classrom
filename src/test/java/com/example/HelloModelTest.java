@@ -17,7 +17,7 @@ class HelloModelTest {
 
     @BeforeEach
     void setUp() {
-        model = new HelloModel() {
+        model = new HelloModel("https://dummy-url-for-tests") {
             @Override
             protected void sendJsonToNtfy(JSONObject json) {
                 System.out.println("Mock sendJsonToNtfy called: " + json);
