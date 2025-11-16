@@ -26,14 +26,6 @@ public class HelloModel {
         return messages;
     }
 
-    public String getMessageToSend() {
-        return messageToSend.get();
-    }
-
-    public StringProperty messageToSendProperty() {
-        return messageToSend;
-    }
-
     public void setMessageToSend(String message) {
         this.messageToSend.set(message);
     }
@@ -44,7 +36,7 @@ public class HelloModel {
     }
 
     public void sendFileToServer(File file) throws IOException {
-        connection.send(file.getAbsolutePath());
+        connection.sendFile(file.toPath());
     }
 
     public void receiveMessage() {

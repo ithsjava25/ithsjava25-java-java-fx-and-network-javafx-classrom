@@ -1,14 +1,15 @@
 package com.example;
 
-import io.github.cdimascio.dotenv.Dotenv;
-import javafx.application.Platform;
-import tools.jackson.databind.ObjectMapper;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import tools.jackson.databind.ObjectMapper;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -30,12 +31,30 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
     @Override
     public boolean send(String message) {
-                HttpRequest httpRequest = HttpRequest.newBuilder()
+        HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
         try {
-            var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            return true;
+        } catch (IOException e) {
+            System.out.println("IOException");
+        } catch (InterruptedException e){
+            System.out.println("Interrupted");
+        }
+        return false;
+    }
+
+
+    public boolean sendFile(Path filePath) throws FileNotFoundException {
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .POST(HttpRequest.BodyPublishers.ofFile(filePath))
+                .uri(URI.create(hostName + "/mytopic"))
+                .build();
+
+        try {
+            http.send(httpRequest, HttpResponse.BodyHandlers.ofFile(filePath));
             return true;
         } catch (IOException e) {
             System.out.println("IOException");

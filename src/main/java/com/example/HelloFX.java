@@ -1,6 +1,6 @@
 package com.example;
 
-import io.github.cdimascio.dotenv.Dotenv;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,7 +19,7 @@ public class HelloFX extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
+    static void main() {
         launch();
     }
 
