@@ -1,6 +1,7 @@
 package com.example.client;
 
 import com.example.domain.ChatModel;
+import com.example.domain.NtfyEventResponse;
 import com.example.domain.NtfyMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +45,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
                 if (!open.get()) return;
 
                 try {
-                    NtfyMessage msg = mapper.readValue(line, NtfyMessage.class);
+                    NtfyEventResponse msg = mapper.readValue(line, NtfyEventResponse.class);
                     if (msg.event().equals("message")) {
                         model.addMessage(msg);
                         log.info("Message added: {}", msg);
@@ -72,23 +73,16 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
     @Override
     public void send(String baseUrl, NtfyMessage msg) throws IOException, InterruptedException {
-        var builder = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/" + msg.topic()))
-                .POST(HttpRequest.BodyPublishers.ofString(msg.message()));
+        String json = mapper.writeValueAsString(msg);
 
-        if (msg.title() != null) {
-            builder.header("title", msg.title());
-        }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
-        if (msg.tags() != null && !msg.tags().isEmpty()) {
-            String tagsHeader = String.join(",", msg.tags());
-            builder.header("tags", tagsHeader);
-        }
-
-        HttpRequest request = builder.build();
         HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
-
-        log.info("Successfully sent message: {}", msg.message());
+        log.info("Sent JSON payload: {}", json);
     }
 
 }

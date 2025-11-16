@@ -2,6 +2,7 @@ package com.example;
 
 import com.example.client.ChatNetworkClient;
 import com.example.domain.ChatModel;
+import com.example.domain.NtfyEventResponse;
 import com.example.domain.NtfyMessage;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
@@ -27,7 +28,7 @@ public class HelloController {
     private Label messageLabel;
 
     @FXML
-    private ListView<NtfyMessage> messagesList;
+    private ListView<NtfyEventResponse> messagesList;
 
     @FXML
     private TextField messageInput;
@@ -51,7 +52,7 @@ public class HelloController {
 
         messagesList.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
             @Override
-            protected void updateItem(NtfyMessage msg, boolean empty) {
+            protected void updateItem(NtfyEventResponse msg, boolean empty) {
                 super.updateItem(msg, empty);
 
                 if (empty || msg == null) {
@@ -66,6 +67,11 @@ public class HelloController {
                     var titleLabel = new javafx.scene.control.Label(msg.title());
                     titleLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
                     container.getChildren().add(titleLabel);
+                }
+                if (msg.attachment() != null) {
+                    var fileLabel = new Label("Attached file: " + msg.attachment().name());
+                    fileLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: darkgreen;");
+                    container.getChildren().add(fileLabel);
                 }
 
                 var messageLabel = new javafx.scene.control.Label(msg.message());
@@ -123,6 +129,8 @@ public class HelloController {
                 .message(txt)
                 .title(title)
                 .tags(tags)
+                .attach(null)
+                .filename(null)
                 .build();
 
         try {

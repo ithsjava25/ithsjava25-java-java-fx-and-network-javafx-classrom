@@ -6,14 +6,14 @@ import javafx.collections.ObservableList;
 
 
 public class ChatModel {
-    private final ObservableList<NtfyMessage> messages = FXCollections.observableArrayList();
+    private final ObservableList<NtfyEventResponse> messages = FXCollections.observableArrayList();
 
 
-    public void addMessage(NtfyMessage msg) {
+    public void addMessage(NtfyEventResponse msg) {
         runOnFx(() -> messages.add(msg));
     }
 
-    public ObservableList<NtfyMessage> getMessages() {
+    public ObservableList<NtfyEventResponse> getMessages() {
         return messages;
     }
 

@@ -12,7 +12,9 @@ public record NtfyMessage(
         String topic,
         String message,
         String title,
-        List<String> tags
+        List<String> tags,
+        String attach,
+        String filename
 ) {
     public static class Builder {
         private String id;
@@ -22,6 +24,8 @@ public record NtfyMessage(
         private String message;
         private String title;
         private List<String> tags;
+        private String attach;
+        private String filename;
 
         public Builder id(String id) {
             this.id = id;
@@ -53,13 +57,16 @@ public record NtfyMessage(
             return this;
         }
 
-        public Builder tags(java.util.List<String> tags) {
+        public Builder tags(List<String> tags) {
             this.tags = tags;
             return this;
         }
 
+        public Builder attach(String attach) { this.attach = attach; return this; }
+        public Builder filename(String filename) { this.filename = filename; return this; }
+
         public NtfyMessage build() {
-            return new NtfyMessage(id, time, event, topic, message, title, tags);
+            return new NtfyMessage(id, time, event, topic, message, title, tags, attach, filename);
         }
     }
 }
