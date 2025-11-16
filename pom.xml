@@ -45,23 +45,9 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-
-
     </dependencies>
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <source>25</source>
-                    <target>25</target>
-                    <release>25</release>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -69,7 +55,7 @@
                 <configuration>
                     <mainClass>com.example.HelloFX</mainClass>
                     <options>
-                        <option>--enable-native-access=javafx.graphics</option>
+                    <option>--enable-native-access=javafx.graphics</option>
                     </options>
                     <launcher>javafx</launcher>
                     <stripDebug>true</stripDebug>
@@ -77,22 +63,6 @@
                     <noManPages>true</noManPages>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
-
         </plugins>
-
-
-
     </build>
 </project>
