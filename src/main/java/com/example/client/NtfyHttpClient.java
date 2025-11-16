@@ -2,6 +2,7 @@ package com.example.client;
 
 import com.example.domain.ChatModel;
 import com.example.domain.NtfyMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class NtfyHttpClient implements ChatNetworkClient {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final Logger log = LoggerFactory.getLogger(NtfyHttpClient.class);
+    private static final Logger log = LoggerFactory.getLogger("NtfyClient");
     private final ChatModel model;
 
     public NtfyHttpClient(ChatModel model) {
@@ -39,6 +40,7 @@ public class NtfyHttpClient implements ChatNetworkClient {
 
         future.thenAccept(response -> {
             response.body().forEach(line -> {
+                log.info("Event received: {}", line);
                 if (!open.get()) return;
 
                 try {
@@ -47,8 +49,10 @@ public class NtfyHttpClient implements ChatNetworkClient {
                         Platform.runLater(() ->
                             model.addMessage(msg)
                         );
+                        log.info("Message added: {}", msg);
                     }
-                } catch (Exception _) {
+                } catch (JsonProcessingException e)  {
+                    throw new RuntimeException(e);
                 }
             });
         });

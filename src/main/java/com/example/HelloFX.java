@@ -46,7 +46,7 @@ public class HelloFX extends Application {
         ChatNetworkClient client = new NtfyHttpClient(model);
 
         ChatNetworkClient.Subscription sub = client.subscribe(baseUrl, topic);
-        log.info("Subscription: {}", sub);
+        log.info("Subscription Active: {}", sub.isOpen());
         client.send(baseUrl, new NtfyMessage(UUID.randomUUID().toString(), System.currentTimeMillis(), "message", topic, "HELLO"));
 
         launch();
