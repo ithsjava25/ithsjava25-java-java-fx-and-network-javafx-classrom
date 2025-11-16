@@ -5,7 +5,8 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.HelloController"
-      spacing="10"
+      spacing="12"
+      style="-fx-padding: 16;"
       prefWidth="1000"
       prefHeight="600">
 
@@ -17,16 +18,20 @@
            style="-fx-font-size: 11px; -fx-text-fill: gray;"/>
 
     <TextField fx:id="titleInput"
-               promptText="Optional title"/>
+               promptText="Optional title"
+               style="-fx-background-radius: 6;"/>
 
     <TextField fx:id="tagsInput"
-               promptText="Optional tags (comma separated)"/>
+               promptText="Optional tags (comma separated)"
+               style="-fx-background-radius: 6;"/>
 
     <HBox spacing="10">
         <TextField fx:id="messageInput"
                    HBox.hgrow="ALWAYS"
-                   promptText="Write a message..."/>
+                   promptText="Write a message..."
+                   style="-fx-background-radius: 6;"/>
         <Button text="Send"
+                style="-fx-background-radius: 6;"
                 onAction="#onSend"/>
     </HBox>
 

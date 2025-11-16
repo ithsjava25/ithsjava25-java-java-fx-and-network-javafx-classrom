@@ -4,6 +4,8 @@ import com.example.client.ChatNetworkClient;
 import com.example.domain.ChatModel;
 import com.example.domain.NtfyEventResponse;
 import com.example.domain.NtfyMessage;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
@@ -59,6 +61,15 @@ public class HelloController {
         return time.toString();
     }
 
+    private void showStatus(String text) {
+        messageLabel.setText(text);
+        Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(3),
+                ev -> messageLabel.setText("")));
+        t.setCycleCount(1);
+        t.play();
+    }
+
+
     @FXML
     private void onSend() {
         String txt = messageInput.getText();
@@ -91,9 +102,9 @@ public class HelloController {
 
         try {
             client.send(baseUrl, msg);
-            messageLabel.setText(null);
+            showStatus("Message sent");
         } catch (InterruptedException | IOException e) {
-            messageLabel.setText("Failed to send: " + e.getMessage());
+            showStatus("Error sending message: " + e.getMessage());
         }
 
         messageInput.clear();
@@ -115,12 +126,13 @@ public class HelloController {
             setText(null);
 
             VBox container = new VBox();
-            container.setSpacing(4);
-            container.setStyle("-fx-padding: 8;");
+            container.setSpacing(6);
+            container.getStyleClass().add("message-bubble");
 
+            container.setStyle("-fx-alignment: CENTER_LEFT;");
             if (msg.title() != null) {
                 Label titleLabel = new Label(msg.title());
-                titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+                titleLabel.getStyleClass().add("message-title");
                 container.getChildren().add(titleLabel);
             }
 
@@ -142,19 +154,19 @@ public class HelloController {
             if (msg.message() != null && !msg.message().isBlank()) {
                 Label messageLabel = new Label(msg.message());
                 messageLabel.setWrapText(true);
-                messageLabel.setStyle("-fx-font-size: 14px;");
+                messageLabel.getStyleClass().add("message-text");
                 container.getChildren().add(messageLabel);
             }
 
             if (msg.tags() != null && !msg.tags().isEmpty()) {
                 Label tagsLabel = new Label(String.join(", ", msg.tags()));
-                tagsLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #3a6ea5;");
+                tagsLabel.getStyleClass().add("message-tags");
                 container.getChildren().add(tagsLabel);
             }
 
             if (msg.time() != null) {
                 Label timeLabel = new Label(formatTime(msg.time()));
-                timeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: gray;");
+                timeLabel.getStyleClass().add("message-time");
                 container.getChildren().add(timeLabel);
             }
 
