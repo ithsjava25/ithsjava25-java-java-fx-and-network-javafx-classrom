@@ -1,11 +1,9 @@
 package com.example;
 
+import com.example.client.ChatNetworkClient;
+import com.example.client.NtfyHttpClient;
 import com.example.domain.ChatModel;
-import com.example.domain.NtfyMessage;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -14,17 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Properties;
 
 
 import static com.example.utils.EnvLoader.loadEnv;
 
 public class HelloFX extends Application {
-    private static final Logger logger = LoggerFactory.getLogger("MAIN");
+    private static final Logger log = LoggerFactory.getLogger("MAIN");
     static final ChatModel model = new ChatModel();
 
     @Override
@@ -45,36 +39,13 @@ public class HelloFX extends Application {
 
         String baseUrl = env.getProperty("NTFY_BASE_URL");
         String topic = env.getProperty("NTFY_TOPIC");
-        ObjectMapper mapper = new ObjectMapper();
 
-        HttpClient client = HttpClient.newHttpClient();
+        ChatNetworkClient client = new NtfyHttpClient(model);
 
-        HttpRequest sendRequest = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/" + topic))
-                .POST(HttpRequest.BodyPublishers.ofString("I've been expecting you."))
-                .build();
+        ChatNetworkClient.Subscription sub = client.subscribe(baseUrl, topic);
+        log.info("Subscription: {}", sub);
+        // client.send(baseUrl, topic, "I've been expecting you.");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/" + topic + "/json"))
-                .GET()
-                .build();
-
-        client.send(sendRequest, HttpResponse.BodyHandlers.discarding());
-
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> {
-                    response.body()
-                            .map(event -> {
-                                try {
-                                    return mapper.readValue(event, NtfyMessage.class);
-                                } catch (JsonProcessingException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            })
-                            .filter(msg -> msg.event().equals("message"))
-                            .forEach(msg -> Platform.runLater(() ->
-                                    model.addMessage(msg)));
-                });
         launch();
 
     }
