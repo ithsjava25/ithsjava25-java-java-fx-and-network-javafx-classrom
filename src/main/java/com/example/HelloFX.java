@@ -29,8 +29,12 @@ public class HelloFX extends Application {
 
         HelloModel model = new HelloModel();
         ChatNetworkClient httpClient = new NtfyHttpClient();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
+
+        FXMLLoader fxmlLoader = new FXMLLoader(
+                HelloFX.class.getResource("/com/example/hello-view.fxml")
+        );
         fxmlLoader.setControllerFactory(c -> new HelloController(model, httpClient, hostName));
+
         Parent root = fxmlLoader.load();
         Scene scene = new Scene(root, 640, 480);
 
@@ -38,7 +42,7 @@ public class HelloFX extends Application {
                 Objects.requireNonNull(getClass().getResource("/com/example/styles.css")).toExternalForm()
         );
 
-        stage.setTitle("Hello MVC");
+        stage.setTitle("Chat App");
         stage.setScene(scene);
         stage.show();
     }
