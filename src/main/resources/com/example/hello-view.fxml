@@ -20,13 +20,13 @@
     <!--Inputfält och knappar-->
     <HBox spacing="10">
         <TextField fx:id="messageTextField" promptText="Skriv ett meddelande..." />
-        <Button text="Skicka" onAction="#onSendButtonClick" />
+        <Button text="Skicka" onAction="#sendMessage" />
     </HBox>
 
     <!--Prenumerationsknappar-->
     <HBox spacing="10">
-        <Button text="Prenumerera" onAction="#onSubscribeButtonClick" />
-        <Button text="Avbryt prenumeration" onAction="#onUnsubscribeButtonClick" />
+        <Button text="Prenumerera" onAction="#subscribeToTopic" />
+        <Button text="Avbryt prenumeration" onAction="#unsubscribeFromTopic" />
     </HBox>
 
     <!--Status för anslutning-->

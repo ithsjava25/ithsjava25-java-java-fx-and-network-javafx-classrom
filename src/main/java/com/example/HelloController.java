@@ -8,6 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Controller layer: mediates between the view (FXML) and the model.
@@ -18,6 +19,7 @@ public class HelloController {
     private final ChatNetworkClient httpClient;  // Abstraktion (Dependency Inversion)
     private final String hostName;
     private ChatNetworkClient.Subscription subscription;
+    private long subscriptionStartTime;
 
     @FXML private Label messageLabel;
 
@@ -50,75 +52,104 @@ public class HelloController {
         );
     }
 
-    //Ny metod för att hantera knapptryckningar
     @FXML
-    private void onSendButtonClick() {
+    private void sendMessage() {
         String messageText = messageTextField.getText();
         if (!messageText.isEmpty()) {
-            //Skapa ett nytt meddelande och skicka det
-            NtfyMessage message = new NtfyMessage(
-                    "1",  // ID (kan genereras bättre)
-                    System.currentTimeMillis(), // Tid
-                    "message", // Eventtyp
-                    "mytopic", // Topic
-                    messageText //Meddelandetext
-            );
             try {
-                //Använd hostName-fältet (skickat via konstruktorn)
+                NtfyMessage message = createMessage(messageText);
                 httpClient.send(hostName, message);
                 messageTextField.clear();
             } catch (Exception e) {
-                System.err.println("Fel vid sändning: " + e.getMessage());
+                handleSendError(e);
             }
         }
     }
 
-    //Metod för att prenumerera på meddelanden
+    private NtfyMessage createMessage(String text) {
+        return new NtfyMessage(
+                UUID.randomUUID().toString(),
+                System.currentTimeMillis(),
+                "message",
+                "mytopic",
+                text
+        );
+    }
+
+    private void handleSendError(Exception e) {
+        System.err.println("Fel vid sändning: " + e.getMessage());
+    }
+
+
     @FXML
-    private void onSubscribeButtonClick() {
-        //Avbryt den gamla prenumerationen OM den finns
+    private void subscribeToTopic() {
+        unsubscribeFromCurrentTopic();      // Stäng den gamla prenumerationen
+        model.getMessages().clear();       // Rensa gamla meddelanden
+        startNewSubscription();           // Starta ny prenumeration
+        model.setConnected(true);        // Uppdatera anslutningsstatus
+    }
+
+    private void unsubscribeFromCurrentTopic() {
         if (subscription != null) {
             try {
-                subscription.close();  //Stäng den gamla prenumerationen
+                subscription.close();
             } catch (IOException e) {
                 System.err.println("Kunde inte stänga gammal prenumeration: " + e.getMessage());
             }
         }
-        //Rensa gamla meddelanden vid ny prenumeration
-        model.getMessages().clear();
+    }
 
-        //Starta en ny prenumeration
+    private void startNewSubscription() {
+        subscriptionStartTime = System.currentTimeMillis();  // Spara starttiden
         subscription = httpClient.subscribe(
                 hostName,
                 "mytopic",
-                message -> {
-                    System.out.println("Mottaget meddelande: " + message.id());
-                    //Kontrollera om ett meddelande med samma ID redan finns
-                    boolean exists = model.getMessages().stream()
-                            .anyMatch(existingMessage -> existingMessage.id().equals(message.id()));
-                    System.out.println("Finns redan? " + exists);
-                    if (!exists) {
-                        System.out.println("Lägger till i modellen.");
-                        model.addMessage(message);
-                    } else{
-                        System.out.println("Hoppar över (dublett).");
-                    }
-                }
+                this::handleIncomingMessage
         );
-        model.setConnected(true);
     }
 
-    //Metod för att avbryta prenumeration
+    private void handleIncomingMessage(NtfyMessage message) {
+        System.out.println("Mottaget meddelande: " + message.id() + ", tid: " + message.time());
+        long messageTimeSeconds = message.time();
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+
+        // Hoppa över gamla meddelanden
+        if (messageTimeSeconds < (subscriptionStartTime / 1000)) {
+            System.out.println("Hoppar över (gammalt meddelande).");
+            return;
+        }
+
+        // Hoppa över dubbletter
+        if (isDuplicateMessage(message)) {
+            System.out.println("Hoppar över (dublett).");
+            return;
+        }
+
+        // Lägg till meddelandet i modellen
+        System.out.println("Lägger till i modellen: " + message.message());
+        model.addMessage(message);
+    }
+
+    private boolean isDuplicateMessage(NtfyMessage message) {
+        return model.getMessages().stream()
+                .anyMatch(existingMessage -> existingMessage.id().equals(message.id()));
+    }
+
+
     @FXML
-    private void onUnsubscribeButtonClick() {
+    private void unsubscribeFromTopic() {
         if (subscription != null) {
-            try {
-                subscription.close();
-                model.setConnected(false);
-            } catch (IOException e) {
-                System.err.println("Fel vid avprenumeration: " + e.getMessage());
-            }
-            subscription = null; //Rensa referensen
+            closeSubscription();
+            model.setConnected(false);
+            subscription = null;  // Rensa referensen
+        }
+    }
+
+    private void closeSubscription() {
+        try {
+            subscription.close();
+        } catch (IOException e) {
+            System.err.println("Fel vid avprenumeration: " + e.getMessage());
         }
     }
 }
