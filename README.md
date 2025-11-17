@@ -18,4 +18,4 @@ A JavaFX-based chat client using [ntfy](https://docs.ntfy.sh/) for backend messa
    ./mvnw clean javafx:run
 
 ## Author
-Created for Lab 3 - Network Programming
+Created for Lab 3 - Network Programming - Younes Ahmad
