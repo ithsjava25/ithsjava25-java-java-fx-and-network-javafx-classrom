@@ -48,6 +48,10 @@ public class ChatModel {
     }
 
     public void sendMessage(String text) throws Exception {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Message cannot be empty");
+        }
+
         NtfyMessage message = new NtfyMessage(topic, text);
         networkClient.send(baseUrl, message);
     }

@@ -9,7 +9,7 @@ public record NtfyMessage(
         String event,
         String topic,
         String message,
-        String attachment  // Nytt fält för filer
+        String attachment
 ) {
     public NtfyMessage(String topic, String message) {
         this(null, null, "message", topic, message, null);

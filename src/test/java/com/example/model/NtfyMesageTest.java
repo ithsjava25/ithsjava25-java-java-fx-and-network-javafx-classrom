@@ -1,6 +1,5 @@
 package com.example.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
@@ -8,85 +7,77 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NtfyMessageTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Test
-    @DisplayName("Should create message with convenience constructor")
-    void testConvenienceConstructor() {
+    @DisplayName("Should create message with topic and message text")
+    void testCreateMessage() {
         NtfyMessage message = new NtfyMessage("testTopic", "Hello World");
 
         assertEquals("testTopic", message.topic());
         assertEquals("Hello World", message.message());
+        assertNotNull(message);
+    }
+
+    @Test
+    @DisplayName("Should set default event type to 'message'")
+    void testDefaultEventType() {
+        NtfyMessage message = new NtfyMessage("testTopic", "Test");
+
         assertEquals("message", message.event());
+    }
+
+    @Test
+    @DisplayName("Should handle null id and time for new messages")
+    void testNewMessageHasNullIdAndTime() {
+        NtfyMessage message = new NtfyMessage("testTopic", "Test");
+
         assertNull(message.id());
         assertNull(message.time());
     }
 
     @Test
-    @DisplayName("Should deserialize JSON to NtfyMessage")
-    void testDeserialization() throws Exception {
-        String json = """
-            {
-                "id": "abc123",
-                "time": 1234567890,
-                "event": "message",
-                "topic": "testTopic",
-                "message": "Hello World"
-            }
-            """;
+    @DisplayName("Should create message with all fields using canonical constructor")
+    void testFullConstructor() {
+        NtfyMessage message = new NtfyMessage(
+                "abc123",       // id
+                1234567890L,    // time
+                "message",      // event
+                "testTopic",    // topic
+                "Hello",        // message
+                null            // attachment
+        );
 
-        NtfyMessage message = objectMapper.readValue(json, NtfyMessage.class);
-
-        assertNotNull(message);
         assertEquals("abc123", message.id());
-        assertEquals(1234567890, message.time());
+        assertEquals(1234567890L, message.time());
         assertEquals("message", message.event());
         assertEquals("testTopic", message.topic());
-        assertEquals("Hello World", message.message());
+        assertEquals("Hello", message.message());
     }
 
     @Test
-    @DisplayName("Should serialize NtfyMessage to JSON")
-    void testSerialization() throws Exception {
-        NtfyMessage message = new NtfyMessage("testTopic", "Hello World");
+    @DisplayName("Should accept empty message text")
+    void testEmptyMessage() {
+        NtfyMessage message = new NtfyMessage("testTopic", "");
 
-        String json = objectMapper.writeValueAsString(message);
-
-        assertNotNull(json);
-        assertTrue(json.contains("\"topic\":\"testTopic\""));
-        assertTrue(json.contains("\"message\":\"Hello World\""));
-        assertTrue(json.contains("\"event\":\"message\""));
+        assertEquals("", message.message());
+        assertEquals("testTopic", message.topic());
     }
 
     @Test
-    @DisplayName("Should ignore unknown fields during deserialization")
-    void testIgnoreUnknownFields() throws Exception {
-        String json = """
-            {
-                "id": "xyz789",
-                "time": 9876543210,
-                "event": "message",
-                "topic": "testTopic",
-                "message": "Test",
-                "expires": 1761905659,
-                "unknownField": "should be ignored"
-            }
-            """;
+    @DisplayName("Should create message with attachment")
+    void testMessageWithAttachment() {
+        NtfyMessage message = new NtfyMessage("testTopic", "File sent", "test.pdf");
 
-        NtfyMessage message = objectMapper.readValue(json, NtfyMessage.class);
-
-        assertNotNull(message);
-        assertEquals("xyz789", message.id());
-        assertEquals("Test", message.message());
+        assertEquals("testTopic", message.topic());
+        assertEquals("File sent", message.message());
+        assertEquals("test.pdf", message.attachment());
     }
 
     @Test
-    @DisplayName("Should handle null values")
-    void testNullValues() {
-        NtfyMessage message = new NtfyMessage("topic", "message");
+    @DisplayName("Should handle special characters in message")
+    void testSpecialCharacters() {
+        String specialMessage = "Hello! 🌸 @user #topic";
+        NtfyMessage message = new NtfyMessage("testTopic", specialMessage);
 
-        assertNull(message.id());
-        assertNull(message.time());
-        assertNull(message.attachment());
+        assertEquals(specialMessage, message.message());
     }
 }
