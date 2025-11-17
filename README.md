@@ -16,3 +16,6 @@ A JavaFX-based chat client using [ntfy](https://docs.ntfy.sh/) for backend messa
 2. Start with:
    ```bash
    ./mvnw clean javafx:run
+
+## Author
+Created for Lab 3 - Network Programming
