@@ -94,8 +94,15 @@ public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
-        HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
-        log.info("Sent JSON payload: {}", json);
+        var response = HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+
+        if (statusCode >= 200 && statusCode < 300) {
+            log.debug("Sent message payload: {}", json);
+            log.info("Message sent");
+        }
+        log.error("Failed to send message payload: {}", json);
+        throw new IOException("Failed to send message payload: " + statusCode);
     }
 
     private void sendWithAttachment(String baseUrl, NtfyMessage msg, File file)
