@@ -38,7 +38,9 @@ public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
 
         future.thenAccept(response -> {
             response.body().forEach(line -> {
-                log.info("Event received: {}", line);
+
+                log.debug("Raw event received: {}", line);
+
                 if (!open.get()) return;
 
                 try {
@@ -48,11 +50,15 @@ public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
                         log.info("Message added: {}", msg);
                     }
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+                    log.error("Error parsing event: {}", line, e);
                 }
             });
+        }).exceptionally(ex -> {
+            log.error("Error while subscribing to topic {}", topic, ex);
+            open.set(false);
+            return null;
         });
-        log.info("Successfully subscribed to topic: {}", topic);
+        log.info("Subscribing to topic: {}", topic);
 
         return new Subscription() {
             @Override
@@ -95,10 +101,8 @@ public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
     private void sendWithAttachment(String baseUrl, NtfyMessage msg, File file)
             throws IOException, InterruptedException {
 
-        String topicUrl = baseUrl + "/" + msg.topic();
-
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(topicUrl))
+                .uri(URI.create(baseUrl).resolve((msg.topic())))
                 .header("Filename", file.getName())
                 .PUT(HttpRequest.BodyPublishers.ofFile(file.toPath()))
                 .build();
