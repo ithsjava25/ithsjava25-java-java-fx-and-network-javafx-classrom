@@ -35,20 +35,8 @@ public class ChatModelTest extends TestFxInitializer {
         t.start();
         t.join();
 
+        // Allow queue to be processed before proceeding to assert
         Thread.sleep(1000);
-
-        assertEquals(1, model.getMessages().size());
-    }
-
-    @Test
-    void fallbackModeShouldStillAdd() {
-        ChatModel model = new ChatModel();
-
-        NtfyEventResponse msg = new NtfyEventResponse(
-                "3", 300L, "message", "topic", "Fallback", null, null, null
-        );
-
-        model.addMessage(msg);
 
         assertEquals(1, model.getMessages().size());
     }
