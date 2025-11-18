@@ -35,6 +35,8 @@ public class ChatModelTest extends TestFxInitializer {
         t.start();
         t.join();
 
+        Thread.sleep(1000);
+
         assertEquals(1, model.getMessages().size());
     }
 
