@@ -15,6 +15,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
@@ -24,10 +26,12 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 public class HelloController {
+    private static final Logger log = LoggerFactory.getLogger(HelloController.class);
     private ChatNetworkClient client;
     private String baseUrl;
     private String topic;
@@ -203,8 +207,12 @@ public class HelloController {
 
                     // method that works on linux as Desktop is not always supported and crashes application
                     if (System.getProperty("os.name").toLowerCase().contains("linux")) {
-                        new ProcessBuilder("xdg-open", url).start();
-                        return;
+                        try {
+                            new ProcessBuilder("xdg-open", url).start();
+                            return;
+                        }catch (IOException e) {
+                            log.error("Error opening file: {}", url, e);
+                        }
                     }
 
                     if (Desktop.isDesktopSupported()) {
@@ -212,7 +220,8 @@ public class HelloController {
                     }
 
                 } catch (IOException | URISyntaxException ex) {
-                    throw new RuntimeException(ex);
+                    log.error("Failed to open attachment: {}", ex.getMessage());
+                    log.error(Arrays.toString(ex.getStackTrace()));
                 }
             });
             return fileLabel;
