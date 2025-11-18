@@ -14,43 +14,53 @@ public class HelloModel {
     /**
      * Returns a greeting based on the current Java and JavaFX versions.
      */
+
+    private final ObservableList<NtfyMessage> messages = FXCollections.observableArrayList();
+    private final BooleanProperty connected = new SimpleBooleanProperty(false);
+    private boolean isTesting = false;  // <-- Lägg till denna rad
+
     public String getGreeting() {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
         return "Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
     }
 
-    //Nya fält för chat-funktionalitet
-    private final ObservableList<NtfyMessage> messages = FXCollections.observableArrayList();
-    private final BooleanProperty connected = new SimpleBooleanProperty(false);
-
-    //Getter för meddelandelistan
     public ObservableList<NtfyMessage> getMessages() {
         return messages;
     }
 
-    //Getter för anslutningstillstånd
+
     public ReadOnlyBooleanProperty connectedProperty() {
         return connected;
     }
 
-    //Metod för att lägga till meddelande
+    public void setTesting(boolean testing) {  // <-- Lägg till denna metod
+        this.isTesting = testing;
+    }
+
+    // Ersätt den gamla runOnFX-metoden med denna:
+    private void runOnFX(Runnable task) {
+        if (isTesting) {  // <-- Ny logik för tester
+            task.run();
+        } else if (Platform.isFxApplicationThread()) {
+            task.run();
+        } else {
+            try {
+                Platform.runLater(task);
+            } catch (IllegalThreadStateException notInitialized) {
+                task.run();  // Fallback för enhetstester (om JavaFX inte är initierat)
+            }
+        }
+
+    }
+
     public void addMessage(NtfyMessage message) {
         runOnFX(() -> messages.add(message));
     }
 
-    //Metod för att uppdatera anslutningstillstånd
     public void setConnected(boolean connected) {
         runOnFX(() -> this.connected.set(connected));
     }
 
-    //Dispatcher Utility
-    private static void runOnFX(Runnable task) {
-        try {
-            if (Platform.isFxApplicationThread()) task.run();
-            else Platform.runLater(task);
-        } catch (IllegalThreadStateException notInitialized) {
-            task.run(); //Fallback för enhetstester
-        }
-    }
+
 }
