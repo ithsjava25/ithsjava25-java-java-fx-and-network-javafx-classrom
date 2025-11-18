@@ -110,7 +110,14 @@ public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
 
         var response = HttpClientProvider.get().send(request, HttpResponse.BodyHandlers.ofString());
 
-        log.info("Attachment sent: {} (status {})", file.getName(), response.statusCode());
+        int statusCode = response.statusCode();
+        if (200 <= statusCode && statusCode < 300) {
+            log.debug("Attachment sent: {}", statusCode);
+            log.info("status: {}", statusCode);
+        }
+        log.error("Failed to send attachment: {}", statusCode);
+        throw new IOException("Failed to send attachment: " + statusCode);
+
     }
 
 
