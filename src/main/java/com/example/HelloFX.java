@@ -24,8 +24,12 @@ public class HelloFX extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Properties env = loadEnv();
-        String baseUrl = env.getProperty("NTFY_BASE_URL");
+        String baseUrl = env.getProperty("NTFY_BASE_URL", "https://ntfy.sh");
         String topic = env.getProperty("NTFY_TOPIC");
+
+        if (topic == null || topic.isBlank()) {
+            throw new IllegalStateException("NTFY_TOPIC is not set");
+        }
 
         FXMLLoader loader = new FXMLLoader(HelloFX.class.getResource("hello-view.fxml"));
         Parent root = loader.load();
