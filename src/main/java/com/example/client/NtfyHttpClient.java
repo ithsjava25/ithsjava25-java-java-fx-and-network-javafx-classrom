@@ -26,7 +26,7 @@ public record NtfyHttpClient(ChatModel model) implements ChatNetworkClient {
     public Subscription subscribe(String baseUrl, String topic) {
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/" + topic + "/json"))
+                .uri(URI.create(baseUrl).resolve(topic + "/json"))
                 .header("accept", "application/json")
                 .GET()
                 .build();
