@@ -23,6 +23,10 @@ public class NtfyConnectionImpl implements NtfyConnection {
         hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
     }
 
+    public NtfyConnectionImpl(String hostName) {
+        this.hostName = hostName;
+    }
+
     @Override
     public boolean sendMessage(String message) {
         //Todo: Send message using HTTPClient
