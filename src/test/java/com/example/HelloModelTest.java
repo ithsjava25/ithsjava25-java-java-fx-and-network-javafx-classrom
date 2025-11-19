@@ -47,5 +47,37 @@ class HelloModelTest {
                 .withRequestBody(containing("Hello World")));
     }
 
+    @Test
+    @DisplayName("Real NtfyConnectionImpl should parse JSON correctly from WireMock")
+    void realConnectionParsesJson(WireMockRuntimeInfo wm) throws InterruptedException {
+        // Arrange
+        String jsonResponse = """
+                {"id":"123","time":1640995200,"event":"message","topic":"mytopic","message":"Hello from WireMock"}
+                """;
 
+        stubFor(get(urlEqualTo("/mytopic/json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(jsonResponse)));
+
+        // Vi använder NtfyConnectionImpl direkt här för att isolera parsing-logiken från Modellen
+        var con = new NtfyConnectionImpl("http://localhost:" + wm.getHttpPort());
+
+        AtomicReference<NtfyMessageDto> receivedDto = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        // Act
+        con.receiveMessage(dto -> {
+            receivedDto.set(dto);
+            latch.countDown();
+        });
+
+        // Assert
+        boolean received = latch.await(5, TimeUnit.SECONDS);
+        assertThat(received).as("Did not receive message from stream").isTrue();
+
+        assertThat(receivedDto.get()).isNotNull();
+        assertThat(receivedDto.get().message()).isEqualTo("Hello from WireMock");
+        assertThat(receivedDto.get().time()).isEqualTo(1640995200L);
+    }
 }
