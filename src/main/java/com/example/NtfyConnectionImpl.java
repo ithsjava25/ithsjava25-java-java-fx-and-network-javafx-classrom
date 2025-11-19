@@ -20,7 +20,11 @@ public class NtfyConnectionImpl implements NtfyConnection {
 
     public NtfyConnectionImpl() {
         Dotenv dotenv = Dotenv.load();
-        hostName = Objects.requireNonNull(dotenv.get("HOST_NAME"));
+        String envHost = dotenv.get("HOST_NAME");
+        if (envHost == null || envHost.isBlank()) {
+            throw new IllegalStateException("Environment variable 'HOST_NAME' is required but was not found.");
+        }
+        hostName = envHost;
     }
 
     public NtfyConnectionImpl(String hostName) {
@@ -30,29 +34,23 @@ public class NtfyConnectionImpl implements NtfyConnection {
     @Override
     public boolean sendMessage(String message) {
         //Todo: Send message using HTTPClient
-
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(message))
                 .uri(URI.create(hostName + "/mytopic"))
+                .timeout(java.time.Duration.ofSeconds(5))
                 .build();
-        try {
-            //Todo: handle long blocking send requests to not freeze the JavaFX thread
-            //1. Use thread send message?
-            //2. Use async?
-            var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                System.err.println("Failed to send message. HTTP Status: " + response.statusCode());
-                System.err.println("Response body: " + response.body());
-                return false;
-            }
-            return true;
-        } catch (IOException e) {
-            System.err.println("Network I/O error sending message: " + e.getMessage());
-        } catch (InterruptedException e) {
-            System.err.println("Send message operation interrupted");
-            Thread.currentThread().interrupt();
+        //Todo: handle long blocking send requests to not freeze the JavaFX thread
+        //1. Use thread send message?
+        //2. Use async?
+        var response = http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
+                .orTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                .join();
+        if (response.statusCode() != 200) {
+            System.err.println("Failed to send message. HTTP Status: " + response.statusCode());
+            System.err.println("Response body: " + response.body());
+            return false;
         }
-        return false;
+        return true;
     }
 
 
