@@ -17,6 +17,7 @@ public class HelloFX extends Application {
         stage.setTitle("Tittle goes here");
         stage.setScene(scene);
         stage.show();
+        //Nothing
     }
 
     static void main() {
