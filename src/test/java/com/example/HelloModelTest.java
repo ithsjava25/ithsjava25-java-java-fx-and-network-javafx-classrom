@@ -28,14 +28,17 @@ class HelloModelTest {
 
     @Test
     void sendMessageToFakeServer(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        stubFor(get(urlPathMatching("/mytopic/json.*")).willReturn(ok()));
+
+        stubFor(post("/mytopic").willReturn(ok()));
+
         var con = new NtfyConnectionImpl("http://localhost:" + wireMockRuntimeInfo.getHttpPort());
         var model = new HelloModel(con);
         model.setMessageToSend("Hello World");
-        stubFor(post("/mytopic").willReturn(ok()));
 
         model.sendMessage();
 
-        //Verify call made to server
-        verify(postRequestedFor(urlEqualTo("/mytopic")).withRequestBody(containing("Hello World")));
+        verify(postRequestedFor(urlEqualTo("/mytopic"))
+                .withRequestBody(containing("Hello World")));
     }
 }

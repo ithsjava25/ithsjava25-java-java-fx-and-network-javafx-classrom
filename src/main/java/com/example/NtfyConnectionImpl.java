@@ -32,7 +32,7 @@ public class NtfyConnectionImpl implements NtfyConnection {
         //Todo: Send message using HTTPClient
 
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString("Hello World"))
+                .POST(HttpRequest.BodyPublishers.ofString(message))
                 .uri(URI.create(hostName + "/mytopic"))
                 .build();
         try {
@@ -40,11 +40,17 @@ public class NtfyConnectionImpl implements NtfyConnection {
             //1. Use thread send message?
             //2. Use async?
             var response = http.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                System.err.println("Failed to send message. HTTP Status: " + response.statusCode());
+                System.err.println("Response body: " + response.body());
+                return false;
+            }
             return true;
         } catch (IOException e) {
-            System.out.println("Error sending message");
+            System.err.println("Network I/O error sending message: " + e.getMessage());
         } catch (InterruptedException e) {
-            System.out.println("Interrupted");
+            System.err.println("Send message operation interrupted");
+            Thread.currentThread().interrupt();
         }
         return false;
     }
@@ -58,11 +64,34 @@ public class NtfyConnectionImpl implements NtfyConnection {
                 .build();
 
         http.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofLines())
-                .thenAccept(response -> response.body()
-                        .map(s ->
-                                mapper.readValue(s, NtfyMessageDto.class))
-                        .filter(message -> message.event().equals("message"))
-                        .peek(System.out::println)
-                        .forEach(messageHandler));
+                .thenAccept(response -> {
+                    if (response.statusCode() != 200) {
+                        System.err.println("Error connecting to stream. HTTP Status: " + response.statusCode());
+                        return;
+                    }
+                    response.body()
+                            .map(s -> {
+                                try {
+                                    return mapper.readValue(s, NtfyMessageDto.class);
+                                } catch (Exception e) {
+                                    System.err.println("Failed to parse JSON: " + e.getMessage());
+                                    return null;
+                                }
+                            })
+                            .filter(Objects::nonNull)
+                            .filter(message -> "message".equals(message.event()))
+                            .peek(m -> {
+                                var time = java.time.Instant.ofEpochSecond(m.time())
+                                        .atZone(java.time.ZoneId.systemDefault())
+                                        .toLocalTime();
+                                System.out.println(time + " " + m.message());
+                            })
+                            .forEach(messageHandler);
+                }).exceptionally(e -> {
+                    System.err.println("Async connection error: " + e.getMessage());
+                    e.printStackTrace();
+                    return null;
+                });
     }
 }
+

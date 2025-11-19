@@ -57,7 +57,10 @@ public class HelloModel {
         return "Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".";
     }
     public void sendMessage() {
-        connection.sendMessage(messageToSend.get());
+        String msg = messageToSend.get();
+        if (msg != null && !msg.isBlank()) {
+            connection.sendMessage(msg);
+        }
     }
 
     public void receiveMessage() {
