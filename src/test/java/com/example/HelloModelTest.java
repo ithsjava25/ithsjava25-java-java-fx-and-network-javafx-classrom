@@ -18,16 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WireMockTest
 class HelloModelTest {
 
-    // Initiera JavaFX Toolkit en gång för alla tester eftersom HelloModel använder Platform.runLater
-    @BeforeAll
-    static void initToolkit() {
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // Toolkit är redan startat, ignorera
-        }
-    }
-
     @Test
     @DisplayName("When calling sendMessage it should call connection send")
     void sendMessageCallsConnectionWithMessageToSend() {
