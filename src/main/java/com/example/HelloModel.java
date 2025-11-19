@@ -16,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Model layer: encapsulates application data and business logic.
@@ -24,12 +25,19 @@ public class HelloModel {
 
     private final NtfyConnection connection;
 
+    private final Consumer<Runnable> uiExecutor;
+
     private final ObservableList<NtfyMessageDto> messages = FXCollections.observableArrayList();
     private final StringProperty messageToSend = new SimpleStringProperty();
 
-    public HelloModel(NtfyConnection connection) {
+    public HelloModel(NtfyConnection connection, Consumer<Runnable> uiExecutor) {
         this.connection = connection;
+        this.uiExecutor = uiExecutor;
         receiveMessage();
+    }
+
+    public HelloModel(NtfyConnection connection) {
+        this(connection, Platform::runLater);
     }
 
     public ObservableList<NtfyMessageDto> getMessages() {
@@ -64,7 +72,7 @@ public class HelloModel {
     }
 
     public void receiveMessage() {
-        connection.receiveMessage(m -> Platform.runLater(() -> messages.add(m)));
+        connection.receiveMessage(m -> uiExecutor.accept(() -> messages.add(m)));
     }
 }
 

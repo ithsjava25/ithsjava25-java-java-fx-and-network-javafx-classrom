@@ -80,4 +80,24 @@ class HelloModelTest {
         assertThat(receivedDto.get().message()).isEqualTo("Hello from WireMock");
         assertThat(receivedDto.get().time()).isEqualTo(1640995200L);
     }
+
+    @Test
+    @DisplayName("Incoming message adds to list immediately")
+    void incomingMessageAddsToModelList_NoToolkit() {
+        // Arrange
+        var spy = new NtfyConnectionSpy();
+
+        // VIKTIGT: Skicka in Runnable::run för att köra synkront istället för Platform.runLater
+        var model = new HelloModel(spy, Runnable::run);
+
+        var incomingMessage = new NtfyMessageDto("1", 123456L, "message", "test", "Direct Test");
+
+        // Act
+        spy.triggerReceive(incomingMessage);
+
+        // Assert
+        // Eftersom vi kör synkront (Runnable::run) behöver vi ingen CountDownLatch eller wait
+        assertThat(model.getMessages()).hasSize(1);
+        assertThat(model.getMessages().getFirst().message()).isEqualTo("Direct Test");
+    }
 }
