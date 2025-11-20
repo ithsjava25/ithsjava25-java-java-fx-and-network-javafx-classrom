@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+<!-- Enkel chattvy med lista, textfält och knapp -->
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.HelloController">
+
+    <!-- Meddelandelista -->
+    <center>
+        <ListView fx:id="messages"/>
+    </center>
+
+    <!-- Textfält och knapp -->
+    <bottom>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <TextField fx:id="inputField" promptText="Skriv ett meddelande..." HBox.hgrow="ALWAYS"/>
+            <Button fx:id="sendBtn" text="Skicka" defaultButton="true"/>
+        </HBox>
+    </bottom>
+
+    <!-- Luft runt hela layouten -->
+    <padding>
+        <Insets topRightBottomLeft="8"/>
+    </padding>
+
+</BorderPane>
