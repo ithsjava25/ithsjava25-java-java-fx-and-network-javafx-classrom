@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.HelloController">
-    <children>
-        <Label fx:id="messageLabel" text="Hello, JavaFX!" />
-    </children>
-</StackPane>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-background-color: GRAY;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.HelloController">
+
+    <padding>
+        <Insets bottom="10" left="10" right="10" top="10" />
+    </padding>
+
+    <TextArea fx:id="chatArea" editable="false" wrapText="true" prefHeight="400" />
+
+    <HBox spacing="5">
+        <TextArea fx:id="inputField" prefRowCount="2" promptText="Skriv meddelande..." style="-fx-background-color: WHITE;" wrapText="true" HBox.hgrow="ALWAYS" />
+        <Button fx:id="sendButton" text="Skicka" />
+        <Button fx:id="sendFileButton" text="Bifoga fil"/>
+    </HBox>
+</VBox>
