@@ -14,6 +14,7 @@
 
     <HBox spacing="5">
         <TextArea fx:id="inputField" prefRowCount="2" promptText="Skriv meddelande..." style="-fx-background-color: WHITE;" wrapText="true" HBox.hgrow="ALWAYS" />
-        <Button fx:id="sendButton" prefHeight="53.0" prefWidth="49.0" text="Skicka" />
+        <Button fx:id="sendButton" text="Skicka" />
+        <Button fx:id="sendFileButton" text="Bifoga fil"/>
     </HBox>
 </VBox>

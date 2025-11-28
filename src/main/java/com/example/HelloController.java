@@ -5,6 +5,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 
 /**
  * Controller layer: mediates between the view (FXML) and the model.
@@ -14,8 +17,10 @@ public class HelloController {
     @FXML private TextArea inputField;
     @FXML private Button sendButton;
     @FXML private TextArea chatArea;
+    @FXML private Button sendFileButton;
 
-    private final HelloModel model = new HelloModel();
+
+    public final HelloModel model = new HelloModel(new NtfyConnectionImpl());
 
 
     @FXML
@@ -31,6 +36,7 @@ public class HelloController {
             }
         });
 
+        sendFileButton.setOnAction(e -> attachFile());
         sendButton.setOnAction(e -> sendMessage());
 
         inputField.setOnKeyPressed(event -> {
@@ -49,5 +55,16 @@ public class HelloController {
         model.setMessageToSend(msg);
         model.sendMessage();
         inputField.clear();
+    }
+    @FXML
+    private void attachFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Välj fil att bifoga");
+
+        File file = chooser.showOpenDialog(sendFileButton.getScene().getWindow());
+        if (file != null) {
+            model.sendFile(file);
+            chatArea.appendText("Du skickade fil: " + file.getName() + "\n");
+        }
     }
 }

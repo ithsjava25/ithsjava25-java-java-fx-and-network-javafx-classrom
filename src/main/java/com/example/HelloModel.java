@@ -6,6 +6,9 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.io.*;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.UUID;
 
 /**
@@ -45,22 +48,23 @@ public class HelloModel {
         String text = messageToSend.get().trim();
         if (text.isEmpty()) return;
 
-        String payload = clientId + "::" + text;
-        connection.send(payload);
+        connection.send(text);
 
         messageToSend.set("");
     }
 
+    public void sendFile(File file) {
+        try {
+            connection.sendFile(file.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void receiveMessage() {
-        connection.receive(msg -> {
-            String incoming = msg.message();
-
-            if (incoming.startsWith(clientId + "::")) {
-                return;
-            }
-
-            Platform.runLater(() -> messages.add(msg));
-        });
+        connection.receive(m ->
+                Platform.runLater(() -> messages.add(m))
+        );
     }
 }
 
